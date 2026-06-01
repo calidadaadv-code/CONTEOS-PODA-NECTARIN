@@ -319,7 +319,7 @@
 
   async function cargarDesdeDB(){
     setSyncStatus('loading','Cargando...');
-    const {data,error}=await db.from('conteos').select('*').order('id',{ascending:true});
+    const {data,error}=await db.from('conteos').select('*').order('id',{ascending:true}).limit(10000);
     if(error){ setSyncStatus('error','Sin conexión'); return; }
     registros=data.map(r=>({
       cuartel: parseInt(String(r.cuartel).replace('C-','')),
