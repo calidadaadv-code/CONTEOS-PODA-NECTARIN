@@ -311,7 +311,10 @@
 
   function hoyStr() {
     const d = new Date();
-    return d.toLocaleDateString('es-CL');
+    const dia = d.getDate();
+    const mes = d.getMonth() + 1;
+    const anio = d.getFullYear();
+    return dia + '/' + mes + '/' + anio;
   }
 
   function setSyncStatus(tipo, txt){
