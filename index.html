@@ -30,12 +30,20 @@
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
     .sync-badge { background:rgba(255,255,255,.15); color:#fff; font-size:10px; font-family:var(--mono); padding:3px 8px; border-radius:4px; display:flex; align-items:center; gap:4px; border:1px solid rgba(255,255,255,.2); }
     .admin-badge { background:rgba(255,255,255,.15); color:#fff; font-size:10px; font-family:var(--mono); padding:3px 8px; border-radius:4px; display:flex; align-items:center; gap:4px; cursor:pointer; border:1px solid rgba(255,255,255,.25); }
-    .tabs { display:grid; grid-template-columns:1fr 1fr 1fr; border-bottom:1px solid var(--gris-borde); background:#fff; position:sticky; top:0; z-index:10; }
-    .tab { padding:11px 4px; text-align:center; font-size:11px; font-weight:500; color:var(--texto-muted); cursor:pointer; border-bottom:2px solid transparent; font-family:var(--mono); background:none; border-top:none; border-left:none; border-right:none; transition:all .2s; }
+
+    .tabs { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; border-bottom:1px solid var(--gris-borde); background:#fff; position:sticky; top:0; z-index:10; }
+    .tab { padding:10px 2px; text-align:center; font-size:10px; font-weight:500; color:var(--texto-muted); cursor:pointer; border-bottom:2px solid transparent; font-family:var(--mono); background:none; border-top:none; border-left:none; border-right:none; transition:all .2s; }
     .tab.active { color:var(--verde-oscuro); border-bottom-color:var(--verde); }
-    .tab i { font-size:13px; margin-right:4px; vertical-align:-2px; }
+    .tab i { font-size:12px; display:block; margin-bottom:2px; }
+
     .panel { display:none; padding:16px; }
     .panel.active { display:block; }
+
+    /* TOGGLE HOY / ACUMULADO */
+    .toggle-row { display:flex; gap:8px; margin-bottom:16px; }
+    .toggle-btn { flex:1; padding:10px; border-radius:8px; font-size:13px; font-weight:500; font-family:var(--mono); border:1.5px solid var(--gris-borde); cursor:pointer; background:#f9f9f7; color:var(--texto-muted); transition:all .2s; text-align:center; }
+    .toggle-btn.active { background:var(--verde-oscuro); color:#fff; border-color:var(--verde-oscuro); }
+
     .cuartel-selector { background:var(--verde-claro); border:1px solid #9FE1CB; border-radius:10px; padding:12px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
     .cuartel-label { font-size:11px; font-family:var(--mono); color:var(--verde-oscuro); font-weight:500; text-transform:uppercase; letter-spacing:.05em; }
     .cuartel-val { font-size:22px; font-family:var(--mono); font-weight:500; color:var(--verde-oscuro); }
@@ -79,6 +87,8 @@
     .submit-btn:disabled { background:#aaa; cursor:not-allowed; }
     .spin { animation:girar 1s linear infinite; display:inline-block; }
     @keyframes girar { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+    /* LOCK */
     .lock-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; text-align:center; }
     .lock-icon { font-size:44px; color:var(--texto-muted); opacity:.3; margin-bottom:16px; }
     .lock-title { font-size:15px; font-weight:500; color:var(--texto); margin-bottom:6px; }
@@ -113,6 +123,8 @@
     .pass-row { display:flex; gap:8px; margin-bottom:8px; }
     .pass-input { flex:1; padding:9px 10px; border:1px solid var(--gris-borde); border-radius:7px; font-size:13px; font-family:var(--mono); background:#f9f9f7; color:var(--texto); letter-spacing:.1em; }
     .pass-btn { padding:9px 14px; background:var(--verde-oscuro); color:#fff; border:none; border-radius:7px; font-size:12px; font-family:var(--mono); cursor:pointer; }
+
+    /* DASHBOARD */
     .dash-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
     .stat-card { background:#f9f9f7; border-radius:9px; padding:12px 14px; border:.5px solid var(--gris-borde); }
     .stat-label { font-size:10px; font-family:var(--mono); color:var(--texto-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
@@ -133,6 +145,7 @@
     th:first-child { text-align:left; }
     td { padding:7px 8px; text-align:center; border-bottom:.5px solid var(--gris-borde); color:var(--texto); white-space:nowrap; }
     td:first-child { text-align:left; font-weight:500; }
+    td.obs-td { max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; color:var(--texto-muted); }
     tr:last-child td { border-bottom:none; }
     tr:hover td { background:#f9f9f7; }
     .calidad-bars { display:flex; gap:2px; align-items:center; justify-content:center; height:18px; }
@@ -144,6 +157,9 @@
     .pill-ok { background:var(--verde-claro); color:var(--verde-oscuro); }
     .pill-bajo { background:var(--rojo-claro); color:#791F1F; }
     .pill-alto { background:var(--ambar-claro); color:#633806; }
+    .pill-a { background:var(--verde-claro); color:var(--verde-oscuro); }
+    .pill-b { background:var(--ambar-claro); color:#633806; }
+    .pill-c { background:var(--rojo-claro); color:#791F1F; }
     .export-btn { width:100%; padding:11px; background:transparent; color:var(--verde-oscuro); border:1.5px solid var(--verde); border-radius:9px; font-size:13px; font-weight:500; font-family:var(--mono); cursor:pointer; margin-top:4px; display:flex; align-items:center; justify-content:center; gap:8px; }
     .refresh-btn { width:100%; padding:11px; background:var(--verde-oscuro); color:#fff; border:none; border-radius:9px; font-size:13px; font-weight:500; font-family:var(--mono); cursor:pointer; margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:8px; }
     .empty-state { text-align:center; padding:30px 20px; color:var(--texto-muted); font-size:13px; font-family:var(--mono); }
@@ -152,6 +168,7 @@
     .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
     .toast.ok { background:var(--verde-oscuro); color:#fff; }
     .toast.warn { background:#791F1F; color:#fff; }
+    .fecha-hoy { font-size:11px; font-family:var(--mono); color:var(--texto-muted); text-align:center; margin-bottom:12px; }
   </style>
 </head>
 <body>
@@ -170,12 +187,15 @@
       <button class="admin-badge" onclick="toggleAdminBadge()"><i class="ti ti-lock" id="admin-lock-icon"></i></button>
     </div>
   </div>
+
   <div class="tabs">
     <button class="tab active" onclick="switchTab('ingreso')"><i class="ti ti-edit"></i>Ingresar</button>
-    <button class="tab" onclick="switchTab('dashboard')"><i class="ti ti-chart-bar"></i>Dashboard</button>
-    <button class="tab" onclick="switchTab('config')"><i class="ti ti-settings"></i>Listas<span style="font-size:10px;margin-left:2px" id="tab-lock-icon">🔒</span></button>
+    <button class="tab" onclick="switchTab('ramillas')"><i class="ti ti-chart-bar"></i>Ramillas</button>
+    <button class="tab" onclick="switchTab('calidad')"><i class="ti ti-rosette"></i>Calidad</button>
+    <button class="tab" onclick="switchTab('config')"><i class="ti ti-settings"></i>Listas<span style="font-size:9px;margin-left:1px" id="tab-lock-icon">🔒</span></button>
   </div>
 
+  <!-- INGRESO -->
   <div class="panel active" id="panel-ingreso">
     <div class="cuartel-selector">
       <div><div class="cuartel-label">Cuartel</div><div class="cuartel-val" id="cuartel-display">C-01</div></div>
@@ -211,10 +231,25 @@
     <button class="submit-btn" id="submit-btn" onclick="guardarRegistro()"><i class="ti ti-device-floppy"></i>Guardar registro</button>
   </div>
 
-  <div class="panel" id="panel-dashboard">
-    <div id="dash-content"><div class="empty-state"><i class="ti ti-leaf"></i>Cargando datos...</div></div>
+  <!-- DASHBOARD RAMILLAS -->
+  <div class="panel" id="panel-ramillas">
+    <div class="toggle-row">
+      <button class="toggle-btn active" id="btn-hoy-ram" onclick="setVista('ram','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
+      <button class="toggle-btn" id="btn-acum-ram" onclick="setVista('ram','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
+    </div>
+    <div id="dash-ramillas"><div class="empty-state"><i class="ti ti-leaf"></i>Cargando datos...</div></div>
   </div>
 
+  <!-- DASHBOARD CALIDAD -->
+  <div class="panel" id="panel-calidad">
+    <div class="toggle-row">
+      <button class="toggle-btn active" id="btn-hoy-cal" onclick="setVista('cal','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
+      <button class="toggle-btn" id="btn-acum-cal" onclick="setVista('cal','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
+    </div>
+    <div id="dash-calidad"><div class="empty-state"><i class="ti ti-rosette"></i>Cargando datos...</div></div>
+  </div>
+
+  <!-- CONFIG -->
   <div class="panel" id="panel-config">
     <div id="lock-screen" class="lock-screen">
       <i class="ti ti-shield-lock lock-icon"></i>
@@ -258,7 +293,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // SUPABASE CONFIG
   const SUPABASE_URL = 'https://qmxcjbyqeazaeionpfli.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_hMw0cuM2-ivAl5-jkBynMw_ZuW_nNds';
   const { createClient } = supabase;
@@ -267,6 +301,7 @@
   const RAM_MIN=54, RAM_MAX=78, RAM_IDEAL=65;
   let cuartelActual=1, calidadSel=null, registros=[];
   let adminPass='poda2024', adminLogueado=false;
+  let vistaRam='hoy', vistaCal='hoy';
 
   const listas={
     contador:['PAOLA RIQUELME','HAYDEE RUIZ','PAULINA ARRIAZA','IVONNE CARREÑO','CONSTANZA SALAS'],
@@ -274,11 +309,159 @@
     contratista:['ANTHONY SANDOVAL','FLOR ARAVENA','MIRIAM PINTO','OSCAR PINTO','DENYS SANDOVAL']
   };
 
+  function hoyStr() {
+    const d = new Date();
+    return d.toLocaleDateString('es-CL');
+  }
+
   function setSyncStatus(tipo, txt){
     const badge=document.getElementById('sync-badge');
     if(tipo==='loading') badge.innerHTML='<i class="ti ti-refresh spin"></i><span>'+txt+'</span>';
     else if(tipo==='error') { badge.innerHTML='<i class="ti ti-cloud-off"></i><span>'+txt+'</span>'; badge.style.background='rgba(226,75,74,.3)'; }
     else { badge.innerHTML='<i class="ti ti-cloud-check"></i><span>'+txt+'</span>'; badge.style.background='rgba(255,255,255,.15)'; }
+  }
+
+  async function cargarDesdeDB(){
+    setSyncStatus('loading','Cargando...');
+    const {data,error}=await db.from('conteos').select('*').order('id',{ascending:true}).limit(10000);
+    if(error){ setSyncStatus('error','Sin conexión'); return; }
+    registros=data.map(r=>({
+      cuartel: String(r.cuartel),
+      hilera: r.hilera, planta: r.planta, podador: r.podador,
+      contador: r.contador, supervisor: r.supervisor,
+      contratista: r.contratista, ramillas: parseInt(r.ramillas)||0,
+      fuera: r.fuera_rango==='no'?null:r.fuera_rango,
+      calidad: r.calidad, obs: r.observaciones||'', hora: r.timestamp
+    }));
+    setSyncStatus('ok','En línea · '+registros.length+' reg.');
+    renderDashRamillas();
+    renderDashCalidad();
+  }
+
+  function setVista(tipo, vista) {
+    if(tipo==='ram') {
+      vistaRam=vista;
+      document.getElementById('btn-hoy-ram').classList.toggle('active', vista==='hoy');
+      document.getElementById('btn-acum-ram').classList.toggle('active', vista==='acum');
+      renderDashRamillas();
+    } else {
+      vistaCal=vista;
+      document.getElementById('btn-hoy-cal').classList.toggle('active', vista==='hoy');
+      document.getElementById('btn-acum-cal').classList.toggle('active', vista==='acum');
+      renderDashCalidad();
+    }
+  }
+
+  function filtrarRegistros(vista) {
+    if(vista==='hoy') {
+      const hoy=hoyStr();
+      return registros.filter(r => r.hora && r.hora.startsWith(hoy));
+    }
+    return registros;
+  }
+
+  function renderDashRamillas() {
+    const regs = filtrarRegistros(vistaRam);
+    const el = document.getElementById('dash-ramillas');
+    if(!regs.length) {
+      el.innerHTML='<div class="empty-state"><i class="ti ti-leaf"></i>'+(vistaRam==='hoy'?'Sin conteos hoy aún.':'Sin registros.')+'</div>';
+      return;
+    }
+    const total=regs.length;
+    const avgRam=(regs.reduce((s,r)=>s+r.ramillas,0)/total).toFixed(1);
+    const fueraRango=regs.filter(r=>r.fuera).length;
+    const cuartelesCon=[...new Set(regs.map(r=>r.cuartel))].length;
+    const datos={};
+    regs.forEach(r=>{
+      if(!datos[r.cuartel]) datos[r.cuartel]={total:0,sumRam:0,bajo:0,alto:0,dentro:0};
+      const d=datos[r.cuartel]; d.total++; d.sumRam+=r.ramillas;
+      if(r.fuera==='bajo') d.bajo++; else if(r.fuera==='alto') d.alto++; else d.dentro++;
+    });
+    const filas=Object.keys(datos).sort().map(c=>{
+      const d=datos[c]; const avg=Math.round(d.sumRam/d.total);
+      const avgColor=avg<RAM_MIN?'color:#791F1F':avg>RAM_MAX?'color:#633806':'color:#085041';
+      const estadoPill=d.bajo>0?`<span class="pill pill-bajo">↓${d.bajo}</span>`:d.alto>0?`<span class="pill pill-alto">↑${d.alto}</span>`:`<span class="pill pill-ok">✓</span>`;
+      return `<tr><td>${c}</td><td>${d.total}</td><td style="${avgColor};font-weight:500">${avg}</td><td>${d.dentro}</td><td>${estadoPill}</td></tr>`;
+    }).join('');
+
+    el.innerHTML=`
+      <button class="refresh-btn" onclick="cargarDesdeDB()"><i class="ti ti-refresh"></i>Actualizar</button>
+      ${vistaRam==='hoy'?`<div class="fecha-hoy">📅 ${hoyStr()}</div>`:''}
+      <div class="dash-stats">
+        <div class="stat-card"><div class="stat-label">Total conteos</div><div class="stat-val">${total}</div><div class="stat-sub">${cuartelesCon} cuarteles</div></div>
+        <div class="stat-card"><div class="stat-label">Prom. ramillas</div><div class="stat-val">${avgRam}</div><div class="stat-sub">ideal: ${RAM_IDEAL} · rango ${RAM_MIN}–${RAM_MAX}</div></div>
+      </div>
+      ${fueraRango>0?`<div class="alerta-inline bajo visible" style="margin-bottom:14px"><i class="ti ti-alert-circle"></i><span>${fueraRango} planta${fueraRango>1?'s':''} fuera de rango</span></div>`:''}
+      <p class="section-title">Resumen por cuartel — Ramillas</p>
+      <div class="rango-ref"><i class="ti ti-target"></i>Rango ${RAM_MIN}–${RAM_MAX} · Ideal ${RAM_IDEAL}</div>
+      <div class="tabla-wrap"><table>
+        <thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>En rango</th><th>Estado</th></tr></thead>
+        <tbody>${filas}</tbody>
+      </table></div>
+      <button class="export-btn" onclick="exportarCSV('ram')"><i class="ti ti-download"></i>Exportar CSV</button>`;
+  }
+
+  function renderDashCalidad() {
+    const regs = filtrarRegistros(vistaCal);
+    const el = document.getElementById('dash-calidad');
+    if(!regs.length) {
+      el.innerHTML='<div class="empty-state"><i class="ti ti-rosette"></i>'+(vistaCal==='hoy'?'Sin conteos hoy aún.':'Sin registros.')+'</div>';
+      return;
+    }
+    const total=regs.length;
+    const cG={A:0,B:0,C:0}; regs.forEach(r=>{ if(cG[r.calidad]!==undefined) cG[r.calidad]++; });
+    const pA=Math.round(cG.A/total*100), pB=Math.round(cG.B/total*100), pC=Math.round(cG.C/total*100);
+    const datos={};
+    regs.forEach(r=>{
+      if(!datos[r.cuartel]) datos[r.cuartel]={total:0,A:0,B:0,C:0,obs:[]};
+      const d=datos[r.cuartel]; d.total++;
+      if(d[r.calidad]!==undefined) d[r.calidad]++;
+      if(r.obs && r.obs.trim()) d.obs.push(r.obs.trim());
+    });
+
+    // Tabla calidad por cuartel
+    const filasCalidad=Object.keys(datos).sort().map(c=>{
+      const d=datos[c];
+      const maxCal=Math.max(d.A,d.B,d.C,1);
+      const wA=Math.max(4,Math.round(d.A/maxCal*28)), wB=Math.max(4,Math.round(d.B/maxCal*28)), wC=Math.max(4,Math.round(d.C/maxCal*28));
+      return `<tr>
+        <td>${c}</td>
+        <td>${d.total}</td>
+        <td><span class="pill pill-a">${d.A}</span></td>
+        <td><span class="pill pill-b">${d.B}</span></td>
+        <td><span class="pill pill-c">${d.C}</span></td>
+      </tr>`;
+    }).join('');
+
+    // Observaciones
+    const obsRegs = regs.filter(r=>r.obs && r.obs.trim()).slice(-30).reverse();
+    const filasObs = obsRegs.length ? obsRegs.map(r=>`<tr>
+      <td>${r.cuartel}</td>
+      <td><span class="pill pill-${r.calidad.toLowerCase()}">${r.calidad}</span></td>
+      <td class="obs-td" title="${r.obs}">${r.obs}</td>
+      <td style="font-size:10px;color:var(--texto-muted)">${r.hora||''}</td>
+    </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--texto-muted);padding:12px">Sin observaciones</td></tr>';
+
+    el.innerHTML=`
+      <button class="refresh-btn" onclick="cargarDesdeDB()"><i class="ti ti-refresh"></i>Actualizar</button>
+      ${vistaCal==='hoy'?`<div class="fecha-hoy">📅 ${hoyStr()}</div>`:''}
+      <p class="section-title">Calidad global</p>
+      <div class="calidad-dist">
+        <div class="calidad-stat A"><div class="calidad-letra">A</div><div class="calidad-pct">${pA}% · ${cG.A}</div></div>
+        <div class="calidad-stat B"><div class="calidad-letra">B</div><div class="calidad-pct">${pB}% · ${cG.B}</div></div>
+        <div class="calidad-stat C"><div class="calidad-letra">C</div><div class="calidad-pct">${pC}% · ${cG.C}</div></div>
+      </div>
+      <p class="section-title">Calidad por cuartel</p>
+      <div class="tabla-wrap"><table>
+        <thead><tr><th>Cuartel</th><th>Total</th><th>A</th><th>B</th><th>C</th></tr></thead>
+        <tbody>${filasCalidad}</tbody>
+      </table></div>
+      <p class="section-title">Observaciones recientes</p>
+      <div class="tabla-wrap"><table>
+        <thead><tr><th>Cuartel</th><th>Cal.</th><th>Observación</th><th>Hora</th></tr></thead>
+        <tbody>${filasObs}</tbody>
+      </table></div>
+      <button class="export-btn" onclick="exportarCSV('cal')"><i class="ti ti-download"></i>Exportar CSV</button>`;
   }
 
   async function guardarRegistro(){
@@ -306,8 +489,7 @@
     }]);
     btn.disabled=false; btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar registro';
     if(error){ setSyncStatus('error','Error'); mostrarToast('⚠ Error al guardar','warn'); return; }
-    setSyncStatus('ok','✓ Guardado');
-    setTimeout(()=>setSyncStatus('ok','En línea'),2000);
+    setSyncStatus('ok','✓ Guardado'); setTimeout(()=>setSyncStatus('ok','En línea'),2000);
     if(fuera==='bajo') mostrarToast('⚠ Guardado — BAJO rango mínimo','warn');
     else if(fuera==='alto') mostrarToast('⚠ Guardado — SOBRE rango máximo','warn');
     else mostrarToast('✓ Guardado correctamente');
@@ -315,25 +497,9 @@
     ramInp.value=''; ramInp.classList.remove('alerta-bajo','alerta-alto','ok');
     document.getElementById('alerta-bajo').classList.remove('visible'); document.getElementById('alerta-alto').classList.remove('visible');
     calidadSel=null; document.querySelectorAll('.calidad-btn').forEach(b=>b.classList.remove('active'));
+    cargarDesdeDB();
   }
 
-  async function cargarDesdeDB(){
-    setSyncStatus('loading','Cargando...');
-    const {data,error}=await db.from('conteos').select('*').order('id',{ascending:true}).limit(10000);
-    if(error){ setSyncStatus('error','Sin conexión'); return; }
-    registros=data.map(r=>({
-      cuartel: parseInt(String(r.cuartel).replace('C-','')),
-      hilera: r.hilera, planta: r.planta, podador: r.podador,
-      contador: r.contador, supervisor: r.supervisor,
-      contratista: r.contratista, ramillas: r.ramillas,
-      fuera: r.fuera_rango==='no'?null:r.fuera_rango,
-      calidad: r.calidad, obs: r.observaciones, hora: r.timestamp
-    }));
-    setSyncStatus('ok','En línea · '+registros.length+' reg.');
-    actualizarDashboard();
-  }
-
-  // AUTH
   function verificarPass(){
     const inp=document.getElementById('pass-input');
     if(inp.value===adminPass){
@@ -349,33 +515,13 @@
       inp.classList.add('error'); setTimeout(()=>inp.classList.remove('error'),400);
     }
   }
-  function cerrarSesion(){
-    adminLogueado=false;
-    document.getElementById('lock-screen').style.display='flex';
-    document.getElementById('admin-content').style.display='none';
-    document.getElementById('tab-lock-icon').textContent='🔒';
-    document.getElementById('admin-lock-icon').className='ti ti-lock';
-    document.getElementById('pass-input').value='';
-    switchTab('ingreso'); mostrarToast('Sesión cerrada');
-  }
+  function cerrarSesion(){ adminLogueado=false; document.getElementById('lock-screen').style.display='flex'; document.getElementById('admin-content').style.display='none'; document.getElementById('tab-lock-icon').textContent='🔒'; document.getElementById('admin-lock-icon').className='ti ti-lock'; document.getElementById('pass-input').value=''; switchTab('ingreso'); mostrarToast('Sesión cerrada'); }
   function toggleAdminBadge(){if(adminLogueado)cerrarSesion();else switchTab('config');}
   function togglePassVis(){const inp=document.getElementById('pass-input');const ico=document.getElementById('eye-icon');if(inp.type==='password'){inp.type='text';ico.className='ti ti-eye-off';}else{inp.type='password';ico.className='ti ti-eye';}}
   function cambiarPassword(){const n=document.getElementById('pass-nueva').value.trim();const c=document.getElementById('pass-confirmar').value.trim();if(!n||n.length<4){mostrarToast('Mínimo 4 caracteres','warn');return;}if(n!==c){mostrarToast('No coinciden','warn');return;}adminPass=n;document.getElementById('pass-nueva').value='';document.getElementById('pass-confirmar').value='';mostrarToast('✓ Contraseña actualizada');}
 
-  // LISTAS
-  function renderListas(){
-    ['contador','supervisor','contratista'].forEach(tipo=>{
-      const ul=document.getElementById('list-'+tipo);
-      if(!ul)return;
-      ul.innerHTML=listas[tipo].map((n,i)=>`<div class="config-item"><span class="config-item-name">${n}</span><button class="config-del" onclick="eliminarItem('${tipo}',${i})"><i class="ti ti-x"></i></button></div>`).join('');
-      renderDropdown(tipo);
-    });
-  }
-  function renderDropdown(tipo){
-    const dd=document.getElementById(tipo+'-dd');
-    if(!dd)return;
-    dd.innerHTML=listas[tipo].map(n=>`<div class="combo-option" onclick="seleccionarCombo('${tipo}','${n.replace(/'/g,"\\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="combo-option nuevo" onclick="limpiarCombo('${tipo}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;
-  }
+  function renderListas(){['contador','supervisor','contratista'].forEach(tipo=>{const ul=document.getElementById('list-'+tipo);if(!ul)return;ul.innerHTML=listas[tipo].map((n,i)=>`<div class="config-item"><span class="config-item-name">${n}</span><button class="config-del" onclick="eliminarItem('${tipo}',${i})"><i class="ti ti-x"></i></button></div>`).join('');renderDropdown(tipo);});}
+  function renderDropdown(tipo){const dd=document.getElementById(tipo+'-dd');if(!dd)return;dd.innerHTML=listas[tipo].map(n=>`<div class="combo-option" onclick="seleccionarCombo('${tipo}','${n.replace(/'/g,"\\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="combo-option nuevo" onclick="limpiarCombo('${tipo}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;}
   function agregarItem(tipo){const inp=document.getElementById('add-'+tipo);const val=inp.value.trim();if(!val)return;if(listas[tipo].includes(val)){mostrarToast('Ya existe','warn');return;}listas[tipo].push(val);inp.value='';renderListas();mostrarToast('✓ Agregado: '+val);}
   function eliminarItem(tipo,idx){listas[tipo].splice(idx,1);renderListas();}
   function toggleCombo(ddId){document.querySelectorAll('.combo-dropdown').forEach(d=>{if(d.id!==ddId)d.classList.remove('open');});document.getElementById(ddId).classList.toggle('open');}
@@ -389,44 +535,20 @@
   function mostrarToast(msg,tipo){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(tipo||'ok');setTimeout(()=>t.classList.remove('show'),2500);}
 
   function switchTab(tab){
-    document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['ingreso','dashboard','config'][i]===tab));
-    ['ingreso','dashboard','config'].forEach(p=>document.getElementById('panel-'+p).classList.toggle('active',p===tab));
-    if(tab==='dashboard')cargarDesdeDB();
+    document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['ingreso','ramillas','calidad','config'][i]===tab));
+    ['ingreso','ramillas','calidad','config'].forEach(p=>document.getElementById('panel-'+p).classList.toggle('active',p===tab));
+    if(tab==='ramillas'||tab==='calidad') cargarDesdeDB();
   }
 
-  function actualizarDashboard(){
-    if(!registros.length){document.getElementById('dash-content').innerHTML='<div class="empty-state"><i class="ti ti-leaf"></i>Sin registros aún.</div>';return;}
-    const total=registros.length;
-    const avgRam=(registros.reduce((s,r)=>s+r.ramillas,0)/total).toFixed(1);
-    const fueraRango=registros.filter(r=>r.fuera).length;
-    const cuartelesCon=[...new Set(registros.map(r=>r.cuartel))].length;
-    const cG={A:0,B:0,C:0};registros.forEach(r=>cG[r.calidad]++);
-    const pA=Math.round(cG.A/total*100),pB=Math.round(cG.B/total*100),pC=Math.round(cG.C/total*100);
-    const datos={};registros.forEach(r=>{if(!datos[r.cuartel])datos[r.cuartel]={total:0,sumRam:0,bajo:0,alto:0,dentro:0,A:0,B:0,C:0};const d=datos[r.cuartel];d.total++;d.sumRam+=r.ramillas;d[r.calidad]++;if(r.fuera==='bajo')d.bajo++;else if(r.fuera==='alto')d.alto++;else d.dentro++;});
-    const filas=Object.keys(datos).sort((a,b)=>a-b).map(c=>{const d=datos[c];const avg=Math.round(d.sumRam/d.total);const avgColor=avg<RAM_MIN?'color:#791F1F':avg>RAM_MAX?'color:#633806':'color:#085041';const estadoPill=d.bajo>0?`<span class="pill pill-bajo">↓${d.bajo}</span>`:d.alto>0?`<span class="pill pill-alto">↑${d.alto}</span>`:`<span class="pill pill-ok">✓</span>`;const maxCal=Math.max(d.A,d.B,d.C,1);const wA=Math.max(4,Math.round(d.A/maxCal*28)),wB=Math.max(4,Math.round(d.B/maxCal*28)),wC=Math.max(4,Math.round(d.C/maxCal*28));const calCell=`<div class="calidad-bars"><div class="cbar A" style="width:${wA}px"></div><div class="cbar B" style="width:${wB}px"></div><div class="cbar C" style="width:${wC}px"></div></div><div class="calidad-nums"><span class="cn-a">${d.A}</span><span class="cn-b">${d.B}</span><span class="cn-c">${d.C}</span></div>`;return`<tr><td>C-${String(c).padStart(2,'0')}</td><td>${d.total}</td><td style="${avgColor};font-weight:500">${avg}</td><td>${d.dentro}</td><td>${estadoPill}</td><td>${calCell}</td></tr>`;}).join('');
-    document.getElementById('dash-content').innerHTML=`
-      <button class="refresh-btn" onclick="cargarDesdeDB()"><i class="ti ti-refresh"></i>Actualizar</button>
-      <div class="dash-stats">
-        <div class="stat-card"><div class="stat-label">Total registros</div><div class="stat-val">${total}</div><div class="stat-sub">${cuartelesCon} cuarteles</div></div>
-        <div class="stat-card"><div class="stat-label">Prom. ramillas</div><div class="stat-val">${avgRam}</div><div class="stat-sub">ideal: ${RAM_IDEAL} · rango ${RAM_MIN}–${RAM_MAX}</div></div>
-      </div>
-      ${fueraRango>0?`<div class="alerta-inline bajo visible" style="margin-bottom:14px"><i class="ti ti-alert-circle"></i><span>${fueraRango} planta${fueraRango>1?'s':''} fuera de rango</span></div>`:''}
-      <p class="section-title">Calidad global</p>
-      <div class="calidad-dist">
-        <div class="calidad-stat A"><div class="calidad-letra">A</div><div class="calidad-pct">${pA}% · ${cG.A}</div></div>
-        <div class="calidad-stat B"><div class="calidad-letra">B</div><div class="calidad-pct">${pB}% · ${cG.B}</div></div>
-        <div class="calidad-stat C"><div class="calidad-letra">C</div><div class="calidad-pct">${pC}% · ${cG.C}</div></div>
-      </div>
-      <p class="section-title">Resumen por cuartel</p>
-      <div class="rango-ref"><i class="ti ti-target"></i>Rango ${RAM_MIN}–${RAM_MAX} · Ideal ${RAM_IDEAL}</div>
-      <div class="tabla-wrap"><table>
-        <thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>En rango</th><th>Estado</th><th>Calidad A·B·C</th></tr></thead>
-        <tbody>${filas}</tbody>
-      </table></div>
-      <button class="export-btn" onclick="exportarCSV()"><i class="ti ti-download"></i>Exportar CSV</button>`;
+  function exportarCSV(tipo){
+    const regs=filtrarRegistros(tipo==='ram'?vistaRam:vistaCal);
+    if(!regs.length){mostrarToast('Sin datos','warn');return;}
+    const cab='Cuartel,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Ramillas,Fuera_Rango,Calidad,Observaciones,Hora';
+    const filas=regs.map(r=>[r.cuartel,r.hilera,r.planta,r.podador,r.contador,r.supervisor,r.contratista,r.ramillas,r.fuera||'no',r.calidad,r.obs,r.hora].join(','));
+    const blob=new Blob([[cab,...filas].join('\n')],{type:'text/csv'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='conteos_poda.csv'; a.click();
+    mostrarToast('✓ CSV descargado');
   }
-
-  function exportarCSV(){if(!registros.length){mostrarToast('Sin datos','warn');return;}const cab='Cuartel,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Ramillas,Fuera_Rango,Calidad,Observaciones,Hora';const filas=registros.map(r=>[r.cuartel,r.hilera,r.planta,r.podador,r.contador,r.supervisor,r.contratista,r.ramillas,r.fuera||'no',r.calidad,r.obs,r.hora].join(','));const blob=new Blob([[cab,...filas].join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='conteos_poda.csv';a.click();mostrarToast('✓ CSV descargado');}
 
   renderListas();
   cargarDesdeDB();
