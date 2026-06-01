@@ -358,7 +358,7 @@
   function filtrarRegistros(vista) {
     if(vista==='hoy') {
       const hoy=hoyStr();
-      return registros.filter(r => r.hora && r.hora.startsWith(hoy));
+      return registros.filter(r => r.hora && r.hora.includes(hoy));
     }
     return registros;
   }
