@@ -291,7 +291,7 @@
       <div class="fgrp"><label class="flbl">Supervisor</label><div class="cwrap"><input class="cinp" type="text" id="nec-sup" placeholder="Seleccionar..." readonly onclick="openDD('nec-sup-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="nec-sup-dd"></div></div></div>
       <div class="fgrp"><label class="flbl">Contratista</label><div class="cwrap"><input class="cinp" type="text" id="nec-con" placeholder="Seleccionar..." readonly onclick="openDD('nec-con-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="nec-con-dd"></div></div></div>
     </div>
-    <div class="rbox"><div class="rtitle">N° de Ramillas por planta</div><input class="rinp" type="number" id="nec-ram" min="0" max="200" placeholder="65" oninput="valRam(this)"><div class="rhint">Rango ideal: 54 – 65 – 78 ramillas</div></div>
+    <div class="rbox"><div class="rtitle">N° de Ramillas por planta</div><input class="rinp" type="number" id="nec-ram-inp" min="0" max="200" placeholder="65" oninput="valRam(this)"><div class="rhint">Rango ideal: 54 – 65 – 78 ramillas</div></div>
     <div class="alerta bajo" id="nec-abaj"><i class="ti ti-alert-circle"></i><span>Bajo rango mínimo (&lt; 54)</span></div>
     <div class="alerta alto" id="nec-aalt"><i class="ti ti-alert-triangle"></i><span>Sobre rango máximo (&gt; 78)</span></div>
     <div class="fgrp" style="margin-bottom:10px"><label class="flbl">Índice de Calidad</label>
@@ -559,7 +559,7 @@ async function guardarNec(){
   const pod=document.getElementById('nec-pod').value,cnt=document.getElementById('nec-cnt').value;
   const sup=document.getElementById('nec-sup').value,comp=document.getElementById('nec-con').value;
   const obs=document.getElementById('nec-obs').value;
-  const ri=document.getElementById('nec-ram');const ram=parseInt(ri.value);
+  const ri=document.getElementById('nec-ram-inp');const ram=parseInt(ri.value);
   if(!h||!p||!pod||!cnt||isNaN(ram)||!nCal){toast('⚠ Completa todos los campos','warn');return;}
   const f=ram<RM?'bajo':ram>RX?'alto':null;
   const btn=document.getElementById('nec-sub');btn.disabled=true;btn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';
@@ -680,7 +680,7 @@ function chgPass(e){const n=document.getElementById(e+'-pn').value.trim(),c=docu
 
 // LISTAS
 function rlists(e){['con','sup','comp'].forEach(t=>{const ul=document.getElementById(e+'-l'+t);if(!ul)return;ul.innerHTML=L[e][t].map((n,i)=>`<div class="cfg-item"><span class="cfg-name">${n}</span><button class="cfg-del" onclick="delL('${e}','${t}',${i})"><i class="ti ti-x"></i></button></div>`).join('');rdd(e,t);});}
-function rdd(e,t){const dd=document.getElementById(e+'-'+t+'-dd');if(!dd)return;const fld=e==='nec'?{con:'nec-cnt',sup:'nec-sup',comp:'nec-con'}:{con:'cer-cnt',sup:'cer-sup',comp:'cer-con'};dd.innerHTML=L[e][t].map(n=>`<div class="copt" onclick="selDD('${fld[t]}','${e+'-'+t+'-dd'}','${n.replace(/'/g,"\\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="copt nuevo" onclick="clrDD('${fld[t]}','${e+'-'+t+'-dd'}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;}
+function rdd(e,t){const ddMap={nec:{con:'nec-cnt-dd',sup:'nec-sup-dd',comp:'nec-con-dd'},cer:{con:'cer-cnt-dd',sup:'cer-sup-dd',comp:'cer-con-dd'}};const dd=document.getElementById(ddMap[e][t]);if(!dd)return;const fld=e==='nec'?{con:'nec-cnt',sup:'nec-sup',comp:'nec-con'}:{con:'cer-cnt',sup:'cer-sup',comp:'cer-con'};dd.innerHTML=L[e][t].map(n=>`<div class="copt" onclick="selDD('${fld[t]}','${ddMap[e][t]}','${n.replace(/'/g,"\\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="copt nuevo" onclick="clrDD('${fld[t]}','${ddMap[e][t]}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;}
 function addL(e,t){const inp=document.getElementById(e+'-a'+t);const v=inp.value.trim();if(!v)return;if(L[e][t].includes(v)){toast('Ya existe','warn');return;}L[e][t].push(v);inp.value='';rlists(e);toast('✓ Agregado: '+v);}
 function delL(e,t,i){L[e][t].splice(i,1);rlists(e);}
 function openDD(id){document.querySelectorAll('.cdd').forEach(d=>{if(d.id!==id)d.classList.remove('open');});document.getElementById(id).classList.toggle('open');}
