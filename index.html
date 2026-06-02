@@ -337,7 +337,7 @@
 
     <div class="panel active" id="nec-ingreso">
       <div class="cuartel-sel-g">
-        <div><div class="cuartel-label-g">Cuartel</div><div class="cuartel-val-g" id="nec-cuartel-display">C-01</div></div>
+        <div><div class="cuartel-label-g">Cuartel</div><div class="cuartel-val-g" id="nec-cuartel-display">C-01 · Luciana</div></div>
         <div class="cuartel-nav">
           <button class="nav-btn-g" onclick="cambiarCuartelNec(-1)">‹</button>
           <button class="nav-btn-g" onclick="cambiarCuartelNec(1)">›</button>
@@ -568,6 +568,22 @@ const SUPABASE_KEY='sb_publishable_hMw0cuM2-ivAl5-jkBynMw_ZuW_nNds';
 const {createClient}=supabase;
 const db=createClient(SUPABASE_URL,SUPABASE_KEY);
 
+// ===== DATOS CUARTELES NECTARIN =====
+const CUARTELES_NECTARIN=[
+  {num:'C-01', var:'Luciana'},
+  {num:'C-02', var:'Garcica'},
+  {num:'C-03', var:'Arctic Red'},
+  {num:'C-04', var:'Arctic Red'},
+  {num:'C-05', var:'Arctic Red'},
+  {num:'C-08', var:'Luciana'},
+  {num:'C-09', var:'Garcica'},
+  {num:'C-13', var:'Gardeta'},
+  {num:'C-30', var:'Gardeta'},
+  {num:'C-31', var:'Gartairo'},
+  {num:'C-32', var:'Andesnecdos'},
+  {num:'C-7B', var:'Garcica'},
+];
+
 // ===== DATOS CUARTELES CEREZA =====
 const CUARTELES_CEREZA=[
   {num:'C-6',  var:'Lapins',  min:230,obj:276,max:331},
@@ -590,7 +606,7 @@ const CUARTELES_CEREZA=[
 
 // ===== ESTADO =====
 const RAM_MIN=54,RAM_MAX=78,RAM_IDEAL=65;
-let necCuartel=1, necCalidadSel=null, necRegistros=[];
+let necCuartelIdx=0, necCalidadSel=null, necRegistros=[];
 let necVistaRam='hoy', necVistaCal='hoy';
 let necPass='poda2024', necAdmin=false;
 let cerIdx=0, cerTipoConteo='pre', cerCalidadSel=null, cerRegistros=[];
@@ -637,7 +653,7 @@ async function guardarNec(){
   if(!hilera||!planta||!podador||!contador||isNaN(ram)||!necCalidadSel){mostrarToast('⚠ Completa todos los campos','warn');return;}
   const fuera=ram<RAM_MIN?'bajo':ram>RAM_MAX?'alto':null;
   const btn=document.getElementById('nec-submit');btn.disabled=true;btn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';
-  const {error}=await db.from('conteos').insert([{timestamp:tsNow(),cuartel:'C-'+String(necCuartel).padStart(2,'0'),hilera:parseInt(hilera),planta:parseInt(planta),podador,contador,supervisor,contratista,ramillas:ram,fuera_rango:fuera||'no',calidad:necCalidadSel,observaciones:obs||''}]);
+  const {error}=await db.from('conteos').insert([{timestamp:tsNow(),cuartel:CUARTELES_NECTARIN[necCuartelIdx].num,hilera:parseInt(hilera),planta:parseInt(planta),podador,contador,supervisor,contratista,ramillas:ram,fuera_rango:fuera||'no',calidad:necCalidadSel,observaciones:obs||''}]);
   btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar registro';
   if(error){mostrarToast('⚠ Error al guardar','warn');return;}
   if(fuera==='bajo')mostrarToast('⚠ Guardado — BAJO rango','warn');else if(fuera==='alto')mostrarToast('⚠ Guardado — SOBRE rango','warn');else mostrarToast('✓ Guardado correctamente');
@@ -783,7 +799,14 @@ function seleccionarComboEsp(esp,tipo,valor){const inp=document.getElementById(e
 function limpiarComboEsp(esp,tipo){const inp=document.getElementById(esp+'-'+tipo);inp.value='';inp.readOnly=false;inp.placeholder='Escribe...';inp.focus();document.getElementById(esp+'-'+tipo+'-dd').classList.remove('open');}
 document.addEventListener('click',e=>{if(!e.target.closest('.combo-wrap'))document.querySelectorAll('.combo-dropdown').forEach(d=>d.classList.remove('open'));});
 
-function cambiarCuartelNec(d){necCuartel=Math.max(1,Math.min(34,necCuartel+d));document.getElementById('nec-cuartel-display').textContent='C-'+String(necCuartel).padStart(2,'0');}
+function cambiarCuartelNec(d){
+  necCuartelIdx=Math.max(0,Math.min(CUARTELES_NECTARIN.length-1,necCuartelIdx+d));
+  actualizarCuartelNec();
+}
+function actualizarCuartelNec(){
+  const c=CUARTELES_NECTARIN[necCuartelIdx];
+  document.getElementById('nec-cuartel-display').textContent=c.num+' · '+c.var;
+}
 function validarRamillasNec(inp){const v=parseInt(inp.value);inp.classList.remove('alerta-bajo','alerta-alto','ok');document.getElementById('nec-alerta-bajo').classList.remove('visible');document.getElementById('nec-alerta-alto').classList.remove('visible');if(isNaN(v)||inp.value==='')return;if(v<RAM_MIN){inp.classList.add('alerta-bajo');document.getElementById('nec-alerta-bajo').classList.add('visible');}else if(v>RAM_MAX){inp.classList.add('alerta-alto');document.getElementById('nec-alerta-alto').classList.add('visible');}else inp.classList.add('ok');}
 function setCalidad(esp,v){necCalidadSel=v;document.querySelectorAll('.calidad-btn').forEach(b=>b.classList.remove('active'));document.querySelector('.calidad-btn.'+v).classList.add('active');}
 function setVistaNec(tipo,vista){if(tipo==='ram'){necVistaRam=vista;document.getElementById('nec-btn-hoy-ram').className='toggle-btn'+(vista==='hoy'?' active-g':'');document.getElementById('nec-btn-acum-ram').className='toggle-btn'+(vista==='acum'?' active-g':'');renderNecRam();}else{necVistaCal=vista;document.getElementById('nec-btn-hoy-cal').className='toggle-btn'+(vista==='hoy'?' active-g':'');document.getElementById('nec-btn-acum-cal').className='toggle-btn'+(vista==='acum'?' active-g':'');renderNecCal();}}
@@ -800,7 +823,7 @@ function exportarCSV(esp,tipo){
   const blob=new Blob([[cab,...filas].join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='conteos_'+(esp==='nec'?'nectarin':'cerezas')+'.csv';a.click();mostrarToast('✓ CSV descargado');
 }
 
-renderListasEsp('nec');renderListasEsp('cer');resetCargadores();actualizarCuartelCer();
+renderListasEsp('nec');renderListasEsp('cer');resetCargadores();actualizarCuartelCer();actualizarCuartelNec();
 </script>
 </body>
 </html>
