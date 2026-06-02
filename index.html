@@ -8,836 +8,692 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --verde: #1D9E75; --verde-claro: #E1F5EE; --verde-oscuro: #085041;
-      --rojo: #C0392B; --rojo-claro: #FADBD8; --rojo-oscuro: #7B241C;
-      --ambar: #EF9F27; --ambar-claro: #FAEEDA;
-      --gris-bg: #F5F4F0; --gris-borde: rgba(0,0,0,0.1);
-      --texto: #1a1a18; --texto-muted: #6b6b68;
-      --mono: 'IBM Plex Mono', monospace; --sans: 'IBM Plex Sans', sans-serif;
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --vd:#1D9E75;--vc:#E1F5EE;--vo:#085041;
+      --rd:#C0392B;--rc:#FADBD8;--ro:#7B241C;
+      --am:#EF9F27;--ac:#FAEEDA;
+      --gb:#F5F4F0;--gb2:rgba(0,0,0,0.1);
+      --tx:#1a1a18;--tm:#6b6b68;
+      --mo:'IBM Plex Mono',monospace;--sa:'IBM Plex Sans',sans-serif
     }
-    body { font-family: var(--sans); background: #f0f0ee; color: var(--texto); }
-    .app { max-width: 420px; margin: 0 auto; min-height: 100vh; background: #fff; box-shadow: 0 0 40px rgba(0,0,0,.08); }
-
-    /* ===== PANTALLA INICIO ===== */
-    .inicio { flex-direction:column; min-height:100vh; }
-    .inicio-header { padding:40px 24px 24px; text-align:center; }
-    .inicio-logo { font-size:32px; margin-bottom:8px; }
-    .inicio-title { font-family:var(--mono); font-size:18px; font-weight:500; color:var(--texto); }
-    .inicio-sub { font-size:13px; color:var(--texto-muted); font-family:var(--mono); margin-top:4px; }
-    .inicio-cards { flex:1; padding:16px; display:flex; flex-direction:column; gap:16px; justify-content:center; }
-    .especie-card { border-radius:14px; padding:24px; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:16px; }
-    .especie-card:hover { transform:scale(1.02); }
-    .especie-card.nectarin { background:linear-gradient(135deg,#085041,#1D9E75); }
-    .especie-card.cereza { background:linear-gradient(135deg,#7B241C,#C0392B); }
-    .especie-icon { font-size:48px; }
-    .especie-info { flex:1; }
-    .especie-nombre { font-size:20px; font-weight:600; color:#fff; font-family:var(--mono); }
-    .especie-desc { font-size:12px; color:rgba(255,255,255,.7); font-family:var(--mono); margin-top:4px; }
-    .especie-arrow { font-size:24px; color:rgba(255,255,255,.6); }
-    .inicio-footer { padding:20px; text-align:center; font-size:11px; color:var(--texto-muted); font-family:var(--mono); }
-
-    /* ===== APP GENERAL ===== */
-    .app-view { display:none; }
-    .app-view.active { display:block; }
-
-    /* HEADER NECTARIN */
-    .header-nec { background:var(--verde-oscuro); color:#fff; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; }
-    /* HEADER CEREZA */
-    .header-cer { background:var(--rojo-oscuro); color:#fff; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; }
-    .header-left { display:flex; align-items:center; gap:10px; }
-    .header-icon { font-size:18px; }
-    .back-btn { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); color:#fff; font-size:11px; font-family:var(--mono); padding:4px 10px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:4px; }
-    .header-title { font-family:var(--mono); font-size:13px; font-weight:500; }
-    .header-sub { font-size:10px; opacity:.6; font-family:var(--mono); }
-    .header-right { display:flex; align-items:center; gap:6px; }
-    .header-badge-g { background:var(--verde); color:#fff; font-size:10px; font-family:var(--mono); padding:3px 8px; border-radius:4px; display:flex; align-items:center; gap:4px; }
-    .header-badge-r { background:var(--rojo); color:#fff; font-size:10px; font-family:var(--mono); padding:3px 8px; border-radius:4px; display:flex; align-items:center; gap:4px; }
-    .dot-live { width:6px; height:6px; background:#5DCAA5; border-radius:50%; animation:pulse 1.5s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
-    .sync-badge { background:rgba(255,255,255,.15); color:#fff; font-size:10px; font-family:var(--mono); padding:3px 8px; border-radius:4px; display:flex; align-items:center; gap:4px; border:1px solid rgba(255,255,255,.2); }
-    .admin-badge { background:rgba(255,255,255,.15); color:#fff; font-size:10px; font-family:var(--mono); padding:3px 8px; border-radius:4px; display:flex; align-items:center; gap:4px; cursor:pointer; border:1px solid rgba(255,255,255,.25); }
-
-    /* TABS NECTARIN */
-    .tabs-nec { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; border-bottom:1px solid var(--gris-borde); background:#fff; position:sticky; top:0; z-index:10; }
-    .tab-nec { padding:10px 2px; text-align:center; font-size:10px; font-weight:500; color:var(--texto-muted); cursor:pointer; border-bottom:2px solid transparent; font-family:var(--mono); background:none; border-top:none; border-left:none; border-right:none; transition:all .2s; }
-    .tab-nec.active { color:var(--verde-oscuro); border-bottom-color:var(--verde); }
-    .tab-nec i { font-size:12px; display:block; margin-bottom:2px; }
-
-    /* TABS CEREZA */
-    .tabs-cer { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; border-bottom:1px solid var(--gris-borde); background:#fff; position:sticky; top:0; z-index:10; }
-    .tab-cer { padding:10px 2px; text-align:center; font-size:10px; font-weight:500; color:var(--texto-muted); cursor:pointer; border-bottom:2px solid transparent; font-family:var(--mono); background:none; border-top:none; border-left:none; border-right:none; transition:all .2s; }
-    .tab-cer.active { color:var(--rojo-oscuro); border-bottom-color:var(--rojo); }
-    .tab-cer i { font-size:12px; display:block; margin-bottom:2px; }
-
-    .panel { display:none; padding:16px; }
-    .panel.active { display:block; }
-
-    /* TOGGLE HOY/ACUM */
-    .toggle-row { display:flex; gap:8px; margin-bottom:16px; }
-    .toggle-btn { flex:1; padding:10px; border-radius:8px; font-size:13px; font-weight:500; font-family:var(--mono); border:1.5px solid var(--gris-borde); cursor:pointer; background:#f9f9f7; color:var(--texto-muted); transition:all .2s; text-align:center; }
-    .toggle-btn.active-g { background:var(--verde-oscuro); color:#fff; border-color:var(--verde-oscuro); }
-    .toggle-btn.active-r { background:var(--rojo-oscuro); color:#fff; border-color:var(--rojo-oscuro); }
-
-    /* CUARTEL SELECTOR */
-    .cuartel-sel-g { background:var(--verde-claro); border:1px solid #9FE1CB; border-radius:10px; padding:12px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
-    .cuartel-sel-r { background:var(--rojo-claro); border:1px solid #F1948A; border-radius:10px; padding:12px 14px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
-    .cuartel-label-g { font-size:11px; font-family:var(--mono); color:var(--verde-oscuro); font-weight:500; text-transform:uppercase; letter-spacing:.05em; }
-    .cuartel-label-r { font-size:11px; font-family:var(--mono); color:var(--rojo-oscuro); font-weight:500; text-transform:uppercase; letter-spacing:.05em; }
-    .cuartel-val-g { font-size:22px; font-family:var(--mono); font-weight:500; color:var(--verde-oscuro); }
-    .cuartel-val-r { font-size:20px; font-family:var(--mono); font-weight:500; color:var(--rojo-oscuro); }
-    .cuartel-nav { display:flex; gap:6px; }
-    .nav-btn-g { width:30px; height:30px; border-radius:6px; background:var(--verde-oscuro); color:#fff; border:none; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-    .nav-btn-r { width:30px; height:30px; border-radius:6px; background:var(--rojo-oscuro); color:#fff; border:none; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-
-    /* RANGO INFO CEREZA */
-    .rango-info-r { background:var(--rojo-claro); border:1px solid #F1948A; border-radius:8px; padding:10px 14px; margin-bottom:12px; font-size:12px; font-family:var(--mono); color:var(--rojo-oscuro); display:flex; align-items:center; gap:8px; }
-
-    /* TIPO CONTEO */
-    .tipo-row { display:flex; gap:8px; margin-bottom:12px; }
-    .tipo-btn { flex:1; padding:9px 6px; border-radius:8px; font-size:12px; font-weight:500; font-family:var(--mono); border:1.5px solid var(--gris-borde); cursor:pointer; background:#f9f9f7; color:var(--texto-muted); transition:all .15s; text-align:center; }
-    .tipo-btn.pre.active { background:var(--rojo-claro); border-color:var(--rojo); color:var(--rojo-oscuro); }
-    .tipo-btn.post.active { background:#E8F8F5; border-color:#1ABC9C; color:#0E6655; }
-
+    body{font-family:var(--sa);background:#f0f0ee;color:var(--tx)}
+    .app{max-width:420px;margin:0 auto;min-height:100vh;background:#fff;box-shadow:0 0 40px rgba(0,0,0,.08)}
+    /* INICIO */
+    #pantalla-inicio{display:flex;flex-direction:column;min-height:100vh}
+    .ini-hdr{padding:40px 24px 24px;text-align:center}
+    .ini-logo{font-size:32px}
+    .ini-title{font-family:var(--mo);font-size:18px;font-weight:500;margin-top:8px}
+    .ini-sub{font-size:13px;color:var(--tm);margin-top:4px;font-family:var(--mo)}
+    .ini-cards{flex:1;padding:16px;display:flex;flex-direction:column;gap:16px;justify-content:center}
+    .esp-card{border-radius:14px;padding:24px;cursor:pointer;display:flex;align-items:center;gap:16px;transition:transform .2s}
+    .esp-card:hover{transform:scale(1.02)}
+    .esp-nec{background:linear-gradient(135deg,#085041,#1D9E75)}
+    .esp-cer{background:linear-gradient(135deg,#7B241C,#C0392B)}
+    .esp-icon{font-size:48px}
+    .esp-name{font-size:20px;font-weight:600;color:#fff;font-family:var(--mo)}
+    .esp-desc{font-size:12px;color:rgba(255,255,255,.7);font-family:var(--mo);margin-top:4px}
+    .esp-arr{font-size:24px;color:rgba(255,255,255,.6);margin-left:auto}
+    .ini-ft{padding:20px;text-align:center;font-size:11px;color:var(--tm);font-family:var(--mo)}
+    /* VIEWS */
+    .app-view{display:none}
+    /* HEADERS */
+    .hdr-nec{background:var(--vo);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+    .hdr-cer{background:var(--ro);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+    .hdr-l{display:flex;align-items:center;gap:10px}
+    .back-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11px;font-family:var(--mo);padding:4px 10px;border-radius:6px;cursor:pointer}
+    .hdr-title{font-family:var(--mo);font-size:13px;font-weight:500}
+    .hdr-sub{font-size:10px;opacity:.6;font-family:var(--mo)}
+    .hdr-r{display:flex;align-items:center;gap:6px}
+    .bdg-vivo-g{background:var(--vd);color:#fff;font-size:10px;font-family:var(--mo);padding:3px 8px;border-radius:4px;display:flex;align-items:center;gap:4px}
+    .bdg-vivo-r{background:var(--rd);color:#fff;font-size:10px;font-family:var(--mo);padding:3px 8px;border-radius:4px;display:flex;align-items:center;gap:4px}
+    .dot{width:6px;height:6px;background:#5DCAA5;border-radius:50%;animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .sync-bdg{background:rgba(255,255,255,.15);color:#fff;font-size:10px;font-family:var(--mo);padding:3px 8px;border-radius:4px;display:flex;align-items:center;gap:4px;border:1px solid rgba(255,255,255,.2)}
+    .adm-bdg{background:rgba(255,255,255,.15);color:#fff;font-size:10px;font-family:var(--mo);padding:3px 8px;border-radius:4px;cursor:pointer;border:1px solid rgba(255,255,255,.25)}
+    /* TABS */
+    .tabs-nec,.tabs-cer{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1px solid var(--gb2);background:#fff;position:sticky;top:0;z-index:10}
+    .tab-nec,.tab-cer{padding:10px 2px;text-align:center;font-size:10px;font-weight:500;color:var(--tm);cursor:pointer;border-bottom:2px solid transparent;font-family:var(--mo);background:none;border-top:none;border-left:none;border-right:none;transition:all .2s}
+    .tab-nec i,.tab-cer i{font-size:12px;display:block;margin-bottom:2px}
+    .tab-nec.active{color:var(--vo);border-bottom-color:var(--vd)}
+    .tab-cer.active{color:var(--ro);border-bottom-color:var(--rd)}
+    /* PANELS */
+    .panel{display:none;padding:16px}
+    .panel.active{display:block}
+    /* TOGGLE */
+    .tog-row{display:flex;gap:8px;margin-bottom:16px}
+    .tog-btn{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:500;font-family:var(--mo);border:1.5px solid var(--gb2);cursor:pointer;background:#f9f9f7;color:var(--tm);transition:all .2s;text-align:center}
+    .tog-g{background:var(--vo);color:#fff;border-color:var(--vo)}
+    .tog-r{background:var(--ro);color:#fff;border-color:var(--ro)}
+    /* CUARTEL */
+    .csel-g{background:var(--vc);border:1px solid #9FE1CB;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+    .csel-r{background:var(--rc);border:1px solid #F1948A;border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+    .clbl-g{font-size:11px;font-family:var(--mo);color:var(--vo);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+    .clbl-r{font-size:11px;font-family:var(--mo);color:var(--ro);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+    .cval-g{font-size:20px;font-family:var(--mo);font-weight:500;color:var(--vo)}
+    .cval-r{font-size:18px;font-family:var(--mo);font-weight:500;color:var(--ro)}
+    .cnav{display:flex;gap:6px}
+    .nbtn-g{width:30px;height:30px;border-radius:6px;background:var(--vo);color:#fff;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .nbtn-r{width:30px;height:30px;border-radius:6px;background:var(--ro);color:#fff;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
     /* FORM */
-    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
-    .form-group { display:flex; flex-direction:column; gap:5px; }
-    .form-group.full { grid-column:1/-1; }
-    .form-label { font-size:10px; font-family:var(--mono); font-weight:500; color:var(--texto-muted); text-transform:uppercase; letter-spacing:.06em; }
-    .form-input { padding:9px 10px; border:1px solid var(--gris-borde); border-radius:7px; font-size:14px; font-family:var(--sans); background:#f9f9f7; color:var(--texto); width:100%; }
-    .form-input:focus { outline:none; border-color:var(--verde); background:#fff; }
-    .form-input-r:focus { outline:none; border-color:var(--rojo); background:#fff; }
-    .combo-wrap { position:relative; }
-    .combo-input { padding:9px 32px 9px 10px; border:1px solid var(--gris-borde); border-radius:7px; font-size:14px; font-family:var(--sans); background:#f9f9f7; color:var(--texto); width:100%; cursor:pointer; }
-    .combo-input:focus { outline:none; border-color:var(--verde); background:#fff; }
-    .combo-arrow { position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:14px; color:var(--texto-muted); pointer-events:none; }
-    .combo-dropdown { display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:#fff; border:1px solid var(--gris-borde); border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,.10); z-index:50; overflow:hidden; max-height:200px; overflow-y:auto; }
-    .combo-dropdown.open { display:block; }
-    .combo-option { padding:9px 12px; font-size:13px; cursor:pointer; color:var(--texto); border-bottom:.5px solid var(--gris-borde); }
-    .combo-option:hover { background:var(--verde-claro); color:var(--verde-oscuro); }
-    .combo-option.nuevo { color:var(--verde); font-style:italic; font-size:12px; }
-
-    /* RAMILLAS NECTARIN */
-    .ramillas-box { background:var(--gris-bg); border-radius:10px; padding:14px; margin-bottom:10px; }
-    .ramillas-title { font-size:10px; font-family:var(--mono); color:var(--texto-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
-    .ramillas-num-input { width:100%; font-size:36px; font-family:var(--mono); font-weight:500; text-align:center; padding:8px 12px; border:2px solid var(--gris-borde); border-radius:9px; background:#fff; color:var(--verde-oscuro); -moz-appearance:textfield; }
-    .ramillas-num-input::-webkit-inner-spin-button, .ramillas-num-input::-webkit-outer-spin-button { -webkit-appearance:none; }
-    .ramillas-num-input:focus { outline:none; border-color:var(--verde); }
-    .ramillas-num-input.alerta-bajo { border-color:var(--rojo); background:var(--rojo-claro); color:#791F1F; }
-    .ramillas-num-input.alerta-alto { border-color:var(--ambar); background:var(--ambar-claro); color:#633806; }
-    .ramillas-num-input.ok { border-color:var(--verde); background:var(--verde-claro); color:var(--verde-oscuro); }
-    .rango-hint { font-size:11px; font-family:var(--mono); color:var(--texto-muted); margin-top:6px; text-align:center; }
-    .alerta-inline { display:none; border-radius:7px; padding:8px 12px; font-size:12px; font-family:var(--mono); margin-bottom:10px; align-items:center; gap:8px; }
-    .alerta-inline.visible { display:flex; }
-    .alerta-inline.bajo { background:var(--rojo-claro); color:#791F1F; border:1px solid #F09595; }
-    .alerta-inline.alto { background:var(--ambar-claro); color:#633806; border:1px solid #FAC775; }
-
-    /* CARGADORES CEREZA */
-    .cargadores-box { background:var(--gris-bg); border-radius:10px; padding:14px; margin-bottom:12px; }
-    .cargadores-title { font-size:10px; font-family:var(--mono); color:var(--texto-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
-    .add-cargador-btn { background:var(--rojo-oscuro); color:#fff; border:none; border-radius:6px; font-size:11px; font-family:var(--mono); padding:4px 10px; cursor:pointer; }
-    .cargador-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-    .cargador-label { font-size:12px; font-family:var(--mono); color:var(--rojo-oscuro); font-weight:500; min-width:80px; }
-    .cargador-input { flex:1; padding:8px 10px; border:1.5px solid var(--gris-borde); border-radius:7px; font-size:18px; font-family:var(--mono); text-align:center; color:var(--rojo-oscuro); background:#fff; -moz-appearance:textfield; }
-    .cargador-input::-webkit-inner-spin-button, .cargador-input::-webkit-outer-spin-button { -webkit-appearance:none; }
-    .cargador-input:focus { outline:none; border-color:var(--rojo); }
-    .del-cargador { background:none; border:none; cursor:pointer; color:var(--texto-muted); font-size:18px; padding:4px; }
-    .del-cargador:hover { color:var(--rojo); }
-    .ramillas-cer-row { display:flex; align-items:center; gap:8px; margin-top:8px; padding-top:8px; border-top:1px solid var(--gris-borde); }
-    .ramillas-cer-label { font-size:12px; font-family:var(--mono); color:var(--texto-muted); min-width:80px; }
-    .ramillas-cer-input { flex:1; padding:8px 10px; border:1.5px solid var(--gris-borde); border-radius:7px; font-size:18px; font-family:var(--mono); text-align:center; background:#fff; -moz-appearance:textfield; }
-    .ramillas-cer-input::-webkit-inner-spin-button, .ramillas-cer-input::-webkit-outer-spin-button { -webkit-appearance:none; }
-    .total-box { background:#fff; border:2px solid var(--rojo); border-radius:9px; padding:10px 14px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; }
-    .total-label { font-size:11px; font-family:var(--mono); color:var(--rojo-oscuro); text-transform:uppercase; letter-spacing:.05em; }
-    .total-val { font-size:28px; font-family:var(--mono); font-weight:500; color:var(--rojo-oscuro); }
-    .total-sub { font-size:10px; font-family:var(--mono); color:var(--texto-muted); }
-    .alerta-dardos { display:none; border-radius:7px; padding:8px 12px; font-size:12px; font-family:var(--mono); margin-bottom:10px; align-items:center; gap:8px; }
-    .alerta-dardos.visible { display:flex; }
-    .alerta-dardos.bajo { background:var(--rojo-claro); color:#791F1F; border:1px solid #F09595; }
-    .alerta-dardos.alto { background:var(--ambar-claro); color:#633806; border:1px solid #FAC775; }
-
-    /* CALIDAD */
-    .calidad-row { display:flex; gap:8px; margin-bottom:14px; }
-    .calidad-btn { flex:1; padding:9px 6px; border-radius:8px; font-size:12px; font-weight:500; font-family:var(--mono); border:1.5px solid var(--gris-borde); cursor:pointer; background:#f9f9f7; color:var(--texto-muted); transition:all .15s; text-align:center; }
-    .calidad-btn.A.active { background:var(--verde-claro); border-color:var(--verde); color:var(--verde-oscuro); }
-    .calidad-btn.B.active { background:var(--ambar-claro); border-color:var(--ambar); color:#633806; }
-    .calidad-btn.C.active { background:var(--rojo-claro); border-color:var(--rojo); color:#791F1F; }
-
-    .submit-btn-g { width:100%; padding:13px; background:var(--verde-oscuro); color:#fff; border:none; border-radius:9px; font-size:14px; font-weight:500; font-family:var(--mono); cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:8px; }
-    .submit-btn-g:hover { background:var(--verde); }
-    .submit-btn-g:disabled { background:#aaa; cursor:not-allowed; }
-    .submit-btn-r { width:100%; padding:13px; background:var(--rojo-oscuro); color:#fff; border:none; border-radius:9px; font-size:14px; font-weight:500; font-family:var(--mono); cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:8px; }
-    .submit-btn-r:hover { background:var(--rojo); }
-    .submit-btn-r:disabled { background:#aaa; cursor:not-allowed; }
-    .spin { animation:girar 1s linear infinite; display:inline-block; }
-    @keyframes girar { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-
+    .fg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+    .fgrp{display:flex;flex-direction:column;gap:5px}
+    .fgrp.full{grid-column:1/-1}
+    .flbl{font-size:10px;font-family:var(--mo);font-weight:500;color:var(--tm);text-transform:uppercase;letter-spacing:.06em}
+    .finp{padding:9px 10px;border:1px solid var(--gb2);border-radius:7px;font-size:14px;font-family:var(--sa);background:#f9f9f7;color:var(--tx);width:100%}
+    .finp:focus{outline:none;border-color:var(--vd);background:#fff}
+    .cwrap{position:relative}
+    .cinp{padding:9px 32px 9px 10px;border:1px solid var(--gb2);border-radius:7px;font-size:14px;font-family:var(--sa);background:#f9f9f7;color:var(--tx);width:100%;cursor:pointer}
+    .cinp:focus{outline:none;border-color:var(--vd);background:#fff}
+    .carr{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--tm);pointer-events:none}
+    .cdd{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--gb2);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.10);z-index:50;overflow:hidden;max-height:200px;overflow-y:auto}
+    .cdd.open{display:block}
+    .copt{padding:9px 12px;font-size:13px;cursor:pointer;color:var(--tx);border-bottom:.5px solid var(--gb2)}
+    .copt:hover{background:var(--vc);color:var(--vo)}
+    .copt.nuevo{color:var(--vd);font-style:italic;font-size:12px}
+    /* RAMILLAS NEC */
+    .rbox{background:var(--gb);border-radius:10px;padding:14px;margin-bottom:10px}
+    .rtitle{font-size:10px;font-family:var(--mo);color:var(--tm);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+    .rinp{width:100%;font-size:36px;font-family:var(--mo);font-weight:500;text-align:center;padding:8px 12px;border:2px solid var(--gb2);border-radius:9px;background:#fff;color:var(--vo);-moz-appearance:textfield}
+    .rinp::-webkit-inner-spin-button,.rinp::-webkit-outer-spin-button{-webkit-appearance:none}
+    .rinp:focus{outline:none;border-color:var(--vd)}
+    .rinp.rbajo{border-color:var(--rd);background:var(--rc);color:#791F1F}
+    .rinp.ralto{border-color:var(--am);background:var(--ac);color:#633806}
+    .rinp.rok{border-color:var(--vd);background:var(--vc);color:var(--vo)}
+    .rhint{font-size:11px;font-family:var(--mo);color:var(--tm);margin-top:6px;text-align:center}
+    /* ALERTAS */
+    .alerta{display:none;border-radius:7px;padding:8px 12px;font-size:12px;font-family:var(--mo);margin-bottom:10px;align-items:center;gap:8px}
+    .alerta.vis{display:flex}
+    .alerta.bajo{background:var(--rc);color:#791F1F;border:1px solid #F09595}
+    .alerta.alto{background:var(--ac);color:#633806;border:1px solid #FAC775}
+    /* CALIDAD BTNS */
+    .cbrow{display:flex;gap:8px;margin-bottom:14px}
+    .cbtn{flex:1;padding:9px 6px;border-radius:8px;font-size:12px;font-weight:500;font-family:var(--mo);border:1.5px solid var(--gb2);cursor:pointer;background:#f9f9f7;color:var(--tm);text-align:center}
+    .cbtn.A.on{background:var(--vc);border-color:var(--vd);color:var(--vo)}
+    .cbtn.B.on{background:var(--ac);border-color:var(--am);color:#633806}
+    .cbtn.C.on{background:var(--rc);border-color:var(--rd);color:#791F1F}
+    /* SUBMIT */
+    .sbtn-g{width:100%;padding:13px;background:var(--vo);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:500;font-family:var(--mo);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+    .sbtn-g:hover{background:var(--vd)}
+    .sbtn-g:disabled{background:#aaa;cursor:not-allowed}
+    .sbtn-r{width:100%;padding:13px;background:var(--ro);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:500;font-family:var(--mo);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+    .sbtn-r:hover{background:var(--rd)}
+    .sbtn-r:disabled{background:#aaa;cursor:not-allowed}
+    .spin{animation:girar 1s linear infinite;display:inline-block}
+    @keyframes girar{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    /* CARGADORES */
+    .carbox{background:var(--gb);border-radius:10px;padding:14px;margin-bottom:12px}
+    .cartitle{font-size:10px;font-family:var(--mo);color:var(--tm);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+    .add-car-btn{background:var(--ro);color:#fff;border:none;border-radius:6px;font-size:11px;font-family:var(--mo);padding:4px 10px;cursor:pointer}
+    .car-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    .car-lbl{font-size:12px;font-family:var(--mo);color:var(--ro);font-weight:500;min-width:80px}
+    .car-inp{flex:1;padding:8px 10px;border:1.5px solid var(--gb2);border-radius:7px;font-size:18px;font-family:var(--mo);text-align:center;color:var(--ro);background:#fff;-moz-appearance:textfield}
+    .car-inp::-webkit-inner-spin-button,.car-inp::-webkit-outer-spin-button{-webkit-appearance:none}
+    .car-inp:focus{outline:none;border-color:var(--rd)}
+    .del-car{background:none;border:none;cursor:pointer;color:var(--tm);font-size:18px;padding:4px}
+    .ram-cer-row{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--gb2)}
+    .ram-cer-lbl{font-size:12px;font-family:var(--mo);color:var(--tm);min-width:80px}
+    .ram-cer-inp{flex:1;padding:8px 10px;border:1.5px solid var(--gb2);border-radius:7px;font-size:18px;font-family:var(--mo);text-align:center;background:#fff;-moz-appearance:textfield}
+    .ram-cer-inp::-webkit-inner-spin-button,.ram-cer-inp::-webkit-outer-spin-button{-webkit-appearance:none}
+    .total-box{background:#fff;border:2px solid var(--rd);border-radius:9px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+    .total-lbl{font-size:11px;font-family:var(--mo);color:var(--ro);text-transform:uppercase;letter-spacing:.05em}
+    .total-val{font-size:28px;font-family:var(--mo);font-weight:500;color:var(--ro)}
+    .rango-info{background:var(--rc);border:1px solid #F1948A;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;font-family:var(--mo);color:var(--ro);display:flex;align-items:center;gap:8px}
+    /* TIPO CONTEO */
+    .tipo-row{display:flex;gap:8px;margin-bottom:12px}
+    .tipo-btn{flex:1;padding:9px 6px;border-radius:8px;font-size:12px;font-weight:500;font-family:var(--mo);border:1.5px solid var(--gb2);cursor:pointer;background:#f9f9f7;color:var(--tm);text-align:center}
+    .tipo-btn.pre.on{background:var(--rc);border-color:var(--rd);color:var(--ro)}
+    .tipo-btn.post.on{background:#E8F8F5;border-color:#1ABC9C;color:#0E6655}
     /* LOCK */
-    .lock-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; text-align:center; }
-    .lock-icon { font-size:44px; color:var(--texto-muted); opacity:.3; margin-bottom:16px; }
-    .lock-title { font-size:15px; font-weight:500; color:var(--texto); margin-bottom:6px; }
-    .lock-sub { font-size:12px; color:var(--texto-muted); font-family:var(--mono); margin-bottom:24px; }
-    .lock-input-wrap { width:100%; max-width:260px; position:relative; margin-bottom:12px; }
-    .lock-input { width:100%; padding:11px 40px 11px 14px; border:1.5px solid var(--gris-borde); border-radius:9px; font-size:16px; font-family:var(--mono); text-align:center; letter-spacing:.2em; background:#f9f9f7; color:var(--texto); }
-    .lock-input:focus { outline:none; border-color:var(--verde); background:#fff; }
-    .lock-input.error { border-color:var(--rojo); background:var(--rojo-claro); animation:shake .3s; }
-    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
-    .lock-eye { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:16px; color:var(--texto-muted); cursor:pointer; background:none; border:none; }
-    .lock-btn { width:100%; max-width:260px; padding:12px; background:var(--verde-oscuro); color:#fff; border:none; border-radius:9px; font-size:14px; font-weight:500; font-family:var(--mono); cursor:pointer; }
-    .lock-error { font-size:12px; color:var(--rojo); font-family:var(--mono); height:16px; margin-bottom:8px; }
-    .lock-hint { font-size:11px; color:var(--texto-muted); font-family:var(--mono); margin-top:10px; }
-    .admin-header { border-radius:10px; padding:12px 16px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; }
-    .admin-header.g { background:linear-gradient(135deg,#085041,#0f6e56); }
-    .admin-header.r { background:linear-gradient(135deg,#7B241C,#C0392B); }
-    .admin-header-left { display:flex; align-items:center; gap:10px; }
-    .admin-header i { font-size:20px; color:#5DCAA5; }
-    .admin-header-title { font-size:13px; font-weight:500; color:#fff; font-family:var(--mono); }
-    .admin-header-sub { font-size:11px; color:rgba(255,255,255,.6); font-family:var(--mono); }
-    .logout-btn { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); color:#fff; font-size:11px; font-family:var(--mono); padding:5px 10px; border-radius:6px; cursor:pointer; }
-    .config-section { margin-bottom:20px; }
-    .config-section-title { font-size:11px; font-family:var(--mono); font-weight:500; color:var(--texto-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--gris-borde); display:flex; align-items:center; gap:6px; }
-    .config-list { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
-    .config-item { display:flex; align-items:center; gap:8px; background:#f9f9f7; border:.5px solid var(--gris-borde); border-radius:7px; padding:8px 10px; }
-    .config-item-name { flex:1; font-size:13px; color:var(--texto); }
-    .config-del { background:none; border:none; cursor:pointer; color:var(--texto-muted); font-size:16px; padding:2px 4px; border-radius:4px; }
-    .config-del:hover { color:var(--rojo); background:var(--rojo-claro); }
-    .config-add-row { display:flex; gap:8px; }
-    .config-add-input { flex:1; padding:8px 10px; border:1px solid var(--gris-borde); border-radius:7px; font-size:13px; background:#f9f9f7; color:var(--texto); }
-    .config-add-btn { padding:8px 14px; background:var(--verde-oscuro); color:#fff; border:none; border-radius:7px; font-size:13px; font-family:var(--mono); cursor:pointer; }
-    .divider { border:none; border-top:1px solid var(--gris-borde); margin:20px 0; }
-    .pass-row { display:flex; gap:8px; margin-bottom:8px; }
-    .pass-input { flex:1; padding:9px 10px; border:1px solid var(--gris-borde); border-radius:7px; font-size:13px; font-family:var(--mono); background:#f9f9f7; color:var(--texto); letter-spacing:.1em; }
-    .pass-btn { padding:9px 14px; background:var(--verde-oscuro); color:#fff; border:none; border-radius:7px; font-size:12px; font-family:var(--mono); cursor:pointer; }
-
+    .lock-scr{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center}
+    .lock-ico{font-size:44px;color:var(--tm);opacity:.3;margin-bottom:16px}
+    .lock-title{font-size:15px;font-weight:500;color:var(--tx);margin-bottom:6px}
+    .lock-sub{font-size:12px;color:var(--tm);font-family:var(--mo);margin-bottom:24px}
+    .lock-wrap{width:100%;max-width:260px;position:relative;margin-bottom:12px}
+    .lock-inp{width:100%;padding:11px 40px 11px 14px;border:1.5px solid var(--gb2);border-radius:9px;font-size:16px;font-family:var(--mo);text-align:center;letter-spacing:.2em;background:#f9f9f7;color:var(--tx)}
+    .lock-inp:focus{outline:none;border-color:var(--vd);background:#fff}
+    .lock-inp.err{border-color:var(--rd);background:var(--rc);animation:shake .3s}
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+    .lock-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--tm);cursor:pointer;background:none;border:none}
+    .lock-btn-g{width:100%;max-width:260px;padding:12px;background:var(--vo);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:500;font-family:var(--mo);cursor:pointer}
+    .lock-btn-r{width:100%;max-width:260px;padding:12px;background:var(--ro);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:500;font-family:var(--mo);cursor:pointer}
+    .lock-err{font-size:12px;color:var(--rd);font-family:var(--mo);height:16px;margin-bottom:8px}
+    .lock-hint{font-size:11px;color:var(--tm);font-family:var(--mo);margin-top:10px}
+    /* ADMIN */
+    .adm-hdr{border-radius:10px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
+    .adm-hdr-g{background:linear-gradient(135deg,#085041,#0f6e56)}
+    .adm-hdr-r{background:linear-gradient(135deg,#7B241C,#C0392B)}
+    .adm-hdr-l{display:flex;align-items:center;gap:10px}
+    .adm-hdr i{font-size:20px;color:#5DCAA5}
+    .adm-title{font-size:13px;font-weight:500;color:#fff;font-family:var(--mo)}
+    .adm-sub{font-size:11px;color:rgba(255,255,255,.6);font-family:var(--mo)}
+    .logout-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11px;font-family:var(--mo);padding:5px 10px;border-radius:6px;cursor:pointer}
+    /* CONFIG */
+    .cfg-sec{margin-bottom:20px}
+    .cfg-title{font-size:11px;font-family:var(--mo);font-weight:500;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--gb2);display:flex;align-items:center;gap:6px}
+    .cfg-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+    .cfg-item{display:flex;align-items:center;gap:8px;background:#f9f9f7;border:.5px solid var(--gb2);border-radius:7px;padding:8px 10px}
+    .cfg-name{flex:1;font-size:13px;color:var(--tx)}
+    .cfg-del{background:none;border:none;cursor:pointer;color:var(--tm);font-size:16px;padding:2px 4px;border-radius:4px}
+    .cfg-del:hover{color:var(--rd);background:var(--rc)}
+    .cfg-add{display:flex;gap:8px}
+    .cfg-add-inp{flex:1;padding:8px 10px;border:1px solid var(--gb2);border-radius:7px;font-size:13px;background:#f9f9f7;color:var(--tx)}
+    .cfg-add-btn{padding:8px 14px;background:var(--vo);color:#fff;border:none;border-radius:7px;font-size:13px;font-family:var(--mo);cursor:pointer}
+    .divider{border:none;border-top:1px solid var(--gb2);margin:20px 0}
+    .pass-row{display:flex;gap:8px;margin-bottom:8px}
+    .pass-inp{flex:1;padding:9px 10px;border:1px solid var(--gb2);border-radius:7px;font-size:13px;font-family:var(--mo);background:#f9f9f7;color:var(--tx);letter-spacing:.1em}
+    .pass-btn{padding:9px 14px;color:#fff;border:none;border-radius:7px;font-size:12px;font-family:var(--mo);cursor:pointer}
     /* DASHBOARD */
-    .dash-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
-    .stat-card { background:#f9f9f7; border-radius:9px; padding:12px 14px; border:.5px solid var(--gris-borde); }
-    .stat-label { font-size:10px; font-family:var(--mono); color:var(--texto-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
-    .stat-val { font-size:26px; font-family:var(--mono); font-weight:500; color:var(--texto); }
-    .stat-sub { font-size:11px; color:var(--texto-muted); font-family:var(--mono); }
-    .stat-card-r { background:var(--rojo-claro); border-radius:9px; padding:12px 14px; border:.5px solid #F1948A; }
-    .section-title { font-size:10px; font-family:var(--mono); font-weight:500; color:var(--texto-muted); text-transform:uppercase; letter-spacing:.07em; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--gris-borde); }
-    .calidad-dist { display:flex; gap:8px; margin-bottom:16px; }
-    .calidad-stat { flex:1; border-radius:9px; padding:10px 12px; text-align:center; border:.5px solid var(--gris-borde); }
-    .calidad-stat.A { background:var(--verde-claro); } .calidad-stat.B { background:var(--ambar-claro); } .calidad-stat.C { background:var(--rojo-claro); }
-    .calidad-letra { font-size:18px; font-family:var(--mono); font-weight:500; }
-    .calidad-stat.A .calidad-letra { color:var(--verde-oscuro); } .calidad-stat.B .calidad-letra { color:#633806; } .calidad-stat.C .calidad-letra { color:#791F1F; }
-    .calidad-pct { font-size:11px; font-family:var(--mono); color:var(--texto-muted); }
-    .rango-ref { border-radius:8px; padding:10px 14px; margin-bottom:12px; display:flex; align-items:center; gap:10px; font-size:12px; font-family:var(--mono); }
-    .rango-ref.g { background:var(--verde-claro); border:1px solid #9FE1CB; color:var(--verde-oscuro); }
-    .rango-ref.r { background:var(--rojo-claro); border:1px solid #F1948A; color:var(--rojo-oscuro); }
-    .tabla-wrap { overflow-x:auto; margin-bottom:16px; border:.5px solid var(--gris-borde); border-radius:10px; }
-    table { width:100%; border-collapse:collapse; font-size:11px; font-family:var(--mono); }
-    thead tr { background:#f9f9f7; }
-    th { padding:7px 8px; text-align:center; font-size:9px; font-weight:500; color:var(--texto-muted); text-transform:uppercase; border-bottom:1px solid var(--gris-borde); white-space:nowrap; }
-    th:first-child { text-align:left; }
-    td { padding:7px 8px; text-align:center; border-bottom:.5px solid var(--gris-borde); color:var(--texto); white-space:nowrap; }
-    td:first-child { text-align:left; font-weight:500; }
-    td.obs-td { max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; color:var(--texto-muted); }
-    tr:last-child td { border-bottom:none; }
-    tr:hover td { background:#f9f9f7; }
-    .pill { display:inline-block; font-size:9px; font-weight:500; padding:2px 6px; border-radius:3px; }
-    .pill-ok { background:var(--verde-claro); color:var(--verde-oscuro); }
-    .pill-bajo { background:var(--rojo-claro); color:#791F1F; }
-    .pill-alto { background:var(--ambar-claro); color:#633806; }
-    .pill-a { background:var(--verde-claro); color:var(--verde-oscuro); }
-    .pill-b { background:var(--ambar-claro); color:#633806; }
-    .pill-c { background:var(--rojo-claro); color:#791F1F; }
-    .export-btn { width:100%; padding:11px; background:transparent; border-radius:9px; font-size:13px; font-weight:500; font-family:var(--mono); cursor:pointer; margin-top:4px; display:flex; align-items:center; justify-content:center; gap:8px; }
-    .export-btn.g { color:var(--verde-oscuro); border:1.5px solid var(--verde); }
-    .export-btn.g:hover { background:var(--verde-claro); }
-    .export-btn.r { color:var(--rojo-oscuro); border:1.5px solid var(--rojo); }
-    .export-btn.r:hover { background:var(--rojo-claro); }
-    .refresh-btn { width:100%; padding:11px; color:#fff; border:none; border-radius:9px; font-size:13px; font-weight:500; font-family:var(--mono); cursor:pointer; margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:8px; }
-    .refresh-btn.g { background:var(--verde-oscuro); }
-    .refresh-btn.r { background:var(--rojo-oscuro); }
-    .empty-state { text-align:center; padding:30px 20px; color:var(--texto-muted); font-size:13px; font-family:var(--mono); }
-    .empty-state i { font-size:32px; display:block; margin-bottom:8px; opacity:.3; }
-    .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px); padding:10px 20px; border-radius:8px; font-size:13px; font-family:var(--mono); opacity:0; transition:all .3s; z-index:300; white-space:nowrap; }
-    .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
-    .toast.ok { background:var(--verde-oscuro); color:#fff; }
-    .toast.warn { background:#791F1F; color:#fff; }
-    .fecha-hoy { font-size:11px; font-family:var(--mono); color:var(--texto-muted); text-align:center; margin-bottom:12px; }
-
+    .stats2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    .scard{background:#f9f9f7;border-radius:9px;padding:12px 14px;border:.5px solid var(--gb2)}
+    .slbl{font-size:10px;font-family:var(--mo);color:var(--tm);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+    .sval{font-size:26px;font-family:var(--mo);font-weight:500;color:var(--tx)}
+    .ssub{font-size:11px;color:var(--tm);font-family:var(--mo)}
+    .sec-title{font-size:10px;font-family:var(--mo);font-weight:500;color:var(--tm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--gb2)}
+    .cal-dist{display:flex;gap:8px;margin-bottom:16px}
+    .cstat{flex:1;border-radius:9px;padding:10px 12px;text-align:center;border:.5px solid var(--gb2)}
+    .cstat.A{background:var(--vc)}.cstat.B{background:var(--ac)}.cstat.C{background:var(--rc)}
+    .cletra{font-size:18px;font-family:var(--mo);font-weight:500}
+    .cstat.A .cletra{color:var(--vo)}.cstat.B .cletra{color:#633806}.cstat.C .cletra{color:#791F1F}
+    .cpct{font-size:11px;font-family:var(--mo);color:var(--tm)}
+    .rango-ref{border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:12px;font-family:var(--mo)}
+    .rr-g{background:var(--vc);border:1px solid #9FE1CB;color:var(--vo)}
+    .rr-r{background:var(--rc);border:1px solid #F1948A;color:var(--ro)}
+    .twrap{overflow-x:auto;margin-bottom:16px;border:.5px solid var(--gb2);border-radius:10px}
+    table{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--mo)}
+    thead tr{background:#f9f9f7}
+    th{padding:7px 8px;text-align:center;font-size:9px;font-weight:500;color:var(--tm);text-transform:uppercase;border-bottom:1px solid var(--gb2);white-space:nowrap}
+    th:first-child{text-align:left}
+    td{padding:7px 8px;text-align:center;border-bottom:.5px solid var(--gb2);color:var(--tx);white-space:nowrap}
+    td:first-child{text-align:left;font-weight:500}
+    td.otd{max-width:120px;overflow:hidden;text-overflow:ellipsis;font-size:10px;color:var(--tm)}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#f9f9f7}
+    .pill{display:inline-block;font-size:9px;font-weight:500;padding:2px 6px;border-radius:3px}
+    .pill-ok{background:var(--vc);color:var(--vo)}
+    .pill-bj{background:var(--rc);color:#791F1F}
+    .pill-al{background:var(--ac);color:#633806}
+    .pill-a{background:var(--vc);color:var(--vo)}
+    .pill-b{background:var(--ac);color:#633806}
+    .pill-c{background:var(--rc);color:#791F1F}
+    .exp-btn{width:100%;padding:11px;background:transparent;border-radius:9px;font-size:13px;font-weight:500;font-family:var(--mo);cursor:pointer;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px}
+    .exp-g{color:var(--vo);border:1.5px solid var(--vd)}.exp-g:hover{background:var(--vc)}
+    .exp-r{color:var(--ro);border:1.5px solid var(--rd)}.exp-r:hover{background:var(--rc)}
+    .ref-btn{width:100%;padding:11px;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;font-family:var(--mo);cursor:pointer;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+    .ref-g{background:var(--vo)}.ref-g:hover{background:var(--vd)}
+    .ref-r{background:var(--ro)}.ref-r:hover{background:var(--rd)}
+    .empty{text-align:center;padding:30px 20px;color:var(--tm);font-size:13px;font-family:var(--mo)}
+    .empty i{font-size:32px;display:block;margin-bottom:8px;opacity:.3}
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);padding:10px 20px;border-radius:8px;font-size:13px;font-family:var(--mo);opacity:0;transition:all .3s;z-index:300;white-space:nowrap}
+    .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+    .toast.ok{background:var(--vo);color:#fff}
+    .toast.warn{background:#791F1F;color:#fff}
+    .fecha-hoy{font-size:11px;font-family:var(--mo);color:var(--tm);text-align:center;margin-bottom:12px}
+    /* FILTRO */
+    .filt-row{display:flex;gap:6px;margin-bottom:12px}
+    .filt-btn{flex:1;padding:7px 4px;border-radius:7px;font-size:11px;font-weight:500;font-family:var(--mo);border:1px solid var(--gb2);cursor:pointer;background:#f9f9f7;color:var(--tm);text-align:center}
+    .filt-btn.on{background:var(--ro);color:#fff;border-color:var(--ro)}
     /* MODAL */
-    .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.5); z-index:400; }
-    .modal-overlay.open { display:flex; align-items:flex-end; }
-    .modal-box { background:#fff; width:100%; max-height:85vh; border-radius:16px 16px 0 0; overflow:hidden; display:flex; flex-direction:column; }
-    .modal-header { padding:14px 16px; color:#fff; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
-    .modal-header.g { background:var(--verde-oscuro); }
-    .modal-header.r { background:var(--rojo-oscuro); }
-    .modal-title { font-family:var(--mono); font-size:14px; font-weight:500; }
-    .modal-close { background:none; border:none; color:#fff; font-size:22px; cursor:pointer; line-height:1; }
-    .modal-body { overflow-y:auto; padding:12px; }
-    .modal-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
-    .modal-stat { background:#f9f9f7; border-radius:8px; padding:10px; text-align:center; }
-    .modal-stat-val { font-size:20px; font-family:var(--mono); font-weight:500; }
-    .modal-stat-lbl { font-size:10px; font-family:var(--mono); color:var(--texto-muted); text-transform:uppercase; }
-
-    /* FILTRO PRE/POST */
-    .filtro-tipo { display:flex; gap:6px; margin-bottom:12px; }
-    .filtro-btn { flex:1; padding:7px 4px; border-radius:7px; font-size:11px; font-weight:500; font-family:var(--mono); border:1px solid var(--gris-borde); cursor:pointer; background:#f9f9f7; color:var(--texto-muted); text-align:center; }
-    .filtro-btn.active { background:var(--rojo-oscuro); color:#fff; border-color:var(--rojo-oscuro); }
+    .modal-ov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:400}
+    .modal-ov.open{display:flex;align-items:flex-end}
+    .modal-box{background:#fff;width:100%;max-height:85vh;border-radius:16px 16px 0 0;overflow:hidden;display:flex;flex-direction:column}
+    .modal-hdr{padding:14px 16px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+    .modal-hdr-g{background:var(--vo)}.modal-hdr-r{background:var(--ro)}
+    .modal-title{font-family:var(--mo);font-size:14px;font-weight:500}
+    .modal-close{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1}
+    .modal-body{overflow-y:auto;padding:12px}
+    .modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+    .mstat{background:#f9f9f7;border-radius:8px;padding:10px;text-align:center}
+    .mstat-val{font-size:20px;font-family:var(--mo);font-weight:500}
+    .mstat-lbl{font-size:10px;font-family:var(--mo);color:var(--tm);text-transform:uppercase}
   </style>
 </head>
 <body>
 <div class="app">
-
-  <!-- ===== PANTALLA INICIO ===== -->
-  <div class="inicio" id="pantalla-inicio" style="display:flex;flex-direction:column;min-height:100vh">
-    <div class="inicio-header">
-      <div class="inicio-logo">🌿</div>
-      <div class="inicio-title">Conteos de Poda</div>
-      <div class="inicio-sub">AADV · Temporada 2026</div>
+<!-- INICIO -->
+<div id="pantalla-inicio">
+  <div class="ini-hdr"><div class="ini-logo">🌿</div><div class="ini-title">Conteos de Poda</div><div class="ini-sub">AADV · Temporada 2026</div></div>
+  <div class="ini-cards">
+    <div class="esp-card esp-nec" onclick="entrar('nec')">
+      <div class="esp-icon">🍑</div><div><div class="esp-name">Nectarín</div><div class="esp-desc">Conteo de ramillas · 12 cuarteles</div></div><div class="esp-arr">›</div>
     </div>
-    <div class="inicio-cards">
-      <div class="especie-card nectarin" onclick="entrarEspecie('nectarin')">
-        <div class="especie-icon">🍑</div>
-        <div class="especie-info">
-          <div class="especie-nombre">Nectarín</div>
-          <div class="especie-desc">Conteo de ramillas · 12 cuarteles</div>
-        </div>
-        <div class="especie-arrow">›</div>
-      </div>
-      <div class="especie-card cereza" onclick="entrarEspecie('cereza')">
-        <div class="especie-icon">🍒</div>
-        <div class="especie-info">
-          <div class="especie-nombre">Cerezo</div>
-          <div class="especie-desc">Conteo de dardos · 16 cuarteles</div>
-        </div>
-        <div class="especie-arrow">›</div>
-      </div>
-    </div>
-    <div class="inicio-footer">Toca una especie para comenzar</div>
-  </div>
-
-  <!-- ===== APP NECTARIN ===== -->
-  <div class="app-view" id="view-nectarin">
-    <div class="header-nec">
-      <div class="header-left">
-        <button class="back-btn" onclick="volverInicio()"><i class="ti ti-arrow-left"></i></button>
-        <div>
-          <div class="header-title">🍑 Nectarín 2026</div>
-          <div class="header-sub">Conteo de ramillas</div>
-        </div>
-      </div>
-      <div class="header-right">
-        <div class="sync-badge" id="sync-nec"><i class="ti ti-cloud"></i><span id="sync-nec-txt">...</span></div>
-        <div class="header-badge-g"><span class="dot-live"></span>EN VIVO</div>
-        <button class="admin-badge" onclick="toggleAdmin('nec')"><i class="ti ti-lock" id="lock-nec-icon"></i></button>
-      </div>
-    </div>
-    <div class="tabs-nec">
-      <button class="tab-nec active" onclick="switchTabNec('ingreso')"><i class="ti ti-edit"></i>Ingresar</button>
-      <button class="tab-nec" onclick="switchTabNec('ramillas')"><i class="ti ti-chart-bar"></i>Ramillas</button>
-      <button class="tab-nec" onclick="switchTabNec('calidad')"><i class="ti ti-rosette"></i>Calidad</button>
-      <button class="tab-nec" onclick="switchTabNec('config')"><i class="ti ti-settings"></i>Listas<span style="font-size:9px;margin-left:1px" id="lock-nec-tab">🔒</span></button>
-    </div>
-
-    <div class="panel active" id="nec-ingreso">
-      <div class="cuartel-sel-g">
-        <div><div class="cuartel-label-g">Cuartel</div><div class="cuartel-val-g" id="nec-cuartel-display">C-01 · Luciana</div></div>
-        <div class="cuartel-nav">
-          <button class="nav-btn-g" onclick="cambiarCuartelNec(-1)">‹</button>
-          <button class="nav-btn-g" onclick="cambiarCuartelNec(1)">›</button>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-group"><label class="form-label">N° Hilera</label><input class="form-input" type="number" id="nec-hilera" min="1" placeholder="01"></div>
-        <div class="form-group"><label class="form-label">N° Planta</label><input class="form-input" type="number" id="nec-planta" min="1" placeholder="01"></div>
-        <div class="form-group"><label class="form-label">Podador</label><input class="form-input" type="text" id="nec-podador" placeholder="Nombre"></div>
-        <div class="form-group"><label class="form-label">Contador</label><div class="combo-wrap"><input class="combo-input" type="text" id="nec-contador" placeholder="Seleccionar..." readonly onclick="toggleCombo('nec-contador-dd')"><i class="ti ti-chevron-down combo-arrow"></i><div class="combo-dropdown" id="nec-contador-dd"></div></div></div>
-        <div class="form-group"><label class="form-label">Supervisor</label><div class="combo-wrap"><input class="combo-input" type="text" id="nec-supervisor" placeholder="Seleccionar..." readonly onclick="toggleCombo('nec-supervisor-dd')"><i class="ti ti-chevron-down combo-arrow"></i><div class="combo-dropdown" id="nec-supervisor-dd"></div></div></div>
-        <div class="form-group"><label class="form-label">Contratista</label><div class="combo-wrap"><input class="combo-input" type="text" id="nec-contratista" placeholder="Seleccionar..." readonly onclick="toggleCombo('nec-contratista-dd')"><i class="ti ti-chevron-down combo-arrow"></i><div class="combo-dropdown" id="nec-contratista-dd"></div></div></div>
-      </div>
-      <div class="ramillas-box">
-        <div class="ramillas-title">N° de Ramillas por planta</div>
-        <input class="ramillas-num-input" type="number" id="nec-ramillas" min="0" max="200" placeholder="65" oninput="validarRamillasNec(this)">
-        <div class="rango-hint">Rango ideal: 54 – 65 – 78 ramillas</div>
-      </div>
-      <div class="alerta-inline bajo" id="nec-alerta-bajo"><i class="ti ti-alert-circle"></i><span>Bajo rango mínimo (&lt; 54)</span></div>
-      <div class="alerta-inline alto" id="nec-alerta-alto"><i class="ti ti-alert-triangle"></i><span>Sobre rango máximo (&gt; 78)</span></div>
-      <div class="form-group" style="margin-bottom:10px">
-        <label class="form-label">Índice de Calidad</label>
-        <div class="calidad-row">
-          <button class="calidad-btn A" onclick="setCalidad('nec','A')">A · Óptima</button>
-          <button class="calidad-btn B" onclick="setCalidad('nec','B')">B · Regular</button>
-          <button class="calidad-btn C" onclick="setCalidad('nec','C')">C · Deficiente</button>
-        </div>
-      </div>
-      <div class="form-group full" style="margin-bottom:14px"><label class="form-label">Observaciones</label><input class="form-input" type="text" id="nec-obs" placeholder="Ej: planta con quiebre..."></div>
-      <button class="submit-btn-g" id="nec-submit" onclick="guardarNec()"><i class="ti ti-device-floppy"></i>Guardar registro</button>
-    </div>
-
-    <div class="panel" id="nec-ramillas">
-      <div class="toggle-row">
-        <button class="toggle-btn active-g" id="nec-btn-hoy-ram" onclick="setVistaNec('ram','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
-        <button class="toggle-btn" id="nec-btn-acum-ram" onclick="setVistaNec('ram','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
-      </div>
-      <div id="nec-dash-ram"><div class="empty-state"><i class="ti ti-leaf"></i>Cargando...</div></div>
-    </div>
-
-    <div class="panel" id="nec-calidad">
-      <div class="toggle-row">
-        <button class="toggle-btn active-g" id="nec-btn-hoy-cal" onclick="setVistaNec('cal','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
-        <button class="toggle-btn" id="nec-btn-acum-cal" onclick="setVistaNec('cal','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
-      </div>
-      <div id="nec-dash-cal"><div class="empty-state"><i class="ti ti-rosette"></i>Cargando...</div></div>
-    </div>
-
-    <div class="panel" id="nec-config">
-      <div id="nec-lock-screen" class="lock-screen">
-        <i class="ti ti-shield-lock lock-icon"></i>
-        <div class="lock-title">Zona de Administrador</div>
-        <div class="lock-sub">Ingresa tu contraseña</div>
-        <div class="lock-input-wrap"><input class="lock-input" type="password" id="nec-pass" placeholder="••••••" onkeydown="if(event.key==='Enter') verificarAdmin('nec')"><button class="lock-eye" onclick="togglePassVis('nec')"><i class="ti ti-eye" id="nec-eye"></i></button></div>
-        <div class="lock-error" id="nec-lock-err"></div>
-        <button class="lock-btn" onclick="verificarAdmin('nec')">Ingresar</button>
-        <div class="lock-hint">Contraseña: <strong>poda2024</strong></div>
-      </div>
-      <div id="nec-admin-content" style="display:none">
-        <div class="admin-header g"><div class="admin-header-left"><i class="ti ti-shield-check"></i><div><div class="admin-header-title">Administrador</div><div class="admin-header-sub">Nectarín — Edición de listas</div></div></div><button class="logout-btn" onclick="cerrarAdmin('nec')">Salir</button></div>
-        <div class="config-section"><div class="config-section-title"><i class="ti ti-user-check"></i>Contadores</div><div class="config-list" id="nec-list-contador"></div><div class="config-add-row"><input class="config-add-input" type="text" id="nec-add-contador" placeholder="Nuevo..."><button class="config-add-btn" onclick="agregarItemLista('nec','contador')">+ Agregar</button></div></div>
-        <div class="config-section"><div class="config-section-title"><i class="ti ti-user-star"></i>Supervisores</div><div class="config-list" id="nec-list-supervisor"></div><div class="config-add-row"><input class="config-add-input" type="text" id="nec-add-supervisor" placeholder="Nuevo..."><button class="config-add-btn" onclick="agregarItemLista('nec','supervisor')">+ Agregar</button></div></div>
-        <div class="config-section"><div class="config-section-title"><i class="ti ti-building"></i>Contratistas</div><div class="config-list" id="nec-list-contratista"></div><div class="config-add-row"><input class="config-add-input" type="text" id="nec-add-contratista" placeholder="Nuevo..."><button class="config-add-btn" onclick="agregarItemLista('nec','contratista')">+ Agregar</button></div></div>
-        <hr class="divider">
-        <div style="font-size:11px;font-family:var(--mono);font-weight:500;color:var(--texto-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Cambiar contraseña</div>
-        <div class="pass-row"><input class="pass-input" type="password" id="nec-pass-nueva" placeholder="Nueva"><input class="pass-input" type="password" id="nec-pass-conf" placeholder="Confirmar"></div>
-        <button class="pass-btn" style="width:100%" onclick="cambiarPass('nec')">Actualizar contraseña</button>
-      </div>
+    <div class="esp-card esp-cer" onclick="entrar('cer')">
+      <div class="esp-icon">🍒</div><div><div class="esp-name">Cerezo</div><div class="esp-desc">Conteo de dardos · 16 cuarteles</div></div><div class="esp-arr">›</div>
     </div>
   </div>
-
-  <!-- ===== APP CEREZA ===== -->
-  <div class="app-view" id="view-cereza">
-    <div class="header-cer">
-      <div class="header-left">
-        <button class="back-btn" onclick="volverInicio()"><i class="ti ti-arrow-left"></i></button>
-        <div>
-          <div class="header-title">🍒 Cerezo 2026</div>
-          <div class="header-sub">Conteo de dardos</div>
-        </div>
-      </div>
-      <div class="header-right">
-        <div class="sync-badge" id="sync-cer"><i class="ti ti-cloud"></i><span id="sync-cer-txt">...</span></div>
-        <div class="header-badge-r"><span class="dot-live"></span>EN VIVO</div>
-        <button class="admin-badge" onclick="toggleAdmin('cer')"><i class="ti ti-lock" id="lock-cer-icon"></i></button>
-      </div>
-    </div>
-    <div class="tabs-cer">
-      <button class="tab-cer active" onclick="switchTabCer('ingreso')"><i class="ti ti-edit"></i>Ingresar</button>
-      <button class="tab-cer" onclick="switchTabCer('dashboard')"><i class="ti ti-chart-bar"></i>Dashboard</button>
-      <button class="tab-cer" onclick="switchTabCer('registros')"><i class="ti ti-list"></i>Registros</button>
-      <button class="tab-cer" onclick="switchTabCer('config')"><i class="ti ti-settings"></i>Listas<span style="font-size:9px;margin-left:1px" id="lock-cer-tab">🔒</span></button>
-    </div>
-
-    <div class="panel active" id="cer-ingreso">
-      <!-- CUARTEL SELECTOR CEREZA -->
-      <div class="cuartel-sel-r" id="cer-cuartel-box">
-        <div>
-          <div class="cuartel-label-r">Cuartel · Variedad</div>
-          <div class="cuartel-val-r" id="cer-cuartel-display">C-6 · Lapins</div>
-        </div>
-        <div class="cuartel-nav">
-          <button class="nav-btn-r" onclick="cambiarCuartelCer(-1)">‹</button>
-          <button class="nav-btn-r" onclick="cambiarCuartelCer(1)">›</button>
-        </div>
-      </div>
-
-      <!-- RANGO DEL CUARTEL -->
-      <div class="rango-info-r" id="cer-rango-info">
-        <i class="ti ti-target"></i>
-        <span id="cer-rango-txt">Dardos: 230–276–331</span>
-      </div>
-
-      <!-- TIPO CONTEO PRE/POST -->
-      <div class="form-group" style="margin-bottom:12px">
-        <label class="form-label">Tipo de conteo</label>
-        <div class="tipo-row">
-          <button class="tipo-btn pre active" id="cer-tipo-pre" onclick="setTipoConteo('pre')">PRE PODA</button>
-          <button class="tipo-btn post" id="cer-tipo-post" onclick="setTipoConteo('post')">POST PODA</button>
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group"><label class="form-label">N° Hilera</label><input class="form-input" type="number" id="cer-hilera" min="1" placeholder="01"></div>
-        <div class="form-group"><label class="form-label">N° Planta</label><input class="form-input" type="number" id="cer-planta" min="1" placeholder="01"></div>
-        <div class="form-group"><label class="form-label">Podador</label><input class="form-input" type="text" id="cer-podador" placeholder="Nombre"></div>
-        <div class="form-group"><label class="form-label">Contador</label><div class="combo-wrap"><input class="combo-input" type="text" id="cer-contador" placeholder="Seleccionar..." readonly onclick="toggleCombo('cer-contador-dd')"><i class="ti ti-chevron-down combo-arrow"></i><div class="combo-dropdown" id="cer-contador-dd"></div></div></div>
-        <div class="form-group"><label class="form-label">Supervisor</label><div class="combo-wrap"><input class="combo-input" type="text" id="cer-supervisor" placeholder="Seleccionar..." readonly onclick="toggleCombo('cer-supervisor-dd')"><i class="ti ti-chevron-down combo-arrow"></i><div class="combo-dropdown" id="cer-supervisor-dd"></div></div></div>
-        <div class="form-group"><label class="form-label">Contratista</label><div class="combo-wrap"><input class="combo-input" type="text" id="cer-contratista" placeholder="Seleccionar..." readonly onclick="toggleCombo('cer-contratista-dd')"><i class="ti ti-chevron-down combo-arrow"></i><div class="combo-dropdown" id="cer-contratista-dd"></div></div></div>
-      </div>
-
-      <!-- CARGADORES -->
-      <div class="cargadores-box">
-        <div class="cargadores-title">
-          <span>Cargadores y Dardos</span>
-          <button class="add-cargador-btn" onclick="agregarCargador()">+ Cargador</button>
-        </div>
-        <div id="cargadores-list"></div>
-        <!-- RAMILLAS -->
-        <div class="ramillas-cer-row">
-          <span class="ramillas-cer-label">Ramillas</span>
-          <input class="ramillas-cer-input" type="number" id="cer-ramillas" min="0" placeholder="0" oninput="calcularTotal()">
-        </div>
-      </div>
-
-      <!-- TOTAL -->
-      <div class="total-box">
-        <div>
-          <div class="total-label">Total Dardos</div>
-          <div class="total-sub">(dardos + ramillas)</div>
-        </div>
-        <div class="total-val" id="cer-total">0</div>
-      </div>
-
-      <div class="alerta-dardos bajo" id="cer-alerta-bajo"><i class="ti ti-alert-circle"></i><span id="cer-alerta-bajo-txt">Bajo rango mínimo</span></div>
-      <div class="alerta-dardos alto" id="cer-alerta-alto"><i class="ti ti-alert-triangle"></i><span id="cer-alerta-alto-txt">Sobre rango máximo</span></div>
-
-      <div class="form-group" style="margin-bottom:14px"><label class="form-label">Observaciones</label><input class="form-input" type="text" id="cer-obs" placeholder="Ej: planta dañada..."></div>
-      <button class="submit-btn-r" id="cer-submit" onclick="guardarCer()"><i class="ti ti-device-floppy"></i>Guardar registro</button>
-    </div>
-
-    <div class="panel" id="cer-dashboard">
-      <div class="filtro-tipo">
-        <button class="filtro-btn active" id="cer-filtro-todos" onclick="setFiltroCer('todos')">Todos</button>
-        <button class="filtro-btn" id="cer-filtro-pre" onclick="setFiltroCer('pre')">Pre Poda</button>
-        <button class="filtro-btn" id="cer-filtro-post" onclick="setFiltroCer('post')">Post Poda</button>
-      </div>
-      <div class="toggle-row">
-        <button class="toggle-btn active-r" id="cer-btn-hoy" onclick="setVistaCer('hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
-        <button class="toggle-btn" id="cer-btn-acum" onclick="setVistaCer('acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
-      </div>
-      <div id="cer-dash-content"><div class="empty-state"><i class="ti ti-cherry"></i>Cargando...</div></div>
-    </div>
-
-    <div class="panel" id="cer-registros">
-      <div class="filtro-tipo">
-        <button class="filtro-btn active" id="cer-reg-filtro-todos" onclick="setFiltroCerReg('todos')">Todos</button>
-        <button class="filtro-btn" id="cer-reg-filtro-pre" onclick="setFiltroCerReg('pre')">Pre Poda</button>
-        <button class="filtro-btn" id="cer-reg-filtro-post" onclick="setFiltroCerReg('post')">Post Poda</button>
-      </div>
-      <div id="cer-reg-content"><div class="empty-state"><i class="ti ti-list"></i>Cargando...</div></div>
-    </div>
-
-    <div class="panel" id="cer-config">
-      <div id="cer-lock-screen" class="lock-screen">
-        <i class="ti ti-shield-lock lock-icon"></i>
-        <div class="lock-title">Zona de Administrador</div>
-        <div class="lock-sub">Ingresa tu contraseña</div>
-        <div class="lock-input-wrap"><input class="lock-input" type="password" id="cer-pass" placeholder="••••••" onkeydown="if(event.key==='Enter') verificarAdmin('cer')"><button class="lock-eye" onclick="togglePassVis('cer')"><i class="ti ti-eye" id="cer-eye"></i></button></div>
-        <div class="lock-error" id="cer-lock-err"></div>
-        <button class="lock-btn" style="background:var(--rojo-oscuro)" onclick="verificarAdmin('cer')">Ingresar</button>
-        <div class="lock-hint">Contraseña: <strong>poda2024</strong></div>
-      </div>
-      <div id="cer-admin-content" style="display:none">
-        <div class="admin-header r"><div class="admin-header-left"><i class="ti ti-shield-check"></i><div><div class="admin-header-title">Administrador</div><div class="admin-header-sub">Cerezo — Edición de listas</div></div></div><button class="logout-btn" onclick="cerrarAdmin('cer')">Salir</button></div>
-        <div class="config-section"><div class="config-section-title"><i class="ti ti-user-check"></i>Contadores</div><div class="config-list" id="cer-list-contador"></div><div class="config-add-row"><input class="config-add-input" type="text" id="cer-add-contador" placeholder="Nuevo..."><button class="config-add-btn" style="background:var(--rojo-oscuro)" onclick="agregarItemLista('cer','contador')">+ Agregar</button></div></div>
-        <div class="config-section"><div class="config-section-title"><i class="ti ti-user-star"></i>Supervisores</div><div class="config-list" id="cer-list-supervisor"></div><div class="config-add-row"><input class="config-add-input" type="text" id="cer-add-supervisor" placeholder="Nuevo..."><button class="config-add-btn" style="background:var(--rojo-oscuro)" onclick="agregarItemLista('cer','supervisor')">+ Agregar</button></div></div>
-        <div class="config-section"><div class="config-section-title"><i class="ti ti-building"></i>Contratistas</div><div class="config-list" id="cer-list-contratista"></div><div class="config-add-row"><input class="config-add-input" type="text" id="cer-add-contratista" placeholder="Nuevo..."><button class="config-add-btn" style="background:var(--rojo-oscuro)" onclick="agregarItemLista('cer','contratista')">+ Agregar</button></div></div>
-        <hr class="divider">
-        <div style="font-size:11px;font-family:var(--mono);font-weight:500;color:var(--texto-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Cambiar contraseña</div>
-        <div class="pass-row"><input class="pass-input" type="password" id="cer-pass-nueva" placeholder="Nueva"><input class="pass-input" type="password" id="cer-pass-conf" placeholder="Confirmar"></div>
-        <button class="pass-btn" style="width:100%;background:var(--rojo-oscuro)" onclick="cambiarPass('cer')">Actualizar contraseña</button>
-      </div>
-    </div>
-  </div>
-
+  <div class="ini-ft">Toca una especie para comenzar</div>
 </div>
 
+<!-- NECTARIN -->
+<div class="app-view" id="view-nec">
+  <div class="hdr-nec">
+    <div class="hdr-l"><button class="back-btn" onclick="volver()">← Volver</button><div><div class="hdr-title">🍑 Nectarín 2026</div><div class="hdr-sub">Conteo de ramillas</div></div></div>
+    <div class="hdr-r"><div class="sync-bdg" id="sync-nec"><i class="ti ti-cloud"></i><span id="sync-nec-t">...</span></div><div class="bdg-vivo-g"><span class="dot"></span>EN VIVO</div><button class="adm-bdg" onclick="toggleAdm('nec')"><i class="ti ti-lock" id="lock-nec-i"></i></button></div>
+  </div>
+  <div class="tabs-nec">
+    <button class="tab-nec active" onclick="tabNec('ing')"><i class="ti ti-edit"></i>Ingresar</button>
+    <button class="tab-nec" onclick="tabNec('ram')"><i class="ti ti-chart-bar"></i>Ramillas</button>
+    <button class="tab-nec" onclick="tabNec('cal')"><i class="ti ti-rosette"></i>Calidad</button>
+    <button class="tab-nec" onclick="tabNec('cfg')"><i class="ti ti-settings"></i>Listas<span id="lock-nec-t" style="font-size:9px;margin-left:1px">🔒</span></button>
+  </div>
+  <!-- Ingreso Nec -->
+  <div class="panel active" id="nec-ing">
+    <div class="csel-g"><div><div class="clbl-g">Cuartel · Variedad</div><div class="cval-g" id="nec-cval">C-01 · Luciana</div></div><div class="cnav"><button class="nbtn-g" onclick="cNec(-1)">‹</button><button class="nbtn-g" onclick="cNec(1)">›</button></div></div>
+    <div class="fg">
+      <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="nec-hil" min="1" placeholder="01"></div>
+      <div class="fgrp"><label class="flbl">N° Planta</label><input class="finp" type="number" id="nec-pla" min="1" placeholder="01"></div>
+      <div class="fgrp"><label class="flbl">Podador</label><input class="finp" type="text" id="nec-pod" placeholder="Nombre"></div>
+      <div class="fgrp"><label class="flbl">Contador</label><div class="cwrap"><input class="cinp" type="text" id="nec-cnt" placeholder="Seleccionar..." readonly onclick="openDD('nec-cnt-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="nec-cnt-dd"></div></div></div>
+      <div class="fgrp"><label class="flbl">Supervisor</label><div class="cwrap"><input class="cinp" type="text" id="nec-sup" placeholder="Seleccionar..." readonly onclick="openDD('nec-sup-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="nec-sup-dd"></div></div></div>
+      <div class="fgrp"><label class="flbl">Contratista</label><div class="cwrap"><input class="cinp" type="text" id="nec-con" placeholder="Seleccionar..." readonly onclick="openDD('nec-con-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="nec-con-dd"></div></div></div>
+    </div>
+    <div class="rbox"><div class="rtitle">N° de Ramillas por planta</div><input class="rinp" type="number" id="nec-ram" min="0" max="200" placeholder="65" oninput="valRam(this)"><div class="rhint">Rango ideal: 54 – 65 – 78 ramillas</div></div>
+    <div class="alerta bajo" id="nec-abaj"><i class="ti ti-alert-circle"></i><span>Bajo rango mínimo (&lt; 54)</span></div>
+    <div class="alerta alto" id="nec-aalt"><i class="ti ti-alert-triangle"></i><span>Sobre rango máximo (&gt; 78)</span></div>
+    <div class="fgrp" style="margin-bottom:10px"><label class="flbl">Índice de Calidad</label>
+      <div class="cbrow"><button class="cbtn A" onclick="setCal('nec','A')">A · Óptima</button><button class="cbtn B" onclick="setCal('nec','B')">B · Regular</button><button class="cbtn C" onclick="setCal('nec','C')">C · Deficiente</button></div>
+    </div>
+    <div class="fgrp full" style="margin-bottom:14px"><label class="flbl">Observaciones</label><input class="finp" type="text" id="nec-obs" placeholder="Ej: planta con quiebre..."></div>
+    <button class="sbtn-g" id="nec-sub" onclick="guardarNec()"><i class="ti ti-device-floppy"></i>Guardar registro</button>
+  </div>
+  <!-- Dashboard Ramillas Nec -->
+  <div class="panel" id="nec-ram">
+    <div class="tog-row">
+      <button class="tog-btn tog-g" id="nec-thoy" onclick="viNec('ram','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
+      <button class="tog-btn" id="nec-tacum" onclick="viNec('ram','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
+    </div>
+    <div id="nec-dram"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div>
+  </div>
+  <!-- Dashboard Calidad Nec -->
+  <div class="panel" id="nec-cal">
+    <div class="tog-row">
+      <button class="tog-btn tog-g" id="nec-choy" onclick="viNec('cal','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
+      <button class="tog-btn" id="nec-cacum" onclick="viNec('cal','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
+    </div>
+    <div id="nec-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div>
+  </div>
+  <!-- Config Nec -->
+  <div class="panel" id="nec-cfg">
+    <div id="nec-lock" class="lock-scr">
+      <i class="ti ti-shield-lock lock-ico"></i><div class="lock-title">Zona de Administrador</div><div class="lock-sub">Ingresa tu contraseña</div>
+      <div class="lock-wrap"><input class="lock-inp" type="password" id="nec-pass" placeholder="••••••" onkeydown="if(event.key==='Enter')chkAdm('nec')"><button class="lock-eye" onclick="tvPass('nec')"><i class="ti ti-eye" id="nec-eye"></i></button></div>
+      <div class="lock-err" id="nec-lerr"></div><button class="lock-btn-g" onclick="chkAdm('nec')">Ingresar</button>
+      <div class="lock-hint">Contraseña: <strong>poda2024</strong></div>
+    </div>
+    <div id="nec-adm" style="display:none">
+      <div class="adm-hdr adm-hdr-g"><div class="adm-hdr-l"><i class="ti ti-shield-check"></i><div><div class="adm-title">Administrador</div><div class="adm-sub">Nectarín</div></div></div><button class="logout-btn" onclick="closeAdm('nec')">Salir</button></div>
+      <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-user-check"></i>Contadores</div><div class="cfg-list" id="nec-lcon"></div><div class="cfg-add"><input class="cfg-add-inp" type="text" id="nec-acon" placeholder="Nuevo..."><button class="cfg-add-btn" onclick="addL('nec','con')">+ Agregar</button></div></div>
+      <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-user-star"></i>Supervisores</div><div class="cfg-list" id="nec-lsup"></div><div class="cfg-add"><input class="cfg-add-inp" type="text" id="nec-asup" placeholder="Nuevo..."><button class="cfg-add-btn" onclick="addL('nec','sup')">+ Agregar</button></div></div>
+      <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-building"></i>Contratistas</div><div class="cfg-list" id="nec-lcomp"></div><div class="cfg-add"><input class="cfg-add-inp" type="text" id="nec-acomp" placeholder="Nuevo..."><button class="cfg-add-btn" onclick="addL('nec','comp')">+ Agregar</button></div></div>
+      <hr class="divider">
+      <div style="font-size:11px;font-family:var(--mo);font-weight:500;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Cambiar contraseña</div>
+      <div class="pass-row"><input class="pass-inp" type="password" id="nec-pn" placeholder="Nueva"><input class="pass-inp" type="password" id="nec-pc" placeholder="Confirmar"></div>
+      <button class="pass-btn" style="width:100%;background:var(--vo)" onclick="chgPass('nec')">Actualizar contraseña</button>
+    </div>
+  </div>
+</div>
+
+<!-- CEREZO -->
+<div class="app-view" id="view-cer">
+  <div class="hdr-cer">
+    <div class="hdr-l"><button class="back-btn" onclick="volver()">← Volver</button><div><div class="hdr-title">🍒 Cerezo 2026</div><div class="hdr-sub">Conteo de dardos</div></div></div>
+    <div class="hdr-r"><div class="sync-bdg" id="sync-cer"><i class="ti ti-cloud"></i><span id="sync-cer-t">...</span></div><div class="bdg-vivo-r"><span class="dot"></span>EN VIVO</div><button class="adm-bdg" onclick="toggleAdm('cer')"><i class="ti ti-lock" id="lock-cer-i"></i></button></div>
+  </div>
+  <div class="tabs-cer">
+    <button class="tab-cer active" onclick="tabCer('ing')"><i class="ti ti-edit"></i>Ingresar</button>
+    <button class="tab-cer" onclick="tabCer('dash')"><i class="ti ti-chart-bar"></i>Dashboard</button>
+    <button class="tab-cer" onclick="tabCer('reg')"><i class="ti ti-list"></i>Registros</button>
+    <button class="tab-cer" onclick="tabCer('cfg')"><i class="ti ti-settings"></i>Listas<span id="lock-cer-t" style="font-size:9px;margin-left:1px">🔒</span></button>
+  </div>
+  <!-- Ingreso Cer -->
+  <div class="panel active" id="cer-ing">
+    <div class="csel-r"><div><div class="clbl-r">Cuartel · Variedad</div><div class="cval-r" id="cer-cval">C-6 · Lapins</div></div><div class="cnav"><button class="nbtn-r" onclick="cCer(-1)">‹</button><button class="nbtn-r" onclick="cCer(1)">›</button></div></div>
+    <div class="rango-info"><i class="ti ti-target"></i><span id="cer-rinfo">Dardos: 230–276–331</span></div>
+    <div class="fgrp" style="margin-bottom:12px"><label class="flbl">Tipo de conteo</label>
+      <div class="tipo-row"><button class="tipo-btn pre on" id="cer-tpre" onclick="setTipo('pre')">PRE PODA</button><button class="tipo-btn post" id="cer-tpost" onclick="setTipo('post')">POST PODA</button></div>
+    </div>
+    <div class="fg">
+      <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="cer-hil" min="1" placeholder="01"></div>
+      <div class="fgrp"><label class="flbl">N° Planta</label><input class="finp" type="number" id="cer-pla" min="1" placeholder="01"></div>
+      <div class="fgrp"><label class="flbl">Podador</label><input class="finp" type="text" id="cer-pod" placeholder="Nombre"></div>
+      <div class="fgrp"><label class="flbl">Contador</label><div class="cwrap"><input class="cinp" type="text" id="cer-cnt" placeholder="Seleccionar..." readonly onclick="openDD('cer-cnt-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="cer-cnt-dd"></div></div></div>
+      <div class="fgrp"><label class="flbl">Supervisor</label><div class="cwrap"><input class="cinp" type="text" id="cer-sup" placeholder="Seleccionar..." readonly onclick="openDD('cer-sup-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="cer-sup-dd"></div></div></div>
+      <div class="fgrp"><label class="flbl">Contratista</label><div class="cwrap"><input class="cinp" type="text" id="cer-con" placeholder="Seleccionar..." readonly onclick="openDD('cer-con-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="cer-con-dd"></div></div></div>
+    </div>
+    <div class="carbox">
+      <div class="cartitle"><span>Cargadores y Dardos</span><button class="add-car-btn" onclick="addCar()">+ Cargador</button></div>
+      <div id="car-list"></div>
+      <div class="ram-cer-row"><span class="ram-cer-lbl">Ramillas</span><input class="ram-cer-inp" type="number" id="cer-ram" min="0" placeholder="0" oninput="calcTotal()"></div>
+    </div>
+    <div class="total-box"><div><div class="total-lbl">Total Dardos</div><div style="font-size:10px;font-family:var(--mo);color:var(--tm)">(dardos + ramillas)</div></div><div class="total-val" id="cer-tot">0</div></div>
+    <div class="alerta bajo" id="cer-abaj"><i class="ti ti-alert-circle"></i><span id="cer-abaj-t">Bajo rango mínimo</span></div>
+    <div class="alerta alto" id="cer-aalt"><i class="ti ti-alert-triangle"></i><span id="cer-aalt-t">Sobre rango máximo</span></div>
+    <div class="fgrp full" style="margin-bottom:14px"><label class="flbl">Observaciones</label><input class="finp" type="text" id="cer-obs" placeholder="Ej: planta dañada..."></div>
+    <button class="sbtn-r" id="cer-sub" onclick="guardarCer()"><i class="ti ti-device-floppy"></i>Guardar registro</button>
+  </div>
+  <!-- Dashboard Cer -->
+  <div class="panel" id="cer-dash">
+    <div class="filt-row">
+      <button class="filt-btn on" id="cf-todos" onclick="filtCer('todos')">Todos</button>
+      <button class="filt-btn" id="cf-pre" onclick="filtCer('pre')">Pre Poda</button>
+      <button class="filt-btn" id="cf-post" onclick="filtCer('post')">Post Poda</button>
+    </div>
+    <div class="tog-row">
+      <button class="tog-btn tog-r" id="cer-thoy" onclick="viCer('hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
+      <button class="tog-btn" id="cer-tacum" onclick="viCer('acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
+    </div>
+    <div id="cer-ddash"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div>
+  </div>
+  <!-- Registros Cer -->
+  <div class="panel" id="cer-reg">
+    <div class="filt-row">
+      <button class="filt-btn on" id="cr-todos" onclick="filtReg('todos')">Todos</button>
+      <button class="filt-btn" id="cr-pre" onclick="filtReg('pre')">Pre Poda</button>
+      <button class="filt-btn" id="cr-post" onclick="filtReg('post')">Post Poda</button>
+    </div>
+    <div id="cer-dreg"><div class="empty"><i class="ti ti-list"></i>Cargando...</div></div>
+  </div>
+  <!-- Config Cer -->
+  <div class="panel" id="cer-cfg">
+    <div id="cer-lock" class="lock-scr">
+      <i class="ti ti-shield-lock lock-ico"></i><div class="lock-title">Zona de Administrador</div><div class="lock-sub">Ingresa tu contraseña</div>
+      <div class="lock-wrap"><input class="lock-inp" type="password" id="cer-pass" placeholder="••••••" onkeydown="if(event.key==='Enter')chkAdm('cer')"><button class="lock-eye" onclick="tvPass('cer')"><i class="ti ti-eye" id="cer-eye"></i></button></div>
+      <div class="lock-err" id="cer-lerr"></div><button class="lock-btn-r" onclick="chkAdm('cer')">Ingresar</button>
+      <div class="lock-hint">Contraseña: <strong>poda2024</strong></div>
+    </div>
+    <div id="cer-adm" style="display:none">
+      <div class="adm-hdr adm-hdr-r"><div class="adm-hdr-l"><i class="ti ti-shield-check"></i><div><div class="adm-title">Administrador</div><div class="adm-sub">Cerezo</div></div></div><button class="logout-btn" onclick="closeAdm('cer')">Salir</button></div>
+      <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-user-check"></i>Contadores</div><div class="cfg-list" id="cer-lcon"></div><div class="cfg-add"><input class="cfg-add-inp" type="text" id="cer-acon" placeholder="Nuevo..."><button class="cfg-add-btn" style="background:var(--ro)" onclick="addL('cer','con')">+ Agregar</button></div></div>
+      <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-user-star"></i>Supervisores</div><div class="cfg-list" id="cer-lsup"></div><div class="cfg-add"><input class="cfg-add-inp" type="text" id="cer-asup" placeholder="Nuevo..."><button class="cfg-add-btn" style="background:var(--ro)" onclick="addL('cer','sup')">+ Agregar</button></div></div>
+      <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-building"></i>Contratistas</div><div class="cfg-list" id="cer-lcomp"></div><div class="cfg-add"><input class="cfg-add-inp" type="text" id="cer-acomp" placeholder="Nuevo..."><button class="cfg-add-btn" style="background:var(--ro)" onclick="addL('cer','comp')">+ Agregar</button></div></div>
+      <hr class="divider">
+      <div style="font-size:11px;font-family:var(--mo);font-weight:500;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Cambiar contraseña</div>
+      <div class="pass-row"><input class="pass-inp" type="password" id="cer-pn" placeholder="Nueva"><input class="pass-inp" type="password" id="cer-pc" placeholder="Confirmar"></div>
+      <button class="pass-btn" style="width:100%;background:var(--ro)" onclick="chgPass('cer')">Actualizar contraseña</button>
+    </div>
+  </div>
+</div>
 <!-- MODAL -->
-<div class="modal-overlay" id="modal-overlay" onclick="cerrarModal(event)">
+<div class="modal-ov" id="modal-ov" onclick="closeModal(event)">
   <div class="modal-box">
-    <div class="modal-header g" id="modal-header">
-      <span class="modal-title" id="modal-titulo">Detalle</span>
-      <button class="modal-close" onclick="cerrarModalBtn()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-stats" id="modal-stats"></div>
-      <div class="tabla-wrap"><table><thead><tr id="modal-thead-tr"></tr></thead><tbody id="modal-tbody"></tbody></table></div>
-    </div>
+    <div class="modal-hdr modal-hdr-g" id="modal-hdr"><span class="modal-title" id="modal-tit">Detalle</span><button class="modal-close" onclick="closeModalBtn()">×</button></div>
+    <div class="modal-body"><div class="modal-stats" id="modal-stats"></div><div class="twrap"><table><thead><tr id="modal-thead"></tr></thead><tbody id="modal-tbody"></tbody></table></div></div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
+</div><!-- end .app -->
 
 <script>
-const SUPABASE_URL='https://qmxcjbyqeazaeionpfli.supabase.co';
-const SUPABASE_KEY='sb_publishable_hMw0cuM2-ivAl5-jkBynMw_ZuW_nNds';
+const SB_URL='https://qmxcjbyqeazaeionpfli.supabase.co';
+const SB_KEY='sb_publishable_hMw0cuM2-ivAl5-jkBynMw_ZuW_nNds';
 const {createClient}=supabase;
-const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+const db=createClient(SB_URL,SB_KEY);
 
-// ===== DATOS CUARTELES NECTARIN =====
-const CUARTELES_NECTARIN=[
-  {num:'C-01', var:'Luciana'},
-  {num:'C-02', var:'Garcica'},
-  {num:'C-03', var:'Arctic Red'},
-  {num:'C-04', var:'Arctic Red'},
-  {num:'C-05', var:'Arctic Red'},
-  {num:'C-08', var:'Luciana'},
-  {num:'C-09', var:'Garcica'},
-  {num:'C-13', var:'Gardeta'},
-  {num:'C-30', var:'Gardeta'},
-  {num:'C-31', var:'Kinolea'},
-  {num:'C-32', var:'Andesnecdos'},
-  {num:'C-7B', var:'Gartairo'},
+// CUARTELES
+const CNEC=[
+  {n:'C-01',v:'Luciana'},{n:'C-02',v:'Garcica'},{n:'C-03',v:'Arctic Red'},
+  {n:'C-04',v:'Arctic Red'},{n:'C-05',v:'Arctic Red'},{n:'C-08',v:'Luciana'},
+  {n:'C-09',v:'Garcica'},{n:'C-13',v:'Gardeta'},{n:'C-30',v:'Gardeta'},
+  {n:'C-31',v:'Kinolea'},{n:'C-32',v:'Andesnecdos'},{n:'C-7B',v:'Gartairo'}
+];
+const CCER=[
+  {n:'C-6',v:'Lapins',mn:230,ob:276,mx:331},{n:'C-10',v:'Lapins',mn:212,ob:254,mx:305},
+  {n:'C-15',v:'Lapins',mn:230,ob:276,mx:331},{n:'C-17',v:'Lapins',mn:230,ob:276,mx:331},
+  {n:'C-18',v:'Lapins',mn:230,ob:276,mx:331},{n:'C-19',v:'Lapins',mn:230,ob:276,mx:331},
+  {n:'C-22',v:'Lapins',mn:230,ob:276,mx:331},{n:'C-24',v:'Lapins',mn:230,ob:276,mx:331},
+  {n:'C-11',v:'Santina',mn:270,ob:324,mx:389},{n:'C-12',v:'Santina',mn:293,ob:351,mx:421},
+  {n:'C-20',v:'Santina',mn:293,ob:351,mx:421},{n:'C-21',v:'Santina',mn:293,ob:351,mx:421},
+  {n:'C-23',v:'Santina',mn:342,ob:410,mx:492},{n:'C-25',v:'Santina',mn:293,ob:351,mx:421},
+  {n:'C-26',v:'Santina',mn:293,ob:351,mx:421},{n:'C-29',v:'Santina',mn:293,ob:351,mx:421}
 ];
 
-// ===== DATOS CUARTELES CEREZA =====
-const CUARTELES_CEREZA=[
-  {num:'C-6',  var:'Lapins',  min:230,obj:276,max:331},
-  {num:'C-10', var:'Lapins',  min:212,obj:254,max:305},
-  {num:'C-15', var:'Lapins',  min:230,obj:276,max:331},
-  {num:'C-17', var:'Lapins',  min:230,obj:276,max:331},
-  {num:'C-18', var:'Lapins',  min:230,obj:276,max:331},
-  {num:'C-19', var:'Lapins',  min:230,obj:276,max:331},
-  {num:'C-22', var:'Lapins',  min:230,obj:276,max:331},
-  {num:'C-24', var:'Lapins',  min:230,obj:276,max:331},
-  {num:'C-11', var:'Santina', min:270,obj:324,max:389},
-  {num:'C-12', var:'Santina', min:293,obj:351,max:421},
-  {num:'C-20', var:'Santina', min:293,obj:351,max:421},
-  {num:'C-21', var:'Santina', min:293,obj:351,max:421},
-  {num:'C-23', var:'Santina', min:342,obj:410,max:492},
-  {num:'C-25', var:'Santina', min:293,obj:351,max:421},
-  {num:'C-26', var:'Santina', min:293,obj:351,max:421},
-  {num:'C-29', var:'Santina', min:293,obj:351,max:421},
-];
+// ESTADO
+const RM=54,RX=78,RI=65;
+let nIdx=0,nCal=null,nRegs=[],nVR='hoy',nVC='hoy',nPass='poda2024',nAdm=false;
+let cIdx=0,cTipo='pre',cCal=null,cRegs=[],cVista='hoy',cFilt='todos',cFiltR='todos',cPass='poda2024',cAdm=false;
+let nCar=1;
 
-// ===== ESTADO =====
-const RAM_MIN=54,RAM_MAX=78,RAM_IDEAL=65;
-let necCuartelIdx=0, necCalidadSel=null, necRegistros=[];
-let necVistaRam='hoy', necVistaCal='hoy';
-let necPass='poda2024', necAdmin=false;
-let cerIdx=0, cerTipoConteo='pre', cerCalidadSel=null, cerRegistros=[];
-let cerVista='hoy', cerFiltro='todos', cerRegFiltro='todos';
-let cerPass='poda2024', cerAdmin=false;
-let numCargadores=1;
-
-const listas={
-  nec:{ contador:['PAOLA RIQUELME','HAYDEE RUIZ','PAULINA ARRIAZA','IVONNE CARREÑO','CONSTANZA SALAS'], supervisor:['EDUARDO GAMBOA','CARLOS ROJAS','NESTOR CESPEDES','LUIS ROJAS','GRIMI GAMBOA'], contratista:['ANTHONY SANDOVAL','FLOR ARAVENA','MIRIAM PINTO','OSCAR PINTO','DENYS SANDOVAL'] },
-  cer:{ contador:['PAOLA RIQUELME','HAYDEE RUIZ','PAULINA ARRIAZA','IVONNE CARREÑO','CONSTANZA SALAS'], supervisor:['EDUARDO GAMBOA','CARLOS ROJAS','NESTOR CESPEDES','LUIS ROJAS','GRIMI GAMBOA'], contratista:['ANTHONY SANDOVAL','FLOR ARAVENA','MIRIAM PINTO','OSCAR PINTO','DENYS SANDOVAL'] }
+const L={
+  nec:{con:['PAOLA RIQUELME','HAYDEE RUIZ','PAULINA ARRIAZA','IVONNE CARREÑO','CONSTANZA SALAS'],
+       sup:['EDUARDO GAMBOA','CARLOS ROJAS','NESTOR CESPEDES','LUIS ROJAS','GRIMI GAMBOA'],
+       comp:['ANTHONY SANDOVAL','FLOR ARAVENA','MIRIAM PINTO','OSCAR PINTO','DENYS SANDOVAL']},
+  cer:{con:['PAOLA RIQUELME','HAYDEE RUIZ','PAULINA ARRIAZA','IVONNE CARREÑO','CONSTANZA SALAS'],
+       sup:['EDUARDO GAMBOA','CARLOS ROJAS','NESTOR CESPEDES','LUIS ROJAS','GRIMI GAMBOA'],
+       comp:['ANTHONY SANDOVAL','FLOR ARAVENA','MIRIAM PINTO','OSCAR PINTO','DENYS SANDOVAL']}
 };
 
-// ===== PANTALLA INICIO =====
-function entrarEspecie(esp){
-  document.getElementById('pantalla-inicio').style.display='none';
-  if(esp==='nectarin'){document.getElementById('view-nectarin').style.display='block';document.getElementById('view-cereza').style.display='none';cargarNec().then(()=>{renderNecRam();renderNecCal();}).catch(()=>{});}
-  else{document.getElementById('view-cereza').style.display='block';document.getElementById('view-nectarin').style.display='none';cargarCer();}
-}
-function volverInicio(){
-  document.getElementById('pantalla-inicio').style.display='flex';
-  document.getElementById('view-nectarin').style.display='none';
-  document.getElementById('view-cereza').style.display='none';
-}
-
 // UTILS
-function mostrarToast(msg,tipo){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(tipo||'ok');setTimeout(()=>t.classList.remove('show'),2500);}
-function setSyncStatus(id,txtId,tipo,txt){const b=document.getElementById(id);if(!b)return;if(tipo==='loading'){b.innerHTML='<i class="ti ti-refresh spin"></i><span>'+txt+'</span>';b.style.background='rgba(255,255,255,.15)';}else if(tipo==='error'){b.innerHTML='<i class="ti ti-cloud-off"></i><span>'+txt+'</span>';b.style.background='rgba(226,75,74,.3)';}else{b.innerHTML='<i class="ti ti-cloud-check"></i><span>'+txt+'</span>';b.style.background='rgba(255,255,255,.15)';}}
-function hoyStr(){const d=new Date();return d.getDate()+'/'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'/'+d.getFullYear();}
-function tsNow(){const d=new Date();return d.getDate()+'/'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'/'+d.getFullYear()+' '+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes()+':'+(d.getSeconds()<10?'0':'')+d.getSeconds();}
+function hoy(){const d=new Date();return d.getDate()+'/'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'/'+d.getFullYear();}
+function ts(){const d=new Date();return d.getDate()+'/'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'/'+d.getFullYear()+' '+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes()+':'+(d.getSeconds()<10?'0':'')+d.getSeconds();}
+function toast(m,t){const el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ok');setTimeout(()=>el.classList.remove('show'),2500);}
+function sync(id,tipo,txt){const b=document.getElementById(id);if(!b)return;if(tipo==='L'){b.innerHTML='<i class="ti ti-refresh spin"></i><span>'+txt+'</span>';b.style.background='rgba(255,255,255,.15)';}else if(tipo==='E'){b.innerHTML='<i class="ti ti-cloud-off"></i><span>'+txt+'</span>';b.style.background='rgba(226,75,74,.3)';}else{b.innerHTML='<i class="ti ti-cloud-check"></i><span>'+txt+'</span>';b.style.background='rgba(255,255,255,.15)';}}
+function pct(n,fn,fn2){const p=Math.round(n/fn*100);const c=fn2==='g'?(p>=70?'background:#E1F5EE;color:#085041;font-weight:600':(p>15?'background:#FAEEDA;color:#633806;font-weight:600':'color:var(--tm)')):(p>15?'background:#FADBD8;color:#791F1F;font-weight:600':'color:var(--tm)');return`<span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mo);${c}">${p}%</span>`;}
 
-// NECTARIN CARGA
-async function cargarNec(){
-  setSyncStatus('sync-nec','sync-nec-txt','loading','Cargando...');
+// PANTALLA INICIO
+function entrar(e){
+  document.getElementById('pantalla-inicio').style.display='none';
+  document.getElementById('view-nec').style.display=e==='nec'?'block':'none';
+  document.getElementById('view-cer').style.display=e==='cer'?'block':'none';
+  if(e==='nec')loadNec();else loadCer();
+}
+function volver(){
+  document.getElementById('pantalla-inicio').style.display='flex';
+  document.getElementById('view-nec').style.display='none';
+  document.getElementById('view-cer').style.display='none';
+}
+
+// TABS
+function tabNec(t){
+  ['ing','ram','cal','cfg'].forEach((x,i)=>{
+    const tab=document.querySelectorAll('.tab-nec')[i];
+    const pan=document.getElementById('nec-'+x);
+    if(x===t){tab.classList.add('active');pan.classList.add('active');}
+    else{tab.classList.remove('active');pan.classList.remove('active');}
+  });
+  if(t==='ram'||t==='cal')loadNec();
+}
+function tabCer(t){
+  ['ing','dash','reg','cfg'].forEach((x,i)=>{
+    const tab=document.querySelectorAll('.tab-cer')[i];
+    const pan=document.getElementById('cer-'+x);
+    if(x===t){tab.classList.add('active');pan.classList.add('active');}
+    else{tab.classList.remove('active');pan.classList.remove('active');}
+  });
+  if(t==='dash'||t==='reg')loadCer();
+}
+
+// NECTARIN LOAD
+async function loadNec(){
+  sync('sync-nec','L','Cargando...');
   const {data,error}=await db.from('conteos').select('*').order('id',{ascending:true}).limit(10000);
-  if(error){setSyncStatus('sync-nec','sync-nec-txt','error','Sin conexión');return;}
-  necRegistros=data.map(r=>({cuartel:String(r.cuartel),hilera:r.hilera,planta:r.planta,podador:r.podador,contador:r.contador,supervisor:r.supervisor,contratista:r.contratista,ramillas:parseInt(r.ramillas)||0,fuera:r.fuera_rango==='no'?null:r.fuera_rango,calidad:r.calidad,obs:r.observaciones||'',hora:r.timestamp}));
-  setSyncStatus('sync-nec','sync-nec-txt','ok','En línea · '+necRegistros.length);
-  renderNecRam();renderNecCal();
+  if(error){sync('sync-nec','E','Sin conexión');return;}
+  nRegs=data.map(r=>({c:String(r.cuartel),h:r.hilera,p:r.planta,pod:r.podador,cnt:r.contador,sup:r.supervisor,comp:r.contratista,ram:parseInt(r.ramillas)||0,f:r.fuera_rango==='no'?null:r.fuera_rango,cal:r.calidad,obs:r.observaciones||'',ts:r.timestamp}));
+  sync('sync-nec','O','En línea · '+nRegs.length);
+  rnRam();rnCal();
+}
+
+function fnNec(v){if(v==='hoy')return nRegs.filter(r=>r.ts&&r.ts.includes(hoy()));return nRegs;}
+
+function rnRam(){
+  const el=document.getElementById('nec-dram');if(!el)return;
+  const regs=fnNec(nVR);
+  if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-leaf"></i>'+(nVR==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
+  const tot=regs.length,avg=(regs.reduce((s,r)=>s+r.ram,0)/tot).toFixed(1);
+  const fr=regs.filter(r=>r.f).length,cuarts=[...new Set(regs.map(r=>r.c))].length;
+  const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,s:0,b:0,al:0,dn:0};const x=d[r.c];x.t++;x.s+=r.ram;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
+  const rows=Object.keys(d).sort().map(c=>{const x=d[c];const a=Math.round(x.s/x.t);const ac=a<RM?'color:#791F1F':a>RX?'color:#633806':'color:#085041';return`<tr style="cursor:pointer" onclick="openDet('nec','${c}','${nVR}')"><td style="color:var(--vo);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="${ac};font-weight:500">${a}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
+  el.innerHTML=`<button class="ref-btn ref-g" onclick="loadNec()"><i class="ti ti-refresh"></i>Actualizar</button>
+  ${nVR==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
+  <div class="stats2"><div class="scard"><div class="slbl">Total conteos</div><div class="sval">${tot}</div><div class="ssub">${cuarts} cuarteles</div></div><div class="scard"><div class="slbl">Prom. ramillas</div><div class="sval">${avg}</div><div class="ssub">ideal: ${RI} · rango ${RM}–${RX}</div></div></div>
+  ${fr>0?`<div class="alerta bajo vis" style="margin-bottom:14px"><i class="ti ti-alert-circle"></i><span>${fr} planta${fr>1?'s':''} fuera de rango</span></div>`:''}
+  <p class="sec-title">Resumen por cuartel</p><div class="rango-ref rr-g"><i class="ti ti-target"></i>Rango ${RM}–${RX} · Ideal ${RI}</div>
+  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>↓ Bajo%</th><th>✓ Dentro%</th><th>↑ Sobre%</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <button class="exp-btn exp-g" onclick="expCSV('nec','ram')"><i class="ti ti-download"></i>Exportar CSV</button>`;
+}
+
+function rnCal(){
+  const el=document.getElementById('nec-dcal');if(!el)return;
+  const regs=fnNec(nVC);
+  if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-rosette"></i>'+(nVC==='hoy'?'Sin conteos hoy.':'Sin registros.')+'</div>';return;}
+  const tot=regs.length,cG={A:0,B:0,C:0};regs.forEach(r=>{if(cG[r.cal]!==undefined)cG[r.cal]++;});
+  const pA=Math.round(cG.A/tot*100),pB=Math.round(cG.B/tot*100),pC=Math.round(cG.C/tot*100);
+  const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,A:0,B:0,C:0};const x=d[r.c];x.t++;if(x[r.cal]!==undefined)x[r.cal]++;});
+  const rowsC=Object.keys(d).sort().map(c=>{const x=d[c];return`<tr><td>${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.A,x.t,'g')}</td><td style="text-align:center">${pct(x.B,x.t,'r')}</td><td style="text-align:center">${pct(x.C,x.t,'r')}</td></tr>`;}).join('');
+  const obs=regs.filter(r=>r.obs&&r.obs.trim()).slice(-30).reverse();
+  const rowsO=obs.length?obs.map(r=>`<tr><td>${r.c}</td><td style="font-size:10px">${r.pod||''}</td><td><span class="pill pill-${r.cal.toLowerCase()}">${r.cal}</span></td><td class="otd" title="${r.obs}">${r.obs}</td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--tm);padding:12px">Sin observaciones</td></tr>';
+  el.innerHTML=`<button class="ref-btn ref-g" onclick="loadNec()"><i class="ti ti-refresh"></i>Actualizar</button>
+  ${nVC==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
+  <p class="sec-title">Calidad global</p><div class="cal-dist"><div class="cstat A"><div class="cletra">A</div><div class="cpct">${pA}% · ${cG.A}</div></div><div class="cstat B"><div class="cletra">B</div><div class="cpct">${pB}% · ${cG.B}</div></div><div class="cstat C"><div class="cletra">C</div><div class="cpct">${pC}% · ${cG.C}</div></div></div>
+  <p class="sec-title">Calidad por cuartel</p><div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>A%</th><th>B%</th><th>C%</th></tr></thead><tbody>${rowsC}</tbody></table></div>
+  <p class="sec-title">Observaciones recientes</p><div class="twrap"><table><thead><tr><th>Cuartel</th><th>Podador</th><th>Cal.</th><th>Observación</th></tr></thead><tbody>${rowsO}</tbody></table></div>
+  <button class="exp-btn exp-g" onclick="expCSV('nec','cal')"><i class="ti ti-download"></i>Exportar CSV</button>`;
 }
 
 // NECTARIN GUARDAR
 async function guardarNec(){
-  const hilera=document.getElementById('nec-hilera').value;const planta=document.getElementById('nec-planta').value;const podador=document.getElementById('nec-podador').value;const contador=document.getElementById('nec-contador').value;const supervisor=document.getElementById('nec-supervisor').value;const contratista=document.getElementById('nec-contratista').value;const obs=document.getElementById('nec-obs').value;const ramInp=document.getElementById('nec-ramillas');const ram=parseInt(ramInp.value);
-  if(!hilera||!planta||!podador||!contador||isNaN(ram)||!necCalidadSel){mostrarToast('⚠ Completa todos los campos','warn');return;}
-  const fuera=ram<RAM_MIN?'bajo':ram>RAM_MAX?'alto':null;
-  const btn=document.getElementById('nec-submit');btn.disabled=true;btn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';
-  const {error}=await db.from('conteos').insert([{timestamp:tsNow(),cuartel:CUARTELES_NECTARIN[necCuartelIdx].num,hilera:parseInt(hilera),planta:parseInt(planta),podador,contador,supervisor,contratista,ramillas:ram,fuera_rango:fuera||'no',calidad:necCalidadSel,observaciones:obs||''}]);
+  const h=document.getElementById('nec-hil').value,p=document.getElementById('nec-pla').value;
+  const pod=document.getElementById('nec-pod').value,cnt=document.getElementById('nec-cnt').value;
+  const sup=document.getElementById('nec-sup').value,comp=document.getElementById('nec-con').value;
+  const obs=document.getElementById('nec-obs').value;
+  const ri=document.getElementById('nec-ram');const ram=parseInt(ri.value);
+  if(!h||!p||!pod||!cnt||isNaN(ram)||!nCal){toast('⚠ Completa todos los campos','warn');return;}
+  const f=ram<RM?'bajo':ram>RX?'alto':null;
+  const btn=document.getElementById('nec-sub');btn.disabled=true;btn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';
+  sync('sync-nec','L','Guardando...');
+  const {error}=await db.from('conteos').insert([{timestamp:ts(),cuartel:CNEC[nIdx].n,hilera:parseInt(h),planta:parseInt(p),podador:pod,contador:cnt,supervisor:sup,contratista:comp,ramillas:ram,fuera_rango:f||'no',calidad:nCal,observaciones:obs||''}]);
   btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar registro';
-  if(error){mostrarToast('⚠ Error al guardar','warn');return;}
-  if(fuera==='bajo')mostrarToast('⚠ Guardado — BAJO rango','warn');else if(fuera==='alto')mostrarToast('⚠ Guardado — SOBRE rango','warn');else mostrarToast('✓ Guardado correctamente');
-  document.getElementById('nec-hilera').value='';document.getElementById('nec-planta').value='';document.getElementById('nec-obs').value='';
-  ramInp.value='';ramInp.classList.remove('alerta-bajo','alerta-alto','ok');
-  document.getElementById('nec-alerta-bajo').classList.remove('visible');document.getElementById('nec-alerta-alto').classList.remove('visible');
-  necCalidadSel=null;document.querySelectorAll('.calidad-btn').forEach(b=>b.classList.remove('active'));
-  cargarNec();
+  if(error){sync('sync-nec','E','Error');toast('⚠ Error al guardar','warn');return;}
+  sync('sync-nec','O','✓ Guardado');setTimeout(()=>sync('sync-nec','O','En línea'),2000);
+  if(f==='bajo')toast('⚠ Guardado — BAJO rango','warn');else if(f==='alto')toast('⚠ Guardado — SOBRE rango','warn');else toast('✓ Guardado correctamente');
+  document.getElementById('nec-hil').value='';document.getElementById('nec-pla').value='';document.getElementById('nec-obs').value='';
+  ri.value='';ri.classList.remove('rbajo','ralto','rok');
+  document.getElementById('nec-abaj').classList.remove('vis');document.getElementById('nec-aalt').classList.remove('vis');
+  nCal=null;document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('on'));
+  loadNec();
 }
 
-function filtrarNec(vista){if(vista==='hoy')return necRegistros.filter(r=>r.hora&&r.hora.includes(hoyStr()));return necRegistros;}
-
-function renderNecRam(){
-  const el=document.getElementById('nec-dash-ram');
-  if(!el){console.log('nec-dash-ram not found');return;}
-  const regs=filtrarNec(necVistaRam);
-  console.log('renderNecRam regs:',regs.length,'vista:',necVistaRam);
-  if(!regs.length){el.innerHTML='<div class="empty-state"><i class="ti ti-leaf"></i>'+(necVistaRam==='hoy'?'Sin conteos hoy — toca Acumulado para ver todos.':'Sin registros.')+'</div>';return;}
-  const total=regs.length;const avg=(regs.reduce((s,r)=>s+r.ramillas,0)/total).toFixed(1);const fueraRango=regs.filter(r=>r.fuera).length;const cuartelesCon=[...new Set(regs.map(r=>r.cuartel))].length;
-  const datos={};regs.forEach(r=>{if(!datos[r.cuartel])datos[r.cuartel]={total:0,sumRam:0,bajo:0,alto:0,dentro:0};const d=datos[r.cuartel];d.total++;d.sumRam+=r.ramillas;if(r.fuera==='bajo')d.bajo++;else if(r.fuera==='alto')d.alto++;else d.dentro++;});
-  const filas=Object.keys(datos).sort().map(c=>{const d=datos[c];const avg2=Math.round(d.sumRam/d.total);const avgColor=avg2<RAM_MIN?'color:#791F1F':avg2>RAM_MAX?'color:#633806':'color:#085041';const pB=Math.round(d.bajo/d.total*100),pD=Math.round(d.dentro/d.total*100),pS=Math.round(d.alto/d.total*100);const cB=pB>15?'background:#FCEBEB;color:#791F1F;font-weight:600':'color:var(--texto-muted)';const cD=pD>=70?'background:#E1F5EE;color:#085041;font-weight:600':'background:#FAEEDA;color:#633806;font-weight:600';const cS=pS>15?'background:#FCEBEB;color:#791F1F;font-weight:600':'color:var(--texto-muted)';return`<tr style="cursor:pointer" onclick="abrirDetalle('nec','${c}','${necVistaRam}')"><td style="color:var(--verde-oscuro);text-decoration:underline dotted">${c}</td><td>${d.total}</td><td style="${avgColor};font-weight:500">${avg2}</td><td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${cB}">${pB}%</span></td><td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${cD}">${pD}%</span></td><td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${cS}">${pS}%</span></td></tr>`;}).join('');
-  el.innerHTML=`<button class="refresh-btn g" onclick="cargarNec()"><i class="ti ti-refresh"></i>Actualizar</button>${necVistaRam==='hoy'?`<div class="fecha-hoy">📅 ${hoyStr()}</div>`:''}
-  <div class="dash-stats"><div class="stat-card"><div class="stat-label">Total conteos</div><div class="stat-val">${total}</div><div class="stat-sub">${cuartelesCon} cuarteles</div></div><div class="stat-card"><div class="stat-label">Prom. ramillas</div><div class="stat-val">${avg}</div><div class="stat-sub">ideal: ${RAM_IDEAL} · rango ${RAM_MIN}–${RAM_MAX}</div></div></div>
-  ${fueraRango>0?`<div class="alerta-inline bajo visible" style="margin-bottom:14px"><i class="ti ti-alert-circle"></i><span>${fueraRango} planta${fueraRango>1?'s':''} fuera de rango</span></div>`:''}
-  <p class="section-title">Resumen por cuartel</p><div class="rango-ref g"><i class="ti ti-target"></i>Rango ${RAM_MIN}–${RAM_MAX} · Ideal ${RAM_IDEAL}</div>
-  <div class="tabla-wrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>↓ Bajo%</th><th>✓ Dentro%</th><th>↑ Sobre%</th></tr></thead><tbody>${filas}</tbody></table></div>
-  <button class="export-btn g" onclick="exportarCSV('nec','ram')"><i class="ti ti-download"></i>Exportar CSV</button>`;
+// NECTARIN CONTROLES
+function cNec(d){nIdx=Math.max(0,Math.min(CNEC.length-1,nIdx+d));document.getElementById('nec-cval').textContent=CNEC[nIdx].n+' · '+CNEC[nIdx].v;}
+function valRam(inp){const v=parseInt(inp.value);inp.classList.remove('rbajo','ralto','rok');document.getElementById('nec-abaj').classList.remove('vis');document.getElementById('nec-aalt').classList.remove('vis');if(isNaN(v)||inp.value==='')return;if(v<RM){inp.classList.add('rbajo');document.getElementById('nec-abaj').classList.add('vis');}else if(v>RX){inp.classList.add('ralto');document.getElementById('nec-aalt').classList.add('vis');}else inp.classList.add('rok');}
+function viNec(t,v){
+  if(t==='ram'){nVR=v;document.getElementById('nec-thoy').className='tog-btn'+(v==='hoy'?' tog-g':'');document.getElementById('nec-tacum').className='tog-btn'+(v==='acum'?' tog-g':'');rnRam();}
+  else{nVC=v;document.getElementById('nec-choy').className='tog-btn'+(v==='hoy'?' tog-g':'');document.getElementById('nec-cacum').className='tog-btn'+(v==='acum'?' tog-g':'');rnCal();}
 }
 
-function renderNecCal(){
-  const regs=filtrarNec(necVistaCal);const el=document.getElementById('nec-dash-cal');
-  if(!regs.length){el.innerHTML='<div class="empty-state"><i class="ti ti-rosette"></i>'+(necVistaCal==='hoy'?'Sin conteos hoy.':'Sin registros.')+'</div>';return;}
-  const total=regs.length;const cG={A:0,B:0,C:0};regs.forEach(r=>{if(cG[r.calidad]!==undefined)cG[r.calidad]++;});
-  const pA=Math.round(cG.A/total*100),pB=Math.round(cG.B/total*100),pC=Math.round(cG.C/total*100);
-  const datos={};regs.forEach(r=>{if(!datos[r.cuartel])datos[r.cuartel]={total:0,A:0,B:0,C:0};const d=datos[r.cuartel];d.total++;if(d[r.calidad]!==undefined)d[r.calidad]++;});
-  const filasC=Object.keys(datos).sort().map(c=>{const d=datos[c];const pA2=Math.round(d.A/d.total*100),pB2=Math.round(d.B/d.total*100),pC2=Math.round(d.C/d.total*100);const cA=pA2>=70?'background:#E1F5EE;color:#085041;font-weight:600':'color:var(--texto-muted)';const cB=pB2>15?'background:#FAEEDA;color:#633806;font-weight:600':'color:var(--texto-muted)';const cC=pC2>15?'background:#FCEBEB;color:#791F1F;font-weight:600':'color:var(--texto-muted)';return`<tr><td>${c}</td><td>${d.total}</td><td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${cA}">${pA2}%</span></td><td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${cB}">${pB2}%</span></td><td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${cC}">${pC2}%</span></td></tr>`;}).join('');
-  const obsRegs=regs.filter(r=>r.obs&&r.obs.trim()).slice(-30).reverse();
-  const filasO=obsRegs.length?obsRegs.map(r=>`<tr><td>${r.cuartel}</td><td style="font-size:10px">${r.podador||''}</td><td><span class="pill pill-${r.calidad.toLowerCase()}">${r.calidad}</span></td><td class="obs-td" title="${r.obs}">${r.obs}</td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--texto-muted);padding:12px">Sin observaciones</td></tr>';
-  el.innerHTML=`<button class="refresh-btn g" onclick="cargarNec()"><i class="ti ti-refresh"></i>Actualizar</button>${necVistaCal==='hoy'?`<div class="fecha-hoy">📅 ${hoyStr()}</div>`:''}
-  <p class="section-title">Calidad global</p><div class="calidad-dist"><div class="calidad-stat A"><div class="calidad-letra">A</div><div class="calidad-pct">${pA}% · ${cG.A}</div></div><div class="calidad-stat B"><div class="calidad-letra">B</div><div class="calidad-pct">${pB}% · ${cG.B}</div></div><div class="calidad-stat C"><div class="calidad-letra">C</div><div class="calidad-pct">${pC}% · ${cG.C}</div></div></div>
-  <p class="section-title">Calidad por cuartel</p><div class="tabla-wrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>A%</th><th>B%</th><th>C%</th></tr></thead><tbody>${filasC}</tbody></table></div>
-  <p class="section-title">Observaciones recientes</p><div class="tabla-wrap"><table><thead><tr><th>Cuartel</th><th>Podador</th><th>Cal.</th><th>Observación</th></tr></thead><tbody>${filasO}</tbody></table></div>
-  <button class="export-btn g" onclick="exportarCSV('nec','cal')"><i class="ti ti-download"></i>Exportar CSV</button>`;
-}
-
-// CEREZO CARGA
-async function cargarCer(){
-  setSyncStatus('sync-cer','sync-cer-txt','loading','Cargando...');
+// CEREZO LOAD
+async function loadCer(){
+  sync('sync-cer','L','Cargando...');
   const {data,error}=await db.from('conteos_cerezas').select('*').order('id',{ascending:true}).limit(10000);
-  if(error){setSyncStatus('sync-cer','sync-cer-txt','error','Sin conexión');return;}
-  cerRegistros=data.map(r=>({id:r.id,cuartel:r.cuartel,variedad:r.variedad,tipo:r.tipo_conteo,hilera:r.hilera,planta:r.planta,podador:r.podador,contador:r.contador,supervisor:r.supervisor,contratista:r.contratista,cargadores:r.cargadores||[],total_dardos:parseInt(r.total_dardos)||0,ramillas:parseInt(r.ramillas)||0,total:parseInt(r.total_general)||0,fuera:r.fuera_rango,obs:r.observaciones||'',hora:r.timestamp}));
-  setSyncStatus('sync-cer','sync-cer-txt','ok','En línea · '+cerRegistros.length);
-  renderCerDash();renderCerRegistros();
+  if(error){sync('sync-cer','E','Sin conexión');return;}
+  cRegs=data.map(r=>({c:r.cuartel,v:r.variedad,tipo:r.tipo_conteo,h:r.hilera,p:r.planta,pod:r.podador,cnt:r.contador,sup:r.supervisor,comp:r.contratista,cars:r.cargadores||[],td:parseInt(r.total_dardos)||0,ram:parseInt(r.ramillas)||0,tot:parseInt(r.total_general)||0,f:r.fuera_rango,obs:r.observaciones||'',ts:r.timestamp}));
+  sync('sync-cer','O','En línea · '+cRegs.length);
+  rcDash();rcReg();
 }
 
-function actualizarCuartelCer(){const c=CUARTELES_CEREZA[cerIdx];document.getElementById('cer-cuartel-display').textContent=c.num+' · '+c.var;document.getElementById('cer-rango-txt').textContent='Dardos: '+c.min+'–'+c.obj+'–'+c.max;calcularTotal();}
-function cambiarCuartelCer(d){cerIdx=Math.max(0,Math.min(CUARTELES_CEREZA.length-1,cerIdx+d));actualizarCuartelCer();}
-function setTipoConteo(tipo){cerTipoConteo=tipo;document.getElementById('cer-tipo-pre').classList.toggle('active',tipo==='pre');document.getElementById('cer-tipo-post').classList.toggle('active',tipo==='post');}
+// CEREZO CONTROLES
+function cCer(d){cIdx=Math.max(0,Math.min(CCER.length-1,cIdx+d));const c=CCER[cIdx];document.getElementById('cer-cval').textContent=c.n+' · '+c.v;document.getElementById('cer-rinfo').textContent='Dardos: '+c.mn+'–'+c.ob+'–'+c.mx;calcTotal();}
+function setTipo(t){cTipo=t;document.getElementById('cer-tpre').className='tipo-btn pre'+(t==='pre'?' on':'');document.getElementById('cer-tpost').className='tipo-btn post'+(t==='post'?' on':'');}
+function addCar(){nCar++;const l=document.getElementById('car-list');const r=document.createElement('div');r.className='car-row';r.id='cr'+nCar;r.innerHTML=`<span class="car-lbl">Cargador ${nCar}</span><input class="car-inp" type="number" id="ci${nCar}" min="0" placeholder="0" oninput="calcTotal()"><button class="del-car" onclick="delCar(${nCar})"><i class="ti ti-x"></i></button>`;l.appendChild(r);}
+function delCar(n){const r=document.getElementById('cr'+n);if(r)r.remove();calcTotal();}
+function calcTotal(){let td=0;for(let i=1;i<=nCar;i++){const x=document.getElementById('ci'+i);if(x)td+=parseInt(x.value)||0;}const ram=parseInt(document.getElementById('cer-ram').value)||0;const tot=td+ram;document.getElementById('cer-tot').textContent=tot;const c=CCER[cIdx];document.getElementById('cer-abaj').classList.remove('vis');document.getElementById('cer-aalt').classList.remove('vis');if(tot>0){if(tot<c.mn){document.getElementById('cer-abaj').classList.add('vis');document.getElementById('cer-abaj-t').textContent='Bajo rango mínimo (< '+c.mn+')';}else if(tot>c.mx){document.getElementById('cer-aalt').classList.add('vis');document.getElementById('cer-aalt-t').textContent='Sobre rango máximo (> '+c.mx+')';}};}
+function resetCar(){nCar=1;document.getElementById('car-list').innerHTML='<div class="car-row" id="cr1"><span class="car-lbl">Cargador 1</span><input class="car-inp" type="number" id="ci1" min="0" placeholder="0" oninput="calcTotal()"><button class="del-car" onclick="delCar(1)"><i class="ti ti-x"></i></button></div>';}
 
-function agregarCargador(){
-  numCargadores++;
-  const list=document.getElementById('cargadores-list');
-  const row=document.createElement('div');row.className='cargador-row';row.id='carg-row-'+numCargadores;
-  row.innerHTML=`<span class="cargador-label">Cargador ${numCargadores}</span><input class="cargador-input" type="number" id="carg-${numCargadores}" min="0" placeholder="0" oninput="calcularTotal()"><button class="del-cargador" onclick="eliminarCargador(${numCargadores})"><i class="ti ti-x"></i></button>`;
-  list.appendChild(row);
-}
-function eliminarCargador(n){const row=document.getElementById('carg-row-'+n);if(row)row.remove();calcularTotal();}
-function calcularTotal(){
-  let totalDardos=0;
-  for(let i=1;i<=numCargadores;i++){const inp=document.getElementById('carg-'+i);if(inp)totalDardos+=parseInt(inp.value)||0;}
-  const ram=parseInt(document.getElementById('cer-ramillas').value)||0;
-  const total=totalDardos+ram;
-  document.getElementById('cer-total').textContent=total;
-  const c=CUARTELES_CEREZA[cerIdx];
-  document.getElementById('cer-alerta-bajo').classList.remove('visible');document.getElementById('cer-alerta-alto').classList.remove('visible');
-  if(total>0){if(total<c.min){document.getElementById('cer-alerta-bajo').classList.add('visible');document.getElementById('cer-alerta-bajo-txt').textContent='Bajo rango mínimo (< '+c.min+')';}else if(total>c.max){document.getElementById('cer-alerta-alto').classList.add('visible');document.getElementById('cer-alerta-alto-txt').textContent='Sobre rango máximo (> '+c.max+')';}}
-}
-function resetCargadores(){
-  numCargadores=1;
-  document.getElementById('cargadores-list').innerHTML='<div class="cargador-row" id="carg-row-1"><span class="cargador-label">Cargador 1</span><input class="cargador-input" type="number" id="carg-1" min="0" placeholder="0" oninput="calcularTotal()"><button class="del-cargador" onclick="eliminarCargador(1)"><i class="ti ti-x"></i></button></div>';
-}
-
+// CEREZO GUARDAR
 async function guardarCer(){
-  const hilera=document.getElementById('cer-hilera').value;const planta=document.getElementById('cer-planta').value;const podador=document.getElementById('cer-podador').value;const contador=document.getElementById('cer-contador').value;const supervisor=document.getElementById('cer-supervisor').value;const contratista=document.getElementById('cer-contratista').value;const obs=document.getElementById('cer-obs').value;const ram=parseInt(document.getElementById('cer-ramillas').value)||0;
-  if(!hilera||!planta||!podador||!contador){mostrarToast('⚠ Completa todos los campos','warn');return;}
-  const cargadores=[];let totalDardos=0;
-  for(let i=1;i<=numCargadores;i++){const inp=document.getElementById('carg-'+i);if(inp){const v=parseInt(inp.value)||0;cargadores.push({cargador:i,dardos:v});totalDardos+=v;}}
-  const totalGeneral=totalDardos+ram;const c=CUARTELES_CEREZA[cerIdx];const fuera=totalGeneral<c.min?'bajo':totalGeneral>c.max?'alto':'no';
-  const btn=document.getElementById('cer-submit');btn.disabled=true;btn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';
-  const {error}=await db.from('conteos_cerezas').insert([{timestamp:tsNow(),cuartel:c.num,variedad:c.var,tipo_conteo:cerTipoConteo,hilera:String(hilera),planta:String(planta),podador,contador,supervisor,contratista,cargadores:JSON.stringify(cargadores),total_dardos:totalDardos,ramillas:ram,total_general:totalGeneral,fuera_rango:fuera,observaciones:obs||''}]);
+  const h=document.getElementById('cer-hil').value,p=document.getElementById('cer-pla').value;
+  const pod=document.getElementById('cer-pod').value,cnt=document.getElementById('cer-cnt').value;
+  const sup=document.getElementById('cer-sup').value,comp=document.getElementById('cer-con').value;
+  const obs=document.getElementById('cer-obs').value;const ram=parseInt(document.getElementById('cer-ram').value)||0;
+  if(!h||!p||!pod||!cnt){toast('⚠ Completa todos los campos','warn');return;}
+  const cars=[];let td=0;for(let i=1;i<=nCar;i++){const x=document.getElementById('ci'+i);if(x){const v=parseInt(x.value)||0;cars.push({cargador:i,dardos:v});td+=v;}}
+  const tot=td+ram;const c=CCER[cIdx];const f=tot<c.mn?'bajo':tot>c.mx?'alto':'no';
+  const btn=document.getElementById('cer-sub');btn.disabled=true;btn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';
+  sync('sync-cer','L','Guardando...');
+  const {error}=await db.from('conteos_cerezas').insert([{timestamp:ts(),cuartel:c.n,variedad:c.v,tipo_conteo:cTipo,hilera:String(h),planta:String(p),podador:pod,contador:cnt,supervisor:sup,contratista:comp,cargadores:JSON.stringify(cars),total_dardos:td,ramillas:ram,total_general:tot,fuera_rango:f,observaciones:obs||''}]);
   btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar registro';
-  if(error){mostrarToast('⚠ Error al guardar','warn');return;}
-  if(fuera==='bajo')mostrarToast('⚠ Guardado — BAJO rango','warn');else if(fuera==='alto')mostrarToast('⚠ Guardado — SOBRE rango','warn');else mostrarToast('✓ Guardado correctamente');
-  document.getElementById('cer-hilera').value='';document.getElementById('cer-planta').value='';document.getElementById('cer-obs').value='';document.getElementById('cer-ramillas').value='';document.getElementById('cer-total').textContent='0';document.getElementById('cer-alerta-bajo').classList.remove('visible');document.getElementById('cer-alerta-alto').classList.remove('visible');
-  resetCargadores();cargarCer();
+  if(error){sync('sync-cer','E','Error');toast('⚠ Error al guardar','warn');return;}
+  sync('sync-cer','O','✓ Guardado');setTimeout(()=>sync('sync-cer','O','En línea'),2000);
+  if(f==='bajo')toast('⚠ Guardado — BAJO rango','warn');else if(f==='alto')toast('⚠ Guardado — SOBRE rango','warn');else toast('✓ Guardado correctamente');
+  document.getElementById('cer-hil').value='';document.getElementById('cer-pla').value='';document.getElementById('cer-obs').value='';document.getElementById('cer-ram').value='';document.getElementById('cer-tot').textContent='0';
+  document.getElementById('cer-abaj').classList.remove('vis');document.getElementById('cer-aalt').classList.remove('vis');
+  resetCar();loadCer();
 }
 
-function filtrarCer(){let regs=cerRegistros;if(cerVista==='hoy')regs=regs.filter(r=>r.hora&&r.hora.includes(hoyStr()));if(cerFiltro!=='todos')regs=regs.filter(r=>r.tipo===cerFiltro);return regs;}
-function filtrarCerReg(){let regs=cerRegistros;if(cerRegFiltro!=='todos')regs=regs.filter(r=>r.tipo===cerRegFiltro);return regs;}
+// CEREZO DASHBOARD
+function fnCer(){let r=cRegs;if(cVista==='hoy')r=r.filter(x=>x.ts&&x.ts.includes(hoy()));if(cFilt!=='todos')r=r.filter(x=>x.tipo===cFilt);return r;}
+function fnReg(){let r=cRegs;if(cFiltR!=='todos')r=r.filter(x=>x.tipo===cFiltR);return r;}
 
-function renderCerDash(){
-  const regs=filtrarCer();const el=document.getElementById('cer-dash-content');
-  if(!regs.length){el.innerHTML='<div class="empty-state"><i class="ti ti-leaf"></i>Sin registros.</div>';return;}
-  const total=regs.length;const avgTotal=(regs.reduce((s,r)=>s+r.total,0)/total).toFixed(1);const avgDardos=(regs.reduce((s,r)=>s+r.total_dardos,0)/total).toFixed(1);const avgRam=(regs.reduce((s,r)=>s+r.ramillas,0)/total).toFixed(1);const fueraRango=regs.filter(r=>r.fuera!=='no').length;const cuartelesCon=[...new Set(regs.map(r=>r.cuartel))].length;
-  const datos={};regs.forEach(r=>{if(!datos[r.cuartel])datos[r.cuartel]={total:0,sumTotal:0,sumDardos:0,sumRam:0,bajo:0,alto:0,dentro:0,info:CUARTELES_CEREZA.find(c=>c.num===r.cuartel)};const d=datos[r.cuartel];d.total++;d.sumTotal+=r.total;d.sumDardos+=r.total_dardos;d.sumRam+=r.ramillas;if(r.fuera==='bajo')d.bajo++;else if(r.fuera==='alto')d.alto++;else d.dentro++;});
-  const filas=Object.keys(datos).sort().map(c=>{const d=datos[c];const info=d.info||{min:0,obj:0,max:0};const avgT=Math.round(d.sumTotal/d.total);const avgColor=avgT<info.min?'color:#791F1F':avgT>info.max?'color:#633806':'color:var(--rojo-oscuro)';const pB=Math.round(d.bajo/d.total*100),pD=Math.round(d.dentro/d.total*100),pS=Math.round(d.alto/d.total*100);const cB=pB>15?'background:#FCEBEB;color:#791F1F;font-weight:600':'color:var(--texto-muted)';const cD=pD>=70?'background:#E8F8F5;color:#0E6655;font-weight:600':'background:#FAEEDA;color:#633806;font-weight:600';const cS=pS>15?'background:#FCEBEB;color:#791F1F;font-weight:600':'color:var(--texto-muted)';return`<tr style="cursor:pointer" onclick="abrirDetalle('cer','${c}','')"><td style="color:var(--rojo-oscuro);text-decoration:underline dotted">${c}</td><td>${d.total}</td><td style="${avgColor};font-weight:500">${avgT}</td><td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${cB}">${pB}%</span></td><td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${cD}">${pD}%</span></td><td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${cS}">${pS}%</span></td></tr>`;}).join('');
-  el.innerHTML=`<button class="refresh-btn r" onclick="cargarCer()"><i class="ti ti-refresh"></i>Actualizar</button>${cerVista==='hoy'?`<div class="fecha-hoy">📅 ${hoyStr()}</div>`:''}
-  <div class="dash-stats"><div class="stat-card"><div class="stat-label">Total conteos</div><div class="stat-val">${total}</div><div class="stat-sub">${cuartelesCon} cuarteles</div></div><div class="stat-card"><div class="stat-label">Prom. total dardos</div><div class="stat-val" style="color:var(--rojo-oscuro)">${avgTotal}</div><div class="stat-sub">dardos+ramillas</div></div><div class="stat-card"><div class="stat-label">Prom. dardos</div><div class="stat-val">${avgDardos}</div></div><div class="stat-card"><div class="stat-label">Prom. ramillas</div><div class="stat-val">${avgRam}</div></div></div>
-  ${fueraRango>0?`<div class="alerta-inline bajo visible" style="margin-bottom:14px"><i class="ti ti-alert-circle"></i><span>${fueraRango} planta${fueraRango>1?'s':''} fuera de rango</span></div>`:''}
-  <p class="section-title">Resumen por cuartel</p><div class="rango-ref r"><i class="ti ti-target"></i>Rango según variedad y cuartel</div>
-  <div class="tabla-wrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>↓ Bajo%</th><th>✓ Dentro%</th><th>↑ Sobre%</th></tr></thead><tbody>${filas}</tbody></table></div>
-  <button class="export-btn r" onclick="exportarCSV('cer','dash')"><i class="ti ti-download"></i>Exportar CSV</button>`;
+function rcDash(){
+  const el=document.getElementById('cer-ddash');if(!el)return;
+  const regs=fnCer();
+  if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-leaf"></i>Sin registros.</div>';return;}
+  const tot=regs.length,avgT=(regs.reduce((s,r)=>s+r.tot,0)/tot).toFixed(1),avgD=(regs.reduce((s,r)=>s+r.td,0)/tot).toFixed(1),avgR=(regs.reduce((s,r)=>s+r.ram,0)/tot).toFixed(1);
+  const fr=regs.filter(r=>r.f!=='no').length,cuarts=[...new Set(regs.map(r=>r.c))].length;
+  const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,st:0,b:0,al:0,dn:0,info:CCER.find(x=>x.n===r.c)};const x=d[r.c];x.t++;x.st+=r.tot;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
+  const rows=Object.keys(d).sort().map(c=>{const x=d[c];const inf=x.info||{mn:0,mx:0};const a=Math.round(x.st/x.t);const ac=a<inf.mn?'color:#791F1F':a>inf.mx?'color:#633806':'color:var(--ro)';return`<tr style="cursor:pointer" onclick="openDet('cer','${c}','')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="${ac};font-weight:500">${a}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.dn,x.t,'r2')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
+  el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
+  ${cVista==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
+  <div class="stats2"><div class="scard"><div class="slbl">Total conteos</div><div class="sval">${tot}</div><div class="ssub">${cuarts} cuarteles</div></div><div class="scard"><div class="slbl">Prom. total dardos</div><div class="sval" style="color:var(--ro)">${avgT}</div><div class="ssub">dardos+ramillas</div></div><div class="scard"><div class="slbl">Prom. dardos</div><div class="sval">${avgD}</div></div><div class="scard"><div class="slbl">Prom. ramillas</div><div class="sval">${avgR}</div></div></div>
+  ${fr>0?`<div class="alerta bajo vis" style="margin-bottom:14px"><i class="ti ti-alert-circle"></i><span>${fr} planta${fr>1?'s':''} fuera de rango</span></div>`:''}
+  <p class="sec-title">Resumen por cuartel</p><div class="rango-ref rr-r"><i class="ti ti-target"></i>Rango según variedad y cuartel</div>
+  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>↓ Bajo%</th><th>✓ Dentro%</th><th>↑ Sobre%</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <button class="exp-btn exp-r" onclick="expCSV('cer','dash')"><i class="ti ti-download"></i>Exportar CSV</button>`;
 }
 
-function renderCerRegistros(){
-  const regs=filtrarCerReg().slice(-100).reverse();const el=document.getElementById('cer-reg-content');
-  if(!regs.length){el.innerHTML='<div class="empty-state"><i class="ti ti-list"></i>Sin registros.</div>';return;}
-  const filas=regs.map(r=>{const tipoPill=r.tipo==='pre'?'<span style="background:var(--rojo-claro);color:var(--rojo-oscuro);padding:2px 6px;border-radius:3px;font-size:9px">PRE</span>':'<span style="background:#E8F8F5;color:#0E6655;padding:2px 6px;border-radius:3px;font-size:9px">POST</span>';const totColor=r.fuera==='bajo'?'color:#791F1F':r.fuera==='alto'?'color:#633806':'color:var(--rojo-oscuro)';return`<tr><td>${r.cuartel}</td><td>${tipoPill}</td><td>H${r.hilera}·P${r.planta}</td><td style="${totColor};font-weight:500">${r.total}</td><td style="font-size:10px;color:var(--texto-muted)">${r.podador||''}</td></tr>`;}).join('');
-  el.innerHTML=`<button class="refresh-btn r" onclick="cargarCer()"><i class="ti ti-refresh"></i>Actualizar</button>
-  <div class="tabla-wrap"><table><thead><tr><th>Cuartel</th><th>Tipo</th><th>Ubic.</th><th>Total</th><th>Podador</th></tr></thead><tbody>${filas}</tbody></table></div>
-  <button class="export-btn r" onclick="exportarCSV('cer','reg')"><i class="ti ti-download"></i>Exportar CSV</button>`;
+function rcReg(){
+  const el=document.getElementById('cer-dreg');if(!el)return;
+  const regs=fnReg().slice(-100).reverse();
+  if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-list"></i>Sin registros.</div>';return;}
+  const rows=regs.map(r=>{const tp=r.tipo==='pre'?'<span style="background:var(--rc);color:var(--ro);padding:2px 6px;border-radius:3px;font-size:9px">PRE</span>':'<span style="background:#E8F8F5;color:#0E6655;padding:2px 6px;border-radius:3px;font-size:9px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';return`<tr><td>${r.c}</td><td>${tp}</td><td>H${r.h}·P${r.p}</td><td style="${tc};font-weight:500">${r.tot}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}</td></tr>`;}).join('');
+  el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
+  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Tipo</th><th>Ubic.</th><th>Total</th><th>Podador</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <button class="exp-btn exp-r" onclick="expCSV('cer','reg')"><i class="ti ti-download"></i>Exportar CSV</button>`;
 }
 
-function abrirDetalle(esp,cuartel,vista){
-  let regs;
-  if(esp==='nec'){regs=filtrarNec(vista).filter(r=>r.cuartel===cuartel);document.getElementById('modal-header').className='modal-header g';document.getElementById('modal-thead-tr').innerHTML='<th>Hilera</th><th>Planta</th><th>Podador</th><th>Ram.</th><th>Estado</th>';const total=regs.length;const bajo=regs.filter(r=>r.fuera==='bajo').length;const sobre=regs.filter(r=>r.fuera==='alto').length;const dentro=regs.filter(r=>!r.fuera).length;const pB=Math.round(bajo/total*100),pD=Math.round(dentro/total*100),pS=Math.round(sobre/total*100);document.getElementById('modal-stats').innerHTML=`<div class="modal-stat" style="background:var(--verde-claro)"><div class="modal-stat-val" style="color:var(--verde-oscuro)">${pD}%</div><div class="modal-stat-lbl">Dentro</div></div><div class="modal-stat" style="background:var(--rojo-claro)"><div class="modal-stat-val" style="color:#791F1F">${pB}%</div><div class="modal-stat-lbl">Bajo</div></div><div class="modal-stat" style="background:var(--ambar-claro)"><div class="modal-stat-val" style="color:#633806">${pS}%</div><div class="modal-stat-lbl">Sobre</div></div>`;document.getElementById('modal-tbody').innerHTML=regs.map(r=>{const est=r.fuera==='bajo'?`<span style="color:#791F1F;font-size:10px">↓${r.ramillas}</span>`:r.fuera==='alto'?`<span style="color:#633806;font-size:10px">↑${r.ramillas}</span>`:`<span style="color:var(--verde-oscuro);font-size:10px">✓${r.ramillas}</span>`;return`<tr><td>${r.hilera}</td><td>${r.planta}</td><td style="font-size:11px">${r.podador||''}</td><td style="font-weight:500">${r.ramillas}</td><td>${est}</td></tr>`;}).join('');}
-  else{regs=filtrarCer().filter(r=>r.cuartel===cuartel);document.getElementById('modal-header').className='modal-header r';document.getElementById('modal-thead-tr').innerHTML='<th>Tipo</th><th>Hilera</th><th>Planta</th><th>Dardos</th><th>Ram.</th><th>Total</th>';const total=regs.length;const bajo=regs.filter(r=>r.fuera==='bajo').length;const sobre=regs.filter(r=>r.fuera==='alto').length;const dentro=regs.filter(r=>r.fuera==='no').length;const pB=Math.round(bajo/total*100),pD=Math.round(dentro/total*100),pS=Math.round(sobre/total*100);document.getElementById('modal-stats').innerHTML=`<div class="modal-stat" style="background:#E8F8F5"><div class="modal-stat-val" style="color:#0E6655">${pD}%</div><div class="modal-stat-lbl">Dentro</div></div><div class="modal-stat" style="background:var(--rojo-claro)"><div class="modal-stat-val" style="color:#791F1F">${pB}%</div><div class="modal-stat-lbl">Bajo</div></div><div class="modal-stat" style="background:var(--ambar-claro)"><div class="modal-stat-val" style="color:#633806">${pS}%</div><div class="modal-stat-lbl">Sobre</div></div>`;document.getElementById('modal-tbody').innerHTML=regs.map(r=>{const tipoPill=r.tipo==='pre'?'<span style="background:var(--rojo-claro);color:var(--rojo-oscuro);padding:1px 5px;border-radius:3px;font-size:9px">PRE</span>':'<span style="background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px;font-size:9px">POST</span>';const totColor=r.fuera==='bajo'?'color:#791F1F':r.fuera==='alto'?'color:#633806':'color:var(--rojo-oscuro)';return`<tr><td>${tipoPill}</td><td>${r.hilera}</td><td>${r.planta}</td><td>${r.total_dardos}</td><td>${r.ramillas}</td><td style="${totColor};font-weight:500">${r.total}</td></tr>`;}).join('');}
-  document.getElementById('modal-titulo').textContent='Detalle '+cuartel+' — '+regs.length+' conteos';
-  document.getElementById('modal-overlay').classList.add('open');
-}
-function cerrarModal(e){if(e.target===document.getElementById('modal-overlay'))document.getElementById('modal-overlay').classList.remove('open');}
-function cerrarModalBtn(){document.getElementById('modal-overlay').classList.remove('open');}
+function viCer(v){cVista=v;document.getElementById('cer-thoy').className='tog-btn'+(v==='hoy'?' tog-r':'');document.getElementById('cer-tacum').className='tog-btn'+(v==='acum'?' tog-r':'');rcDash();}
+function filtCer(f){cFilt=f;['todos','pre','post'].forEach(x=>document.getElementById('cf-'+x).classList.toggle('on',x===f));rcDash();}
+function filtReg(f){cFiltR=f;['todos','pre','post'].forEach(x=>document.getElementById('cr-'+x).classList.toggle('on',x===f));rcReg();}
 
-function verificarAdmin(esp){const inp=document.getElementById(esp+'-pass');const pass=esp==='nec'?necPass:cerPass;if(inp.value===pass){if(esp==='nec'){necAdmin=true;document.getElementById('nec-lock-screen').style.display='none';document.getElementById('nec-admin-content').style.display='block';document.getElementById('lock-nec-tab').textContent='🔓';document.getElementById('lock-nec-icon').className='ti ti-lock-open';}else{cerAdmin=true;document.getElementById('cer-lock-screen').style.display='none';document.getElementById('cer-admin-content').style.display='block';document.getElementById('lock-cer-tab').textContent='🔓';document.getElementById('lock-cer-icon').className='ti ti-lock-open';}inp.value='';document.getElementById(esp+'-lock-err').textContent='';renderListasEsp(esp);}else{document.getElementById(esp+'-lock-err').textContent='Contraseña incorrecta';inp.classList.add('error');setTimeout(()=>inp.classList.remove('error'),400);}}
-function cerrarAdmin(esp){if(esp==='nec'){necAdmin=false;document.getElementById('nec-lock-screen').style.display='flex';document.getElementById('nec-admin-content').style.display='none';document.getElementById('lock-nec-tab').textContent='🔒';document.getElementById('lock-nec-icon').className='ti ti-lock';switchTabNec('ingreso');}else{cerAdmin=false;document.getElementById('cer-lock-screen').style.display='flex';document.getElementById('cer-admin-content').style.display='none';document.getElementById('lock-cer-tab').textContent='🔒';document.getElementById('lock-cer-icon').className='ti ti-lock';switchTabCer('ingreso');}document.getElementById(esp+'-pass').value='';mostrarToast('Sesión cerrada');}
-function toggleAdmin(esp){if(esp==='nec'){if(necAdmin)cerrarAdmin('nec');else switchTabNec('config');}else{if(cerAdmin)cerrarAdmin('cer');else switchTabCer('config');}}
-function togglePassVis(esp){const inp=document.getElementById(esp+'-pass');const ico=document.getElementById(esp+'-eye');if(inp.type==='password'){inp.type='text';ico.className='ti ti-eye-off';}else{inp.type='password';ico.className='ti ti-eye';}}
-function cambiarPass(esp){const n=document.getElementById(esp+'-pass-nueva').value.trim();const c=document.getElementById(esp+'-pass-conf').value.trim();if(!n||n.length<4){mostrarToast('Mínimo 4 caracteres','warn');return;}if(n!==c){mostrarToast('No coinciden','warn');return;}if(esp==='nec')necPass=n;else cerPass=n;document.getElementById(esp+'-pass-nueva').value='';document.getElementById(esp+'-pass-conf').value='';mostrarToast('✓ Contraseña actualizada');}
-
-function renderListasEsp(esp){['contador','supervisor','contratista'].forEach(tipo=>{const ul=document.getElementById(esp+'-list-'+tipo);if(!ul)return;ul.innerHTML=listas[esp][tipo].map((n,i)=>`<div class="config-item"><span class="config-item-name">${n}</span><button class="config-del" onclick="eliminarItemLista('${esp}','${tipo}',${i})"><i class="ti ti-x"></i></button></div>`).join('');renderDropdownEsp(esp,tipo);});}
-function renderDropdownEsp(esp,tipo){const dd=document.getElementById(esp+'-'+tipo+'-dd');if(!dd)return;dd.innerHTML=listas[esp][tipo].map(n=>`<div class="combo-option" onclick="seleccionarComboEsp('${esp}','${tipo}','${n.replace(/'/g,"\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="combo-option nuevo" onclick="limpiarComboEsp('${esp}','${tipo}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;}
-function agregarItemLista(esp,tipo){const inp=document.getElementById(esp+'-add-'+tipo);const val=inp.value.trim();if(!val)return;if(listas[esp][tipo].includes(val)){mostrarToast('Ya existe','warn');return;}listas[esp][tipo].push(val);inp.value='';renderListasEsp(esp);mostrarToast('✓ Agregado: '+val);}
-function eliminarItemLista(esp,tipo,idx){listas[esp][tipo].splice(idx,1);renderListasEsp(esp);}
-function toggleCombo(ddId){document.querySelectorAll('.combo-dropdown').forEach(d=>{if(d.id!==ddId)d.classList.remove('open');});document.getElementById(ddId).classList.toggle('open');}
-function seleccionarComboEsp(esp,tipo,valor){const inp=document.getElementById(esp+'-'+tipo);inp.value=valor;inp.readOnly=true;document.getElementById(esp+'-'+tipo+'-dd').classList.remove('open');}
-function limpiarComboEsp(esp,tipo){const inp=document.getElementById(esp+'-'+tipo);inp.value='';inp.readOnly=false;inp.placeholder='Escribe...';inp.focus();document.getElementById(esp+'-'+tipo+'-dd').classList.remove('open');}
-document.addEventListener('click',e=>{if(!e.target.closest('.combo-wrap'))document.querySelectorAll('.combo-dropdown').forEach(d=>d.classList.remove('open'));});
-
-function cambiarCuartelNec(d){
-  necCuartelIdx=Math.max(0,Math.min(CUARTELES_NECTARIN.length-1,necCuartelIdx+d));
-  actualizarCuartelNec();
+// MODAL
+function openDet(esp,c,vista){
+  let regs,hd,cols;
+  if(esp==='nec'){regs=fnNec(vista).filter(r=>r.c===c);document.getElementById('modal-hdr').className='modal-hdr modal-hdr-g';cols='<th>Hilera</th><th>Planta</th><th>Podador</th><th>Ram.</th><th>Estado</th>';const tot=regs.length,bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=regs.filter(r=>!r.f).length;document.getElementById('modal-stats').innerHTML=`<div class="mstat" style="background:var(--vc)"><div class="mstat-val" style="color:var(--vo)">${Math.round(dn/tot*100)}%</div><div class="mstat-lbl">Dentro</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${Math.round(bj/tot*100)}%</div><div class="mstat-lbl">Bajo</div></div><div class="mstat" style="background:var(--ac)"><div class="mstat-val" style="color:#633806">${Math.round(al/tot*100)}%</div><div class="mstat-lbl">Sobre</div></div>`;document.getElementById('modal-tbody').innerHTML=regs.map(r=>{const e=r.f==='bajo'?`<span style="color:#791F1F;font-size:10px">↓${r.ram}</span>`:r.f==='alto'?`<span style="color:#633806;font-size:10px">↑${r.ram}</span>`:`<span style="color:var(--vo);font-size:10px">✓${r.ram}</span>`;return`<tr><td>${r.h}</td><td>${r.p}</td><td style="font-size:11px">${r.pod||''}</td><td style="font-weight:500">${r.ram}</td><td>${e}</td></tr>`;}).join('');}
+  else{regs=fnCer().filter(r=>r.c===c);document.getElementById('modal-hdr').className='modal-hdr modal-hdr-r';cols='<th>Tipo</th><th>H</th><th>P</th><th>Dardos</th><th>Ram.</th><th>Total</th>';const tot=regs.length,bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=regs.filter(r=>r.f==='no').length;document.getElementById('modal-stats').innerHTML=`<div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${Math.round(dn/tot*100)}%</div><div class="mstat-lbl">Dentro</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${Math.round(bj/tot*100)}%</div><div class="mstat-lbl">Bajo</div></div><div class="mstat" style="background:var(--ac)"><div class="mstat-val" style="color:#633806">${Math.round(al/tot*100)}%</div><div class="mstat-lbl">Sobre</div></div>`;document.getElementById('modal-tbody').innerHTML=regs.map(r=>{const tp=r.tipo==='pre'?'<span style="font-size:9px;background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px">PRE</span>':'<span style="font-size:9px;background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';return`<tr><td>${tp}</td><td>${r.h}</td><td>${r.p}</td><td>${r.td}</td><td>${r.ram}</td><td style="${tc};font-weight:500">${r.tot}</td></tr>`;}).join('');}
+  document.getElementById('modal-thead').innerHTML=cols;
+  document.getElementById('modal-tit').textContent='Detalle '+c+' — '+regs.length+' conteos';
+  document.getElementById('modal-ov').classList.add('open');
 }
-function actualizarCuartelNec(){
-  const c=CUARTELES_NECTARIN[necCuartelIdx];
-  document.getElementById('nec-cuartel-display').textContent=c.num+' · '+c.var;
-}
-function validarRamillasNec(inp){const v=parseInt(inp.value);inp.classList.remove('alerta-bajo','alerta-alto','ok');document.getElementById('nec-alerta-bajo').classList.remove('visible');document.getElementById('nec-alerta-alto').classList.remove('visible');if(isNaN(v)||inp.value==='')return;if(v<RAM_MIN){inp.classList.add('alerta-bajo');document.getElementById('nec-alerta-bajo').classList.add('visible');}else if(v>RAM_MAX){inp.classList.add('alerta-alto');document.getElementById('nec-alerta-alto').classList.add('visible');}else inp.classList.add('ok');}
-function setCalidad(esp,v){necCalidadSel=v;document.querySelectorAll('.calidad-btn').forEach(b=>b.classList.remove('active'));document.querySelector('.calidad-btn.'+v).classList.add('active');}
-function setVistaNec(tipo,vista){if(tipo==='ram'){necVistaRam=vista;document.getElementById('nec-btn-hoy-ram').className='toggle-btn'+(vista==='hoy'?' active-g':'');document.getElementById('nec-btn-acum-ram').className='toggle-btn'+(vista==='acum'?' active-g':'');renderNecRam();}else{necVistaCal=vista;document.getElementById('nec-btn-hoy-cal').className='toggle-btn'+(vista==='hoy'?' active-g':'');document.getElementById('nec-btn-acum-cal').className='toggle-btn'+(vista==='acum'?' active-g':'');renderNecCal();}}
-function switchTabNec(tab){
-  const tabs=['ingreso','ramillas','calidad','config'];
-  const panels=['nec-ingreso','nec-ramillas','nec-calidad','nec-config'];
-  document.querySelectorAll('.tab-nec').forEach((t,i)=>{
-    if(tabs[i]===tab) t.classList.add('active'); else t.classList.remove('active');
-  });
-  panels.forEach(p=>{
-    const el=document.getElementById(p);
-    if(p==='nec-'+tab) el.classList.add('active'); else el.classList.remove('active');
-  });
-  if(tab==='ramillas'||tab==='calidad') cargarNec();
-}
-function setVistaCer(vista){cerVista=vista;document.getElementById('cer-btn-hoy').className='toggle-btn'+(vista==='hoy'?' active-r':'');document.getElementById('cer-btn-acum').className='toggle-btn'+(vista==='acum'?' active-r':'');renderCerDash();}
-function setFiltroCer(f){cerFiltro=f;['todos','pre','post'].forEach(x=>document.getElementById('cer-filtro-'+x).classList.toggle('active',x===f));renderCerDash();}
-function setFiltroCerReg(f){cerRegFiltro=f;['todos','pre','post'].forEach(x=>document.getElementById('cer-reg-filtro-'+x).classList.toggle('active',x===f));renderCerRegistros();}
-function switchTabCer(tab){document.querySelectorAll('.tab-cer').forEach((t,i)=>t.classList.toggle('active',['ingreso','dashboard','registros','config'][i]===tab));['cer-ingreso','cer-dashboard','cer-registros','cer-config'].forEach(p=>document.getElementById(p).classList.toggle('active',p==='cer-'+tab));if(tab==='dashboard'||tab==='registros')cargarCer();if(tab==='dashboard'||tab==='registros')cargarCer();}
+function closeModal(e){if(e.target===document.getElementById('modal-ov'))document.getElementById('modal-ov').classList.remove('open');}
+function closeModalBtn(){document.getElementById('modal-ov').classList.remove('open');}
 
-function exportarCSV(esp,tipo){
-  let regs,cab,filas;
-  if(esp==='nec'){regs=filtrarNec(tipo==='ram'?necVistaRam:necVistaCal);if(!regs.length){mostrarToast('Sin datos','warn');return;}cab='Cuartel,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Ramillas,Fuera_Rango,Calidad,Observaciones,Hora';filas=regs.map(r=>[r.cuartel,r.hilera,r.planta,r.podador,r.contador,r.supervisor,r.contratista,r.ramillas,r.fuera||'no',r.calidad,r.obs,r.hora].join(','));}
-  else{regs=tipo==='reg'?filtrarCerReg():filtrarCer();if(!regs.length){mostrarToast('Sin datos','warn');return;}cab='Cuartel,Variedad,Tipo,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Total_Dardos,Ramillas,Total_General,Fuera_Rango,Observaciones,Hora';filas=regs.map(r=>[r.cuartel,r.variedad,r.tipo,r.hilera,r.planta,r.podador,r.contador,r.supervisor,r.contratista,r.total_dardos,r.ramillas,r.total,r.fuera,r.obs,r.hora].join(','));}
-  const blob=new Blob([[cab,...filas].join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='conteos_'+(esp==='nec'?'nectarin':'cerezas')+'.csv';a.click();mostrarToast('✓ CSV descargado');
+// ADMIN
+function setCal(e,v){nCal=v;document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('on'));document.querySelector('.cbtn.'+v).classList.add('on');}
+function chkAdm(e){const inp=document.getElementById(e+'-pass'),pass=e==='nec'?nPass:cPass;if(inp.value===pass){if(e==='nec'){nAdm=true;document.getElementById('nec-lock').style.display='none';document.getElementById('nec-adm').style.display='block';document.getElementById('lock-nec-t').textContent='🔓';document.getElementById('lock-nec-i').className='ti ti-lock-open';}else{cAdm=true;document.getElementById('cer-lock').style.display='none';document.getElementById('cer-adm').style.display='block';document.getElementById('lock-cer-t').textContent='🔓';document.getElementById('lock-cer-i').className='ti ti-lock-open';}inp.value='';document.getElementById(e+'-lerr').textContent='';rlists(e);}else{document.getElementById(e+'-lerr').textContent='Contraseña incorrecta';inp.classList.add('err');setTimeout(()=>inp.classList.remove('err'),400);}}
+function closeAdm(e){if(e==='nec'){nAdm=false;document.getElementById('nec-lock').style.display='flex';document.getElementById('nec-adm').style.display='none';document.getElementById('lock-nec-t').textContent='🔒';document.getElementById('lock-nec-i').className='ti ti-lock';tabNec('ing');}else{cAdm=false;document.getElementById('cer-lock').style.display='flex';document.getElementById('cer-adm').style.display='none';document.getElementById('lock-cer-t').textContent='🔒';document.getElementById('lock-cer-i').className='ti ti-lock';tabCer('ing');}document.getElementById(e+'-pass').value='';toast('Sesión cerrada');}
+function toggleAdm(e){if(e==='nec'){if(nAdm)closeAdm('nec');else tabNec('cfg');}else{if(cAdm)closeAdm('cer');else tabCer('cfg');}}
+function tvPass(e){const i=document.getElementById(e+'-pass'),ic=document.getElementById(e+'-eye');if(i.type==='password'){i.type='text';ic.className='ti ti-eye-off';}else{i.type='password';ic.className='ti ti-eye';}}
+function chgPass(e){const n=document.getElementById(e+'-pn').value.trim(),c=document.getElementById(e+'-pc').value.trim();if(!n||n.length<4){toast('Mínimo 4 caracteres','warn');return;}if(n!==c){toast('No coinciden','warn');return;}if(e==='nec')nPass=n;else cPass=c;document.getElementById(e+'-pn').value='';document.getElementById(e+'-pc').value='';toast('✓ Contraseña actualizada');}
+
+// LISTAS
+function rlists(e){['con','sup','comp'].forEach(t=>{const ul=document.getElementById(e+'-l'+t);if(!ul)return;ul.innerHTML=L[e][t].map((n,i)=>`<div class="cfg-item"><span class="cfg-name">${n}</span><button class="cfg-del" onclick="delL('${e}','${t}',${i})"><i class="ti ti-x"></i></button></div>`).join('');rdd(e,t);});}
+function rdd(e,t){const dd=document.getElementById(e+'-'+t+'-dd');if(!dd)return;const fld=e==='nec'?{con:'nec-cnt',sup:'nec-sup',comp:'nec-con'}:{con:'cer-cnt',sup:'cer-sup',comp:'cer-con'};dd.innerHTML=L[e][t].map(n=>`<div class="copt" onclick="selDD('${fld[t]}','${e+'-'+t+'-dd'}','${n.replace(/'/g,"\\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="copt nuevo" onclick="clrDD('${fld[t]}','${e+'-'+t+'-dd'}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;}
+function addL(e,t){const inp=document.getElementById(e+'-a'+t);const v=inp.value.trim();if(!v)return;if(L[e][t].includes(v)){toast('Ya existe','warn');return;}L[e][t].push(v);inp.value='';rlists(e);toast('✓ Agregado: '+v);}
+function delL(e,t,i){L[e][t].splice(i,1);rlists(e);}
+function openDD(id){document.querySelectorAll('.cdd').forEach(d=>{if(d.id!==id)d.classList.remove('open');});document.getElementById(id).classList.toggle('open');}
+function selDD(fld,ddId,val){const inp=document.getElementById(fld);inp.value=val;inp.readOnly=true;document.getElementById(ddId).classList.remove('open');}
+function clrDD(fld,ddId){const inp=document.getElementById(fld);inp.value='';inp.readOnly=false;inp.placeholder='Escribe...';inp.focus();document.getElementById(ddId).classList.remove('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('.cwrap'))document.querySelectorAll('.cdd').forEach(d=>d.classList.remove('open'));});
+
+// EXPORT
+function expCSV(e,t){
+  let regs,cab,rows;
+  if(e==='nec'){regs=fnNec(t==='ram'?nVR:nVC);if(!regs.length){toast('Sin datos','warn');return;}cab='Cuartel,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Ramillas,Fuera_Rango,Calidad,Observaciones,Hora';rows=regs.map(r=>[r.c,r.h,r.p,r.pod,r.cnt,r.sup,r.comp,r.ram,r.f||'no',r.cal,r.obs,r.ts].join(','));}
+  else{regs=t==='reg'?fnReg():fnCer();if(!regs.length){toast('Sin datos','warn');return;}cab='Cuartel,Variedad,Tipo,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Total_Dardos,Ramillas,Total_General,Fuera_Rango,Observaciones,Hora';rows=regs.map(r=>[r.c,r.v,r.tipo,r.h,r.p,r.pod,r.cnt,r.sup,r.comp,r.td,r.ram,r.tot,r.f,r.obs,r.ts].join(','));}
+  const blob=new Blob([[cab,...rows].join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='conteos_'+(e==='nec'?'nectarin':'cerezas')+'.csv';a.click();toast('✓ CSV descargado');
 }
 
-renderListasEsp('nec');renderListasEsp('cer');resetCargadores();actualizarCuartelCer();actualizarCuartelNec();
+// INIT
+rlists('nec');rlists('cer');resetCar();
 </script>
 </body>
 </html>
