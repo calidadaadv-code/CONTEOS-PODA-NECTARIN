@@ -524,14 +524,14 @@ function rnRam(){
   if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-leaf"></i>'+(nVR==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
   const tot=regs.length,avg=(regs.reduce((s,r)=>s+r.ram,0)/tot).toFixed(1);
   const fr=regs.filter(r=>r.f).length,cuarts=[...new Set(regs.map(r=>r.c))].length;
-  const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,s:0,b:0,al:0,dn:0};const x=d[r.c];x.t++;x.s+=r.ram;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
-  const rows=Object.keys(d).sort().map(c=>{const x=d[c];const a=Math.round(x.s/x.t);const ac=a<RM?'color:#791F1F':a>RX?'color:#633806':'color:#085041';return`<tr style="cursor:pointer" onclick="openDet('nec','${c}','${nVR}')"><td style="color:var(--vo);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="${ac};font-weight:500">${a}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
+  const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,s:0,b:0,al:0,dn:0,comps:new Set()};const x=d[r.c];x.t++;x.s+=r.ram;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;if(r.comp)x.comps.add(r.comp);});
+  const rows=Object.keys(d).sort().map(c=>{const x=d[c];const a=Math.round(x.s/x.t);const ac=a<RM?'color:#791F1F':a>RX?'color:#633806':'color:#085041';const compList=[...x.comps].join(', ');return`<tr style="cursor:pointer" onclick="openDet('nec','${c}','${nVR}')"><td style="color:var(--vo);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="${ac};font-weight:500">${a}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td><td style="font-size:10px;color:var(--tm)">${compList}</td></tr>`;}).join('');
   el.innerHTML=`<button class="ref-btn ref-g" onclick="loadNec()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${nVR==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   <div class="stats2"><div class="scard"><div class="slbl">Total conteos</div><div class="sval">${tot}</div><div class="ssub">${cuarts} cuarteles</div></div><div class="scard"><div class="slbl">Prom. ramillas</div><div class="sval">${avg}</div><div class="ssub">ideal: ${RI} · rango ${RM}–${RX}</div></div></div>
   ${fr>0?`<div class="alerta bajo vis" style="margin-bottom:14px"><i class="ti ti-alert-circle"></i><span>${fr} planta${fr>1?'s':''} fuera de rango</span></div>`:''}
   <p class="sec-title">Resumen por cuartel</p><div class="rango-ref rr-g"><i class="ti ti-target"></i>Rango ${RM}–${RX} · Ideal ${RI}</div>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>↓ Bajo%</th><th>✓ Dentro%</th><th>↑ Sobre%</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>↓ Bajo%</th><th>✓ Dentro%</th><th>↑ Sobre%</th><th>Contratista</th></tr></thead><tbody>${rows}</tbody></table></div>
   <button class="exp-btn exp-g" onclick="expCSV('nec','ram')"><i class="ti ti-download"></i>Exportar CSV</button>`;
 }
 
@@ -541,14 +541,14 @@ function rnCal(){
   if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-rosette"></i>'+(nVC==='hoy'?'Sin conteos hoy.':'Sin registros.')+'</div>';return;}
   const tot=regs.length,cG={A:0,B:0,C:0};regs.forEach(r=>{if(cG[r.cal]!==undefined)cG[r.cal]++;});
   const pA=Math.round(cG.A/tot*100),pB=Math.round(cG.B/tot*100),pC=Math.round(cG.C/tot*100);
-  const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,A:0,B:0,C:0};const x=d[r.c];x.t++;if(x[r.cal]!==undefined)x[r.cal]++;});
-  const rowsC=Object.keys(d).sort().map(c=>{const x=d[c];return`<tr style="cursor:pointer" onclick="openDet('nec','${c}','${nVC}')"><td style="color:var(--vo);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.A,x.t,'g')}</td><td style="text-align:center">${pct(x.B,x.t,'r')}</td><td style="text-align:center">${pct(x.C,x.t,'r')}</td></tr>`;}).join('');
+  const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,A:0,B:0,C:0,comps:new Set()};const x=d[r.c];x.t++;if(x[r.cal]!==undefined)x[r.cal]++;if(r.comp)x.comps.add(r.comp);});
+  const rowsC=Object.keys(d).sort().map(c=>{const x=d[c];const compList=[...x.comps].join(', ');return`<tr style="cursor:pointer" onclick="openDet('nec','${c}','${nVC}')"><td style="color:var(--vo);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.A,x.t,'g')}</td><td style="text-align:center">${pct(x.B,x.t,'r')}</td><td style="text-align:center">${pct(x.C,x.t,'r')}</td><td style="font-size:10px;color:var(--tm)">${compList}</td></tr>`;}).join('');
   const obs=regs.filter(r=>r.obs&&r.obs.trim()).slice(-30).reverse();
   const rowsO=obs.length?obs.map(r=>`<tr><td>${r.c}</td><td style="font-size:10px">${r.pod||''}</td><td><span class="pill pill-${r.cal.toLowerCase()}">${r.cal}</span></td><td class="otd" title="${r.obs}">${r.obs}</td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--tm);padding:12px">Sin observaciones</td></tr>';
   el.innerHTML=`<button class="ref-btn ref-g" onclick="loadNec()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${nVC==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   <p class="sec-title">Calidad global</p><div class="cal-dist"><div class="cstat A"><div class="cletra">A</div><div class="cpct">${pA}% · ${cG.A}</div></div><div class="cstat B"><div class="cletra">B</div><div class="cpct">${pB}% · ${cG.B}</div></div><div class="cstat C"><div class="cletra">C</div><div class="cpct">${pC}% · ${cG.C}</div></div></div>
-  <p class="sec-title">Calidad por cuartel</p><div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>A%</th><th>B%</th><th>C%</th></tr></thead><tbody>${rowsC}</tbody></table></div>
+  <p class="sec-title">Calidad por cuartel</p><div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>A%</th><th>B%</th><th>C%</th><th>Contratista</th></tr></thead><tbody>${rowsC}</tbody></table></div>
   <p class="sec-title">Observaciones recientes</p><div class="twrap"><table><thead><tr><th>Cuartel</th><th>Podador</th><th>Cal.</th><th>Observación</th></tr></thead><tbody>${rowsO}</tbody></table></div>
   <button class="exp-btn exp-g" onclick="expCSV('nec','cal')"><i class="ti ti-download"></i>Exportar CSV</button>`;
 }
@@ -640,7 +640,7 @@ function rcDash(){
   <div class="stats2"><div class="scard"><div class="slbl">Total conteos</div><div class="sval">${tot}</div><div class="ssub">${cuarts} cuarteles</div></div><div class="scard"><div class="slbl">Prom. total dardos</div><div class="sval" style="color:var(--ro)">${avgT}</div><div class="ssub">dardos+ramillas</div></div><div class="scard"><div class="slbl">Prom. dardos</div><div class="sval">${avgD}</div></div><div class="scard"><div class="slbl">Prom. ramillas</div><div class="sval">${avgR}</div></div></div>
   ${fr>0?`<div class="alerta bajo vis" style="margin-bottom:14px"><i class="ti ti-alert-circle"></i><span>${fr} planta${fr>1?'s':''} fuera de rango</span></div>`:''}
   <p class="sec-title">Resumen por cuartel</p><div class="rango-ref rr-r"><i class="ti ti-target"></i>Rango según variedad y cuartel</div>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>↓ Bajo%</th><th>✓ Dentro%</th><th>↑ Sobre%</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>↓ Bajo%</th><th>✓ Dentro%</th><th>↑ Sobre%</th><th>Contratista</th></tr></thead><tbody>${rows}</tbody></table></div>
   <button class="exp-btn exp-r" onclick="expCSV('cer','dash')"><i class="ti ti-download"></i>Exportar CSV</button>`;
 }
 
