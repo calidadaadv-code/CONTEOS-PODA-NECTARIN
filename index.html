@@ -312,7 +312,7 @@
   function hoyStr() {
     const d = new Date();
     const dia = d.getDate();
-    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const mes = (d.getMonth()+1<10?'0':'')+(d.getMonth()+1);
     const anio = d.getFullYear();
     return dia + '/' + mes + '/' + anio;
   }
@@ -493,7 +493,7 @@
     btn.disabled=true; btn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';
     setSyncStatus('loading','Guardando...');
     const {error}=await db.from('conteos').insert([{
-      timestamp: new Date().toLocaleString('es-CL'),
+      timestamp: (function(){ const d=new Date(); return d.getDate()+'/'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'/'+d.getFullYear()+' '+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes()+':'+(d.getSeconds()<10?'0':'')+d.getSeconds(); })(),
       cuartel: 'C-'+String(cuartelActual).padStart(2,'0'),
       hilera: parseInt(hilera), planta: parseInt(planta),
       podador, contador, supervisor, contratista,
