@@ -543,13 +543,13 @@ function rnCal(){
   const pA=Math.round(cG.A/tot*100),pB=Math.round(cG.B/tot*100),pC=Math.round(cG.C/tot*100);
   const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,A:0,B:0,C:0,comps:new Set()};const x=d[r.c];x.t++;if(x[r.cal]!==undefined)x[r.cal]++;if(r.comp)x.comps.add(r.comp);});
   const rowsC=Object.keys(d).sort().map(c=>{const x=d[c];const compList=[...x.comps].join(', ');return`<tr style="cursor:pointer" onclick="openDet('nec','${c}','${nVC}')"><td style="color:var(--vo);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.A,x.t,'g')}</td><td style="text-align:center">${pct(x.B,x.t,'r')}</td><td style="text-align:center">${pct(x.C,x.t,'r')}</td><td style="font-size:10px;color:var(--tm)">${compList}</td></tr>`;}).join('');
-  const obs=regs.filter(r=>r.obs&&r.obs.trim()).slice(-30).reverse();
+  const obs=regs.filter(r=>r.cal==='C').slice(-30).reverse();
   const rowsO=obs.length?obs.map(r=>`<tr><td>${r.c}</td><td style="font-size:10px">${r.pod||''}</td><td><span class="pill pill-${r.cal.toLowerCase()}">${r.cal}</span></td><td class="otd" title="${r.obs}">${r.obs}</td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--tm);padding:12px">Sin observaciones</td></tr>';
   el.innerHTML=`<button class="ref-btn ref-g" onclick="loadNec()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${nVC==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   <p class="sec-title">Calidad global</p><div class="cal-dist"><div class="cstat A"><div class="cletra">A</div><div class="cpct">${pA}% · ${cG.A}</div></div><div class="cstat B"><div class="cletra">B</div><div class="cpct">${pB}% · ${cG.B}</div></div><div class="cstat C"><div class="cletra">C</div><div class="cpct">${pC}% · ${cG.C}</div></div></div>
   <p class="sec-title">Calidad por cuartel</p><div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>A%</th><th>B%</th><th>C%</th><th>Contratista</th></tr></thead><tbody>${rowsC}</tbody></table></div>
-  <p class="sec-title">Observaciones recientes</p><div class="twrap"><table><thead><tr><th>Cuartel</th><th>Podador</th><th>Cal.</th><th>Observación</th></tr></thead><tbody>${rowsO}</tbody></table></div>
+  <p class="sec-title">Registros con Calidad C</p><div class="twrap"><table><thead><tr><th>Cuartel</th><th>Podador</th><th>Cal.</th><th>Observación</th></tr></thead><tbody>${rowsO}</tbody></table></div>
   <button class="exp-btn exp-g" onclick="expCSV('nec','cal')"><i class="ti ti-download"></i>Exportar CSV</button>`;
 }
 
