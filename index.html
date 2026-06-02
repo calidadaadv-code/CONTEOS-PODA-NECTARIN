@@ -384,16 +384,20 @@
       const d=datos[c]; const avg=Math.round(d.sumRam/d.total);
       const avgColor=avg<RAM_MIN?'color:#791F1F':avg>RAM_MAX?'color:#633806':'color:#085041';
       const estadoPill=d.bajo>0?`<span class="pill pill-bajo">↓${d.bajo}</span>`:d.alto>0?`<span class="pill pill-alto">↑${d.alto}</span>`:`<span class="pill pill-ok">✓</span>`;
-      const maxCal2=Math.max(d.bajo,d.alto,d.dentro,1);
-      const wB2=Math.max(4,Math.round(d.bajo/d.total*40));
-      const wA2=Math.max(4,Math.round(d.alto/d.total*40));
-      const wD2=Math.max(4,Math.round(d.dentro/d.total*40));
-      const barras=`<div style="display:flex;gap:2px;align-items:center;height:16px">
-        ${d.dentro>0?`<div style="width:${wD2}px;height:100%;background:#1D9E75;border-radius:2px" title="En rango: ${d.dentro}"></div>`:''}
-        ${d.alto>0?`<div style="width:${wA2}px;height:100%;background:#EF9F27;border-radius:2px" title="Alto: ${d.alto}"></div>`:''}
-        ${d.bajo>0?`<div style="width:${wB2}px;height:100%;background:#E24B4A;border-radius:2px" title="Bajo: ${d.bajo}"></div>`:''}
-      </div>`;
-      return `<tr><td>${c}</td><td>${d.total}</td><td style="${avgColor};font-weight:500">${avg}</td><td>${d.dentro}</td><td>${estadoPill}</td><td>${barras}</td></tr>`;
+      const pBajo=Math.round(d.bajo/d.total*100);
+      const pDentro=Math.round(d.dentro/d.total*100);
+      const pSobre=Math.round(d.alto/d.total*100);
+      const colBajo=pBajo>15?'background:#FCEBEB;color:#791F1F;font-weight:600':'color:var(--texto-muted)';
+      const colDentro=pDentro>=70?'background:#E1F5EE;color:#085041;font-weight:600':'background:#FAEEDA;color:#633806;font-weight:600';
+      const colSobre=pSobre>15?'background:#FCEBEB;color:#791F1F;font-weight:600':'color:var(--texto-muted)';
+      return `<tr>
+        <td>${c}</td>
+        <td>${d.total}</td>
+        <td style="${avgColor};font-weight:500">${avg}</td>
+        <td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${colBajo}">${pBajo}%</span></td>
+        <td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${colDentro}">${pDentro}%</span></td>
+        <td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${colSobre}">${pSobre}%</span></td>
+      </tr>`;
     }).join('');
 
     el.innerHTML=`
@@ -407,7 +411,7 @@
       <p class="section-title">Resumen por cuartel — Ramillas</p>
       <div class="rango-ref"><i class="ti ti-target"></i>Rango ${RAM_MIN}–${RAM_MAX} · Ideal ${RAM_IDEAL}</div>
       <div class="tabla-wrap"><table>
-        <thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>En rango</th><th>Estado</th><th>Dist.</th></tr></thead>
+        <thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>↓ Bajo%</th><th>✓ Dentro%</th><th>↑ Sobre%</th></tr></thead>
         <tbody>${filas}</tbody>
       </table></div>
       <button class="export-btn" onclick="exportarCSV('ram')"><i class="ti ti-download"></i>Exportar CSV</button>`;
