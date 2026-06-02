@@ -615,6 +615,12 @@ function volverInicio(){
   document.getElementById('view-cereza').style.display='none';
 }
 
+// UTILS
+function mostrarToast(msg,tipo){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(tipo||'ok');setTimeout(()=>t.classList.remove('show'),2500);}
+function setSyncStatus(id,txtId,tipo,txt){const b=document.getElementById(id);if(!b)return;if(tipo==='loading'){b.innerHTML='<i class="ti ti-refresh spin"></i><span>'+txt+'</span>';b.style.background='rgba(255,255,255,.15)';}else if(tipo==='error'){b.innerHTML='<i class="ti ti-cloud-off"></i><span>'+txt+'</span>';b.style.background='rgba(226,75,74,.3)';}else{b.innerHTML='<i class="ti ti-cloud-check"></i><span>'+txt+'</span>';b.style.background='rgba(255,255,255,.15)';}}
+function hoyStr(){const d=new Date();return d.getDate()+'/'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'/'+d.getFullYear();}
+function tsNow(){const d=new Date();return d.getDate()+'/'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'/'+d.getFullYear()+' '+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes()+':'+(d.getSeconds()<10?'0':'')+d.getSeconds();}
+
 // NECTARIN CARGA
 async function cargarNec(){
   setSyncStatus('sync-nec','sync-nec-txt','loading','Cargando...');
