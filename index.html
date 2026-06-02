@@ -667,8 +667,11 @@ async function guardarNec(){
 function filtrarNec(vista){if(vista==='hoy')return necRegistros.filter(r=>r.hora&&r.hora.includes(hoyStr()));return necRegistros;}
 
 function renderNecRam(){
-  const regs=filtrarNec(necVistaRam);const el=document.getElementById('nec-dash-ram');
-  if(!regs.length){el.innerHTML='<div class="empty-state"><i class="ti ti-leaf"></i>'+(necVistaRam==='hoy'?'Sin conteos hoy.':'Sin registros.')+'</div>';return;}
+  const el=document.getElementById('nec-dash-ram');
+  if(!el){console.log('nec-dash-ram not found');return;}
+  const regs=filtrarNec(necVistaRam);
+  console.log('renderNecRam regs:',regs.length,'vista:',necVistaRam);
+  if(!regs.length){el.innerHTML='<div class="empty-state"><i class="ti ti-leaf"></i>'+(necVistaRam==='hoy'?'Sin conteos hoy — toca Acumulado para ver todos.':'Sin registros.')+'</div>';return;}
   const total=regs.length;const avg=(regs.reduce((s,r)=>s+r.ramillas,0)/total).toFixed(1);const fueraRango=regs.filter(r=>r.fuera).length;const cuartelesCon=[...new Set(regs.map(r=>r.cuartel))].length;
   const datos={};regs.forEach(r=>{if(!datos[r.cuartel])datos[r.cuartel]={total:0,sumRam:0,bajo:0,alto:0,dentro:0};const d=datos[r.cuartel];d.total++;d.sumRam+=r.ramillas;if(r.fuera==='bajo')d.bajo++;else if(r.fuera==='alto')d.alto++;else d.dentro++;});
   const filas=Object.keys(datos).sort().map(c=>{const d=datos[c];const avg2=Math.round(d.sumRam/d.total);const avgColor=avg2<RAM_MIN?'color:#791F1F':avg2>RAM_MAX?'color:#633806':'color:#085041';const pB=Math.round(d.bajo/d.total*100),pD=Math.round(d.dentro/d.total*100),pS=Math.round(d.alto/d.total*100);const cB=pB>15?'background:#FCEBEB;color:#791F1F;font-weight:600':'color:var(--texto-muted)';const cD=pD>=70?'background:#E1F5EE;color:#085041;font-weight:600':'background:#FAEEDA;color:#633806;font-weight:600';const cS=pS>15?'background:#FCEBEB;color:#791F1F;font-weight:600':'color:var(--texto-muted)';return`<tr style="cursor:pointer" onclick="abrirDetalle('nec','${c}','${necVistaRam}')"><td style="color:var(--verde-oscuro);text-decoration:underline dotted">${c}</td><td>${d.total}</td><td style="${avgColor};font-weight:500">${avg2}</td><td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${cB}">${pB}%</span></td><td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${cD}">${pD}%</span></td><td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${cS}">${pS}%</span></td></tr>`;}).join('');
