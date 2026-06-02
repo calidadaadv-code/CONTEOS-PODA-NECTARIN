@@ -606,7 +606,7 @@ const listas={
 // ===== PANTALLA INICIO =====
 function entrarEspecie(esp){
   document.getElementById('pantalla-inicio').style.display='none';
-  if(esp==='nectarin'){document.getElementById('view-nectarin').style.display='block';document.getElementById('view-cereza').style.display='none';cargarNec();}
+  if(esp==='nectarin'){document.getElementById('view-nectarin').style.display='block';document.getElementById('view-cereza').style.display='none';cargarNec().then(()=>{renderNecRam();renderNecCal();}).catch(()=>{});}
   else{document.getElementById('view-cereza').style.display='block';document.getElementById('view-nectarin').style.display='none';cargarCer();}
 }
 function volverInicio(){
@@ -781,11 +781,11 @@ function cambiarCuartelNec(d){necCuartel=Math.max(1,Math.min(34,necCuartel+d));d
 function validarRamillasNec(inp){const v=parseInt(inp.value);inp.classList.remove('alerta-bajo','alerta-alto','ok');document.getElementById('nec-alerta-bajo').classList.remove('visible');document.getElementById('nec-alerta-alto').classList.remove('visible');if(isNaN(v)||inp.value==='')return;if(v<RAM_MIN){inp.classList.add('alerta-bajo');document.getElementById('nec-alerta-bajo').classList.add('visible');}else if(v>RAM_MAX){inp.classList.add('alerta-alto');document.getElementById('nec-alerta-alto').classList.add('visible');}else inp.classList.add('ok');}
 function setCalidad(esp,v){necCalidadSel=v;document.querySelectorAll('.calidad-btn').forEach(b=>b.classList.remove('active'));document.querySelector('.calidad-btn.'+v).classList.add('active');}
 function setVistaNec(tipo,vista){if(tipo==='ram'){necVistaRam=vista;document.getElementById('nec-btn-hoy-ram').className='toggle-btn'+(vista==='hoy'?' active-g':'');document.getElementById('nec-btn-acum-ram').className='toggle-btn'+(vista==='acum'?' active-g':'');renderNecRam();}else{necVistaCal=vista;document.getElementById('nec-btn-hoy-cal').className='toggle-btn'+(vista==='hoy'?' active-g':'');document.getElementById('nec-btn-acum-cal').className='toggle-btn'+(vista==='acum'?' active-g':'');renderNecCal();}}
-function switchTabNec(tab){document.querySelectorAll('.tab-nec').forEach((t,i)=>t.classList.toggle('active',['ingreso','ramillas','calidad','config'][i]===tab));['nec-ingreso','nec-ramillas','nec-calidad','nec-config'].forEach(p=>document.getElementById(p).classList.toggle('active',p==='nec-'+tab));if(tab==='ramillas'||tab==='calidad')cargarNec();}
+function switchTabNec(tab){document.querySelectorAll('.tab-nec').forEach((t,i)=>t.classList.toggle('active',['ingreso','ramillas','calidad','config'][i]===tab));['nec-ingreso','nec-ramillas','nec-calidad','nec-config'].forEach(p=>document.getElementById(p).classList.toggle('active',p==='nec-'+tab));if(tab==='ramillas'||tab==='calidad')cargarNec();if(tab==='ramillas'||tab==='calidad')cargarNec();}
 function setVistaCer(vista){cerVista=vista;document.getElementById('cer-btn-hoy').className='toggle-btn'+(vista==='hoy'?' active-r':'');document.getElementById('cer-btn-acum').className='toggle-btn'+(vista==='acum'?' active-r':'');renderCerDash();}
 function setFiltroCer(f){cerFiltro=f;['todos','pre','post'].forEach(x=>document.getElementById('cer-filtro-'+x).classList.toggle('active',x===f));renderCerDash();}
 function setFiltroCerReg(f){cerRegFiltro=f;['todos','pre','post'].forEach(x=>document.getElementById('cer-reg-filtro-'+x).classList.toggle('active',x===f));renderCerRegistros();}
-function switchTabCer(tab){document.querySelectorAll('.tab-cer').forEach((t,i)=>t.classList.toggle('active',['ingreso','dashboard','registros','config'][i]===tab));['cer-ingreso','cer-dashboard','cer-registros','cer-config'].forEach(p=>document.getElementById(p).classList.toggle('active',p==='cer-'+tab));if(tab==='dashboard'||tab==='registros')cargarCer();}
+function switchTabCer(tab){document.querySelectorAll('.tab-cer').forEach((t,i)=>t.classList.toggle('active',['ingreso','dashboard','registros','config'][i]===tab));['cer-ingreso','cer-dashboard','cer-registros','cer-config'].forEach(p=>document.getElementById(p).classList.toggle('active',p==='cer-'+tab));if(tab==='dashboard'||tab==='registros')cargarCer();if(tab==='dashboard'||tab==='registros')cargarCer();}
 
 function exportarCSV(esp,tipo){
   let regs,cab,filas;
