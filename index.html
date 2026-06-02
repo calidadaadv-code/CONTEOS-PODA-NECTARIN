@@ -471,14 +471,18 @@
     // Tabla calidad por cuartel
     const filasCalidad=Object.keys(datos).sort().map(c=>{
       const d=datos[c];
-      const maxCal=Math.max(d.A,d.B,d.C,1);
-      const wA=Math.max(4,Math.round(d.A/maxCal*28)), wB=Math.max(4,Math.round(d.B/maxCal*28)), wC=Math.max(4,Math.round(d.C/maxCal*28));
+      const pA=Math.round(d.A/d.total*100);
+      const pB=Math.round(d.B/d.total*100);
+      const pC=Math.round(d.C/d.total*100);
+      const colA=pA>=70?'background:#E1F5EE;color:#085041;font-weight:600':'color:var(--texto-muted)';
+      const colB=pB>15?'background:#FAEEDA;color:#633806;font-weight:600':'color:var(--texto-muted)';
+      const colC=pC>15?'background:#FCEBEB;color:#791F1F;font-weight:600':'color:var(--texto-muted)';
       return `<tr>
         <td>${c}</td>
         <td>${d.total}</td>
-        <td><span class="pill pill-a">${d.A}</span></td>
-        <td><span class="pill pill-b">${d.B}</span></td>
-        <td><span class="pill pill-c">${d.C}</span></td>
+        <td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${colA}">${pA}%</span></td>
+        <td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${colB}">${pB}%</span></td>
+        <td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${colC}">${pC}%</span></td>
       </tr>`;
     }).join('');
 
