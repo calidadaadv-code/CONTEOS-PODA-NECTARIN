@@ -168,6 +168,19 @@
     .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
     .toast.ok { background:var(--verde-oscuro); color:#fff; }
     .toast.warn { background:#791F1F; color:#fff; }
+
+    /* MODAL DETALLE CUARTEL */
+    .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.5); z-index:400; }
+    .modal-overlay.open { display:flex; align-items:flex-end; }
+    .modal-box { background:#fff; width:100%; max-height:85vh; border-radius:16px 16px 0 0; overflow:hidden; display:flex; flex-direction:column; }
+    .modal-header { padding:14px 16px; background:var(--verde-oscuro); color:#fff; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+    .modal-title { font-family:var(--mono); font-size:14px; font-weight:500; }
+    .modal-close { background:none; border:none; color:#fff; font-size:22px; cursor:pointer; line-height:1; }
+    .modal-body { overflow-y:auto; padding:12px; }
+    .modal-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
+    .modal-stat { background:#f9f9f7; border-radius:8px; padding:10px; text-align:center; }
+    .modal-stat-val { font-size:20px; font-family:var(--mono); font-weight:500; }
+    .modal-stat-lbl { font-size:10px; font-family:var(--mono); color:var(--texto-muted); text-transform:uppercase; }
     .fecha-hoy { font-size:11px; font-family:var(--mono); color:var(--texto-muted); text-align:center; margin-bottom:12px; }
   </style>
 </head>
@@ -290,6 +303,26 @@
     </div>
   </div>
 </div>
+
+<!-- MODAL DETALLE CUARTEL -->
+<div class="modal-overlay" id="modal-overlay" onclick="cerrarModal(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-titulo">Detalle Cuartel</span>
+      <button class="modal-close" onclick="cerrarModalBtn()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-stats" id="modal-stats"></div>
+      <div class="tabla-wrap">
+        <table id="modal-tabla">
+          <thead><tr><th>Hilera</th><th>Planta</th><th>Podador</th><th>Ram.</th><th>Estado</th></tr></thead>
+          <tbody id="modal-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -390,8 +423,8 @@
       const colBajo=pBajo>15?'background:#FCEBEB;color:#791F1F;font-weight:600':'color:var(--texto-muted)';
       const colDentro=pDentro>=70?'background:#E1F5EE;color:#085041;font-weight:600':'background:#FAEEDA;color:#633806;font-weight:600';
       const colSobre=pSobre>15?'background:#FCEBEB;color:#791F1F;font-weight:600':'color:var(--texto-muted)';
-      return `<tr>
-        <td>${c}</td>
+      return `<tr style="cursor:pointer" onclick="abrirDetalleCuartel('${c}','${vistaRam}')">
+        <td style="color:var(--verde-oscuro);text-decoration:underline dotted">${c}</td>
         <td>${d.total}</td>
         <td style="${avgColor};font-weight:500">${avg}</td>
         <td style="text-align:center"><span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mono);${colBajo}">${pBajo}%</span></td>
@@ -536,6 +569,58 @@
   function toggleAdminBadge(){if(adminLogueado)cerrarSesion();else switchTab('config');}
   function togglePassVis(){const inp=document.getElementById('pass-input');const ico=document.getElementById('eye-icon');if(inp.type==='password'){inp.type='text';ico.className='ti ti-eye-off';}else{inp.type='password';ico.className='ti ti-eye';}}
   function cambiarPassword(){const n=document.getElementById('pass-nueva').value.trim();const c=document.getElementById('pass-confirmar').value.trim();if(!n||n.length<4){mostrarToast('Mínimo 4 caracteres','warn');return;}if(n!==c){mostrarToast('No coinciden','warn');return;}adminPass=n;document.getElementById('pass-nueva').value='';document.getElementById('pass-confirmar').value='';mostrarToast('✓ Contraseña actualizada');}
+
+  function abrirDetalleCuartel(cuartel, vista) {
+    const regs = filtrarRegistros(vista).filter(r => r.cuartel === cuartel);
+    if(!regs.length) return;
+    const total = regs.length;
+    const avg = (regs.reduce((s,r)=>s+r.ramillas,0)/total).toFixed(1);
+    const bajo = regs.filter(r=>r.fuera==='bajo').length;
+    const sobre = regs.filter(r=>r.fuera==='alto').length;
+    const dentro = regs.filter(r=>!r.fuera).length;
+    const pB=Math.round(bajo/total*100), pD=Math.round(dentro/total*100), pS=Math.round(sobre/total*100);
+
+    document.getElementById('modal-titulo').textContent = 'Detalle ' + cuartel + ' — ' + total + ' conteos';
+    document.getElementById('modal-stats').innerHTML = `
+      <div class="modal-stat" style="background:var(--verde-claro)">
+        <div class="modal-stat-val" style="color:var(--verde-oscuro)">${pD}%</div>
+        <div class="modal-stat-lbl">Dentro</div>
+      </div>
+      <div class="modal-stat" style="background:var(--rojo-claro)">
+        <div class="modal-stat-val" style="color:#791F1F">${pB}%</div>
+        <div class="modal-stat-lbl">Bajo</div>
+      </div>
+      <div class="modal-stat" style="background:var(--ambar-claro)">
+        <div class="modal-stat-val" style="color:#633806">${pS}%</div>
+        <div class="modal-stat-lbl">Sobre</div>
+      </div>`;
+
+    const filas = regs.map(r => {
+      const est = r.fuera==='bajo'
+        ? '<span style="color:#791F1F;font-size:10px">↓'+r.ramillas+'</span>'
+        : r.fuera==='alto'
+        ? '<span style="color:#633806;font-size:10px">↑'+r.ramillas+'</span>'
+        : '<span style="color:var(--verde-oscuro);font-size:10px">✓'+r.ramillas+'</span>';
+      return `<tr>
+        <td>${r.hilera}</td>
+        <td>${r.planta}</td>
+        <td style="font-size:11px">${r.podador||''}</td>
+        <td style="font-weight:500">${r.ramillas}</td>
+        <td>${est}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('modal-tbody').innerHTML = filas;
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+
+  function cerrarModal(e) {
+    if(e.target === document.getElementById('modal-overlay'))
+      document.getElementById('modal-overlay').classList.remove('open');
+  }
+  function cerrarModalBtn() {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
 
   function renderListas(){['contador','supervisor','contratista'].forEach(tipo=>{const ul=document.getElementById('list-'+tipo);if(!ul)return;ul.innerHTML=listas[tipo].map((n,i)=>`<div class="config-item"><span class="config-item-name">${n}</span><button class="config-del" onclick="eliminarItem('${tipo}',${i})"><i class="ti ti-x"></i></button></div>`).join('');renderDropdown(tipo);});}
   function renderDropdown(tipo){const dd=document.getElementById(tipo+'-dd');if(!dd)return;dd.innerHTML=listas[tipo].map(n=>`<div class="combo-option" onclick="seleccionarCombo('${tipo}','${n.replace(/'/g,"\\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="combo-option nuevo" onclick="limpiarCombo('${tipo}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;}
