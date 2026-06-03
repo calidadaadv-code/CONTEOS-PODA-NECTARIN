@@ -250,6 +250,17 @@
     .mstat{background:#f9f9f7;border-radius:8px;padding:10px;text-align:center}
     .mstat-val{font-size:20px;font-family:var(--mo);font-weight:500}
     .mstat-lbl{font-size:10px;font-family:var(--mo);color:var(--tm);text-transform:uppercase}
+    /* ACTIVIDAD CONTADORES */
+    .act-card{background:#f9f9f7;border:.5px solid var(--gb2);border-radius:9px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .act-name{font-size:13px;font-family:var(--mo);font-weight:500;color:var(--tx);cursor:pointer;text-decoration:underline dotted;flex:1}
+    .act-name:hover{color:var(--vd)}
+    .act-name-r{color:var(--tx);cursor:pointer;text-decoration:underline dotted;flex:1;font-size:13px;font-family:var(--mo);font-weight:500}
+    .act-name-r:hover{color:var(--rd)}
+    .act-right{text-align:right;flex-shrink:0}
+    .act-count{font-size:18px;font-family:var(--mo);font-weight:500;color:var(--vo)}
+    .act-count-r{font-size:18px;font-family:var(--mo);font-weight:500;color:var(--ro)}
+    .act-ts{font-size:10px;font-family:var(--mo);color:var(--tm);margin-top:2px}
+    .act-empty{font-size:12px;font-family:var(--mo);color:var(--tm);padding:12px 0;text-align:center}
   </style>
 </head>
 <body>
@@ -326,6 +337,8 @@
     </div>
     <div id="nec-adm" style="display:none">
       <div class="adm-hdr adm-hdr-g"><div class="adm-hdr-l"><i class="ti ti-shield-check"></i><div><div class="adm-title">Administrador</div><div class="adm-sub">Nectarín</div></div></div><button class="logout-btn" onclick="closeAdm('nec')">Salir</button></div>
+      <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-activity"></i>Actividad de Contadores — Hoy<button onclick="rnActNec()" style="background:var(--vo);color:#fff;border:none;border-radius:5px;font-size:10px;font-family:var(--mo);padding:3px 8px;cursor:pointer;margin-left:8px"><i class="ti ti-refresh"></i> Actualizar</button></div><div id="nec-act-cnt"><div style="font-size:12px;font-family:var(--mo);color:var(--tm);padding:8px 0">Cargando...</div></div></div>
+      <hr class="divider">
       <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-user-check"></i>Contadores</div><div class="cfg-list" id="nec-lcon"></div><div class="cfg-add"><input class="cfg-add-inp" type="text" id="nec-acon" placeholder="Nuevo..."><button class="cfg-add-btn" onclick="addL('nec','con')">+ Agregar</button></div></div>
       <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-user-star"></i>Supervisores</div><div class="cfg-list" id="nec-lsup"></div><div class="cfg-add"><input class="cfg-add-inp" type="text" id="nec-asup" placeholder="Nuevo..."><button class="cfg-add-btn" onclick="addL('nec','sup')">+ Agregar</button></div></div>
       <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-building"></i>Contratistas</div><div class="cfg-list" id="nec-lcomp"></div><div class="cfg-add"><input class="cfg-add-inp" type="text" id="nec-acomp" placeholder="Nuevo..."><button class="cfg-add-btn" onclick="addL('nec','comp')">+ Agregar</button></div></div>
@@ -407,6 +420,8 @@
     </div>
     <div id="cer-adm" style="display:none">
       <div class="adm-hdr adm-hdr-r"><div class="adm-hdr-l"><i class="ti ti-shield-check"></i><div><div class="adm-title">Administrador</div><div class="adm-sub">Cerezo</div></div></div><button class="logout-btn" onclick="closeAdm('cer')">Salir</button></div>
+      <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-activity"></i>Actividad de Contadores — Hoy<button onclick="rnActCer()" style="background:var(--ro);color:#fff;border:none;border-radius:5px;font-size:10px;font-family:var(--mo);padding:3px 8px;cursor:pointer;margin-left:8px"><i class="ti ti-refresh"></i> Actualizar</button></div><div id="cer-act-cnt"><div style="font-size:12px;font-family:var(--mo);color:var(--tm);padding:8px 0">Cargando...</div></div></div>
+      <hr class="divider">
       <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-user-check"></i>Contadores</div><div class="cfg-list" id="cer-lcon"></div><div class="cfg-add"><input class="cfg-add-inp" type="text" id="cer-acon" placeholder="Nuevo..."><button class="cfg-add-btn" style="background:var(--ro)" onclick="addL('cer','con')">+ Agregar</button></div></div>
       <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-user-star"></i>Supervisores</div><div class="cfg-list" id="cer-lsup"></div><div class="cfg-add"><input class="cfg-add-inp" type="text" id="cer-asup" placeholder="Nuevo..."><button class="cfg-add-btn" style="background:var(--ro)" onclick="addL('cer','sup')">+ Agregar</button></div></div>
       <div class="cfg-sec"><div class="cfg-title"><i class="ti ti-building"></i>Contratistas</div><div class="cfg-list" id="cer-lcomp"></div><div class="cfg-add"><input class="cfg-add-inp" type="text" id="cer-acomp" placeholder="Nuevo..."><button class="cfg-add-btn" style="background:var(--ro)" onclick="addL('cer','comp')">+ Agregar</button></div></div>
@@ -672,7 +687,7 @@ function closeModalBtn(){document.getElementById('modal-ov').classList.remove('o
 
 // ADMIN
 function setCal(e,v){nCal=v;document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('on'));document.querySelector('.cbtn.'+v).classList.add('on');}
-function chkAdm(e){const inp=document.getElementById(e+'-pass'),pass=e==='nec'?nPass:cPass;if(inp.value===pass){if(e==='nec'){nAdm=true;document.getElementById('nec-lock').style.display='none';document.getElementById('nec-adm').style.display='block';document.getElementById('lock-nec-t').textContent='🔓';document.getElementById('lock-nec-i').className='ti ti-lock-open';}else{cAdm=true;document.getElementById('cer-lock').style.display='none';document.getElementById('cer-adm').style.display='block';document.getElementById('lock-cer-t').textContent='🔓';document.getElementById('lock-cer-i').className='ti ti-lock-open';}inp.value='';document.getElementById(e+'-lerr').textContent='';rlists(e);}else{document.getElementById(e+'-lerr').textContent='Contraseña incorrecta';inp.classList.add('err');setTimeout(()=>inp.classList.remove('err'),400);}}
+function chkAdm(e){const inp=document.getElementById(e+'-pass'),pass=e==='nec'?nPass:cPass;if(inp.value===pass){if(e==='nec'){nAdm=true;document.getElementById('nec-lock').style.display='none';document.getElementById('nec-adm').style.display='block';document.getElementById('lock-nec-t').textContent='🔓';document.getElementById('lock-nec-i').className='ti ti-lock-open';rnActNec();}else{cAdm=true;document.getElementById('cer-lock').style.display='none';document.getElementById('cer-adm').style.display='block';document.getElementById('lock-cer-t').textContent='🔓';document.getElementById('lock-cer-i').className='ti ti-lock-open';rnActCer();}inp.value='';document.getElementById(e+'-lerr').textContent='';rlists(e);}else{document.getElementById(e+'-lerr').textContent='Contraseña incorrecta';inp.classList.add('err');setTimeout(()=>inp.classList.remove('err'),400);}}
 function closeAdm(e){if(e==='nec'){nAdm=false;document.getElementById('nec-lock').style.display='flex';document.getElementById('nec-adm').style.display='none';document.getElementById('lock-nec-t').textContent='🔒';document.getElementById('lock-nec-i').className='ti ti-lock';tabNec('ing');}else{cAdm=false;document.getElementById('cer-lock').style.display='flex';document.getElementById('cer-adm').style.display='none';document.getElementById('lock-cer-t').textContent='🔒';document.getElementById('lock-cer-i').className='ti ti-lock';tabCer('ing');}document.getElementById(e+'-pass').value='';toast('Sesión cerrada');}
 function toggleAdm(e){if(e==='nec'){if(nAdm)closeAdm('nec');else tabNec('cfg');}else{if(cAdm)closeAdm('cer');else tabCer('cfg');}}
 function tvPass(e){const i=document.getElementById(e+'-pass'),ic=document.getElementById(e+'-eye');if(i.type==='password'){i.type='text';ic.className='ti ti-eye-off';}else{i.type='password';ic.className='ti ti-eye';}}
@@ -694,6 +709,71 @@ function expCSV(e,t){
   if(e==='nec'){regs=fnNec(t==='ram'?nVR:nVC);if(!regs.length){toast('Sin datos','warn');return;}cab='Cuartel,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Ramillas,Fuera_Rango,Calidad,Observaciones,Hora';rows=regs.map(r=>[r.c,r.h,r.p,r.pod,r.cnt,r.sup,r.comp,r.ram,r.f||'no',r.cal,r.obs,r.ts].join(','));}
   else{regs=t==='reg'?fnReg():fnCer();if(!regs.length){toast('Sin datos','warn');return;}cab='Cuartel,Variedad,Tipo,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Total_Dardos,Ramillas,Total_General,Fuera_Rango,Observaciones,Hora';rows=regs.map(r=>[r.c,r.v,r.tipo,r.h,r.p,r.pod,r.cnt,r.sup,r.comp,r.td,r.ram,r.tot,r.f,r.obs,r.ts].join(','));}
   const blob=new Blob([[cab,...rows].join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='conteos_'+(e==='nec'?'nectarin':'cerezas')+'.csv';a.click();toast('✓ CSV descargado');
+}
+
+// ACTIVIDAD CONTADORES
+function rnActNec(){
+  const el=document.getElementById('nec-act-cnt');if(!el)return;
+  const hoyRegs=nRegs.filter(r=>r.ts&&r.ts.includes(hoy()));
+  if(!hoyRegs.length){el.innerHTML='<div class="act-empty"><i class="ti ti-moon" style="font-size:20px;opacity:.3;display:block;margin-bottom:6px"></i>Sin conteos hoy</div>';return;}
+  const map={};
+  hoyRegs.forEach(r=>{
+    const n=r.cnt||'Sin nombre';
+    if(!map[n])map[n]={count:0,ultimo:''};
+    map[n].count++;
+    if(!map[n].ultimo||r.ts>map[n].ultimo)map[n].ultimo=r.ts;
+  });
+  const sorted=Object.keys(map).sort((a,b)=>map[b].ultimo.localeCompare(map[a].ultimo));
+  el.innerHTML=sorted.map(n=>{
+    const hora=map[n].ultimo?map[n].ultimo.split(' ')[1]||map[n].ultimo:'—';
+    return`<div class="act-card"><span class="act-name" onclick="openActDet('nec','${n.replace(/'/g,"\\'")}')"><i class="ti ti-user" style="font-size:12px;opacity:.5;margin-right:5px"></i>${n}</span><div class="act-right"><div class="act-count">${map[n].count}</div><div class="act-ts">último: ${hora}</div></div></div>`;
+  }).join('');
+}
+
+function rnActCer(){
+  const el=document.getElementById('cer-act-cnt');if(!el)return;
+  const hoyRegs=cRegs.filter(r=>r.ts&&r.ts.includes(hoy()));
+  if(!hoyRegs.length){el.innerHTML='<div class="act-empty"><i class="ti ti-moon" style="font-size:20px;opacity:.3;display:block;margin-bottom:6px"></i>Sin conteos hoy</div>';return;}
+  const map={};
+  hoyRegs.forEach(r=>{
+    const n=r.cnt||'Sin nombre';
+    if(!map[n])map[n]={count:0,ultimo:''};
+    map[n].count++;
+    if(!map[n].ultimo||r.ts>map[n].ultimo)map[n].ultimo=r.ts;
+  });
+  const sorted=Object.keys(map).sort((a,b)=>map[b].ultimo.localeCompare(map[a].ultimo));
+  el.innerHTML=sorted.map(n=>{
+    const hora=map[n].ultimo?map[n].ultimo.split(' ')[1]||map[n].ultimo:'—';
+    return`<div class="act-card"><span class="act-name-r" onclick="openActDet('cer','${n.replace(/'/g,"\\'")}')"><i class="ti ti-user" style="font-size:12px;opacity:.5;margin-right:5px"></i>${n}</span><div class="act-right"><div class="act-count-r">${map[n].count}</div><div class="act-ts">último: ${hora}</div></div></div>`;
+  }).join('');
+}
+
+function openActDet(esp,nombre){
+  const regs=(esp==='nec'?nRegs:cRegs).filter(r=>r.cnt===nombre&&r.ts&&r.ts.includes(hoy()));
+  const ov=document.getElementById('modal-ov');
+  const hdr=document.getElementById('modal-hdr');
+  hdr.className='modal-hdr '+(esp==='nec'?'modal-hdr-g':'modal-hdr-r');
+  document.getElementById('modal-tit').textContent=nombre+' — Hoy ('+regs.length+' conteos)';
+  document.getElementById('modal-stats').innerHTML=`
+    <div class="mstat"><div class="mstat-val">${regs.length}</div><div class="mstat-lbl">Conteos</div></div>
+    <div class="mstat"><div class="mstat-val">${[...new Set(regs.map(r=>r.c))].length}</div><div class="mstat-lbl">Cuarteles</div></div>
+    <div class="mstat"><div class="mstat-val">${regs.length?regs[regs.length-1].ts.split(' ')[1]||'—':'—'}</div><div class="mstat-lbl">Último</div></div>`;
+  if(esp==='nec'){
+    document.getElementById('modal-thead').innerHTML='<th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Ram.</th><th>Cal.</th>';
+    document.getElementById('modal-tbody').innerHTML=regs.map(r=>{
+      const hora=r.ts?r.ts.split(' ')[1]||r.ts:'—';
+      const pc=r.f==='bajo'?'pill-bj':r.f==='alto'?'pill-al':'pill-ok';
+      return`<tr><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="font-weight:500">${r.ram}</td><td><span class="pill ${pc}">${r.cal||'—'}</span></td></tr>`;
+    }).join('')||'<tr><td colspan="6" class="empty">Sin conteos</td></tr>';
+  } else {
+    document.getElementById('modal-thead').innerHTML='<th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Total</th><th>Tipo</th>';
+    document.getElementById('modal-tbody').innerHTML=regs.map(r=>{
+      const hora=r.ts?r.ts.split(' ')[1]||r.ts:'—';
+      const tp=r.tipo==='pre'?'<span style="background:var(--rc);color:var(--ro);padding:2px 5px;border-radius:3px;font-size:9px">PRE</span>':'<span style="background:#E8F8F5;color:#0E6655;padding:2px 5px;border-radius:3px;font-size:9px">POST</span>';
+      return`<tr><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="font-weight:500">${r.tot}</td><td>${tp}</td></tr>`;
+    }).join('')||'<tr><td colspan="6" class="empty">Sin conteos</td></tr>';
+  }
+  ov.classList.add('open');
 }
 
 // INIT
