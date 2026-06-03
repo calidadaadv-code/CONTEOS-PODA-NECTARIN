@@ -404,7 +404,17 @@
       <div class="ram-cer-row"><span class="ram-cer-lbl" style="color:var(--ro)">Dardos Eje</span><input class="ram-cer-inp" type="number" id="cer-deje" min="0" placeholder="0" oninput="calcTotal()" style="color:var(--ro);border-color:var(--rd)"></div>
       <div class="ram-cer-row"><span class="ram-cer-lbl">Ramillas</span><input class="ram-cer-inp" type="number" id="cer-ram" min="0" placeholder="0" oninput="calcTotal()"></div>
     </div>
-    <div class="total-box"><div><div class="total-lbl">Total Dardos</div><div style="font-size:10px;font-family:var(--mo);color:var(--tm)">(dardos + ramillas)</div></div><div class="total-val" id="cer-tot">0</div></div>
+    <div class="total-box" onclick="toggleDesglose()" style="cursor:pointer;flex-direction:column;align-items:stretch;gap:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div><div class="total-lbl">Total Dardos</div><div style="font-size:10px;font-family:var(--mo);color:var(--tm)">Toca para ver desglose <i class="ti ti-chevron-down" id="des-ico" style="font-size:10px"></i></div></div>
+        <div class="total-val" id="cer-tot">0</div>
+      </div>
+      <div id="cer-desglose" style="display:none;border-top:1px solid var(--rc);padding-top:8px;margin-top:4px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;font-family:var(--mo);padding:3px 0;color:var(--ro)"><span>Dardos cargadores</span><span id="des-td" style="font-weight:500">0</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;font-family:var(--mo);padding:3px 0;color:var(--ro)"><span>Dardos en el eje</span><span id="des-deje" style="font-weight:500">0</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;font-family:var(--mo);padding:3px 0;color:var(--tm)"><span>Ramillas</span><span id="des-ram" style="font-weight:500">0</span></div>
+      </div>
+    </div>
     <div class="alerta bajo" id="cer-abaj"><i class="ti ti-alert-circle"></i><span id="cer-abaj-t">Bajo rango mínimo</span></div>
     <div class="alerta alto" id="cer-aalt"><i class="ti ti-alert-triangle"></i><span id="cer-aalt-t">Sobre rango máximo</span></div>
     <div class="fgrp full" style="margin-bottom:14px"><label class="flbl">Observaciones</label><input class="finp" type="text" id="cer-obs" placeholder="Ej: planta dañada..."></div>
@@ -720,7 +730,7 @@ function cCer(d){cIdx=Math.max(0,Math.min(CCER.length-1,cIdx+d));const c=CCER[cI
 function setTipo(t){cTipo=t;document.getElementById('cer-tpre').className='tipo-btn pre'+(t==='pre'?' on':'');document.getElementById('cer-tpost').className='tipo-btn post'+(t==='post'?' on':'');}
 function addCar(){nCar++;const l=document.getElementById('car-list');const r=document.createElement('div');r.className='car-row';r.id='cr'+nCar;r.innerHTML=`<span class="car-lbl">Cargador ${nCar}</span><input class="car-inp" type="number" id="ci${nCar}" min="0" placeholder="0" oninput="calcTotal()"><button class="del-car" onclick="delCar(${nCar})"><i class="ti ti-x"></i></button>`;l.appendChild(r);}
 function delCar(n){const r=document.getElementById('cr'+n);if(r)r.remove();calcTotal();}
-function calcTotal(){let td=0;for(let i=1;i<=nCar;i++){const x=document.getElementById('ci'+i);if(x)td+=parseInt(x.value)||0;}const deje=parseInt(document.getElementById('cer-deje').value)||0;const ram=parseInt(document.getElementById('cer-ram').value)||0;const tot=td+deje+ram;document.getElementById('cer-tot').textContent=tot;const c=CCER[cIdx];document.getElementById('cer-abaj').classList.remove('vis');document.getElementById('cer-aalt').classList.remove('vis');if(tot>0){if(tot<c.mn){document.getElementById('cer-abaj').classList.add('vis');document.getElementById('cer-abaj-t').textContent='Bajo rango mínimo (< '+c.mn+')';}else if(tot>c.mx){document.getElementById('cer-aalt').classList.add('vis');document.getElementById('cer-aalt-t').textContent='Sobre rango máximo (> '+c.mx+')';}};}
+function calcTotal(){let td=0;for(let i=1;i<=nCar;i++){const x=document.getElementById('ci'+i);if(x)td+=parseInt(x.value)||0;}const deje=parseInt(document.getElementById('cer-deje').value)||0;const ram=parseInt(document.getElementById('cer-ram').value)||0;const tot=td+deje+ram;document.getElementById('cer-tot').textContent=tot;document.getElementById('des-td').textContent=td;document.getElementById('des-deje').textContent=deje;document.getElementById('des-ram').textContent=ram;const c=CCER[cIdx];document.getElementById('cer-abaj').classList.remove('vis');document.getElementById('cer-aalt').classList.remove('vis');if(tot>0){if(tot<c.mn){document.getElementById('cer-abaj').classList.add('vis');document.getElementById('cer-abaj-t').textContent='Bajo rango mínimo (< '+c.mn+')';}else if(tot>c.mx){document.getElementById('cer-aalt').classList.add('vis');document.getElementById('cer-aalt-t').textContent='Sobre rango máximo (> '+c.mx+')';}};}
 function resetCar(){nCar=1;document.getElementById('car-list').innerHTML='<div class="car-row" id="cr1"><span class="car-lbl">Cargador 1</span><input class="car-inp" type="number" id="ci1" min="0" placeholder="0" oninput="calcTotal()"><button class="del-car" onclick="delCar(1)"><i class="ti ti-x"></i></button></div>';}
 
 async function guardarCer(){
@@ -992,6 +1002,17 @@ function openActDet(esp,nombre){
     document.getElementById('modal-tbody').innerHTML=regs.map(r=>{const hora=r.ts?r.ts.split(' ')[1]||r.ts:'—';const pc=r.f==='bajo'?'pill-bj':r.f==='alto'?'pill-al':'pill-ok';return`<tr><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="font-weight:500;color:var(--po)">${r.ml}</td><td><span class="pill ${pc}">${r.cal||'—'}</span></td></tr>`;}).join('')||'<tr><td colspan="6" class="empty">Sin conteos</td></tr>';
   }
   ov.classList.add('open');
+}
+
+function toggleDesglose(){
+  const d=document.getElementById('cer-desglose');
+  const ico=document.getElementById('des-ico');
+  if(!d)return;
+  if(d.style.display==='none'||d.style.display===''){
+    d.style.display='block';if(ico)ico.className='ti ti-chevron-up';
+  }else{
+    d.style.display='none';if(ico)ico.className='ti ti-chevron-down';
+  }
 }
 
 rlists('nec');rlists('cer');rlists('cir');resetCar();
