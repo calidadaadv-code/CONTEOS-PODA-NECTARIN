@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v4.0.0 -->
+  <!-- v4.1.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -405,6 +405,7 @@
     <div class="carbox">
       <div class="cartitle"><span>Cargadores y Dardos</span><button class="add-car-btn" onclick="addCar()">+ Cargador</button></div>
       <div id="car-list"></div>
+      <div class="ram-cer-row"><span class="ram-cer-lbl" style="color:var(--ro)">Dardos Eje</span><input class="ram-cer-inp" type="number" id="cer-deje" min="0" placeholder="0" oninput="calcTotal()" style="color:var(--ro);border-color:var(--rd)"></div>
       <div class="ram-cer-row"><span class="ram-cer-lbl">Ramillas</span><input class="ram-cer-inp" type="number" id="cer-ram" min="0" placeholder="0" oninput="calcTotal()"></div>
     </div>
     <div class="total-box"><div><div class="total-lbl">Total Dardos</div><div style="font-size:10px;font-family:var(--mo);color:var(--tm)">(dardos + ramillas)</div></div><div class="total-val" id="cer-tot">0</div></div>
@@ -728,7 +729,7 @@ function cCer(d){cIdx=Math.max(0,Math.min(CCER.length-1,cIdx+d));const c=CCER[cI
 function setTipo(t){cTipo=t;document.getElementById('cer-tpre').className='tipo-btn pre'+(t==='pre'?' on':'');document.getElementById('cer-tpost').className='tipo-btn post'+(t==='post'?' on':'');}
 function addCar(){nCar++;const l=document.getElementById('car-list');const r=document.createElement('div');r.className='car-row';r.id='cr'+nCar;r.innerHTML=`<span class="car-lbl">Cargador ${nCar}</span><input class="car-inp" type="number" id="ci${nCar}" min="0" placeholder="0" oninput="calcTotal()"><button class="del-car" onclick="delCar(${nCar})"><i class="ti ti-x"></i></button>`;l.appendChild(r);}
 function delCar(n){const r=document.getElementById('cr'+n);if(r)r.remove();calcTotal();}
-function calcTotal(){let td=0;for(let i=1;i<=nCar;i++){const x=document.getElementById('ci'+i);if(x)td+=parseInt(x.value)||0;}const ram=parseInt(document.getElementById('cer-ram').value)||0;const tot=td+ram;document.getElementById('cer-tot').textContent=tot;const c=CCER[cIdx];document.getElementById('cer-abaj').classList.remove('vis');document.getElementById('cer-aalt').classList.remove('vis');if(tot>0){if(tot<c.mn){document.getElementById('cer-abaj').classList.add('vis');document.getElementById('cer-abaj-t').textContent='Bajo rango mínimo (< '+c.mn+')';}else if(tot>c.mx){document.getElementById('cer-aalt').classList.add('vis');document.getElementById('cer-aalt-t').textContent='Sobre rango máximo (> '+c.mx+')';}};}
+function calcTotal(){let td=0;for(let i=1;i<=nCar;i++){const x=document.getElementById('ci'+i);if(x)td+=parseInt(x.value)||0;}const deje=parseInt(document.getElementById('cer-deje').value)||0;const ram=parseInt(document.getElementById('cer-ram').value)||0;const tot=td+deje+ram;document.getElementById('cer-tot').textContent=tot;const c=CCER[cIdx];document.getElementById('cer-abaj').classList.remove('vis');document.getElementById('cer-aalt').classList.remove('vis');if(tot>0){if(tot<c.mn){document.getElementById('cer-abaj').classList.add('vis');document.getElementById('cer-abaj-t').textContent='Bajo rango mínimo (< '+c.mn+')';}else if(tot>c.mx){document.getElementById('cer-aalt').classList.add('vis');document.getElementById('cer-aalt-t').textContent='Sobre rango máximo (> '+c.mx+')';}};}
 function resetCar(){nCar=1;document.getElementById('car-list').innerHTML='<div class="car-row" id="cr1"><span class="car-lbl">Cargador 1</span><input class="car-inp" type="number" id="ci1" min="0" placeholder="0" oninput="calcTotal()"><button class="del-car" onclick="delCar(1)"><i class="ti ti-x"></i></button></div>';}
 
 // CEREZO GUARDAR
@@ -736,10 +737,10 @@ async function guardarCer(){
   const h=document.getElementById('cer-hil').value,p=document.getElementById('cer-pla').value;
   const pod=document.getElementById('cer-pod').value,cnt=document.getElementById('cer-cnt').value;
   const sup=document.getElementById('cer-sup').value,comp=document.getElementById('cer-con').value;
-  const obs=document.getElementById('cer-obs').value;const ram=parseInt(document.getElementById('cer-ram').value)||0;
+  const obs=document.getElementById('cer-obs').value;const ram=parseInt(document.getElementById('cer-ram').value)||0;const deje=parseInt(document.getElementById('cer-deje').value)||0;
   if(!h||!p||!pod||!cnt){toast('⚠ Completa todos los campos','warn');return;}
   const cars=[];let td=0;for(let i=1;i<=nCar;i++){const x=document.getElementById('ci'+i);if(x){const v=parseInt(x.value)||0;cars.push({cargador:i,dardos:v});td+=v;}}
-  const tot=td+ram;const c=CCER[cIdx];const f=tot<c.mn?'bajo':tot>c.mx?'alto':'no';
+  const tot=td+deje+ram;const c=CCER[cIdx];const f=tot<c.mn?'bajo':tot>c.mx?'alto':'no';
   const btn=document.getElementById('cer-sub');btn.disabled=true;btn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';
   sync('sync-cer','L','Guardando...');
   const {error}=await db.from('conteos_cerezas').insert([{timestamp:ts(),cuartel:c.n,variedad:c.v,tipo_conteo:cTipo,hilera:String(h),planta:String(p),podador:pod,contador:cnt,supervisor:sup,contratista:comp,cargadores:JSON.stringify(cars),total_dardos:td,ramillas:ram,total_general:tot,fuera_rango:f,observaciones:obs||''}]);
@@ -747,7 +748,7 @@ async function guardarCer(){
   if(error){sync('sync-cer','E','Error');toast('⚠ Error al guardar','warn');return;}
   sync('sync-cer','O','✓ Guardado');setTimeout(()=>sync('sync-cer','O','En línea'),2000);
   if(f==='bajo')toast('⚠ Guardado — BAJO rango','warn');else if(f==='alto')toast('⚠ Guardado — SOBRE rango','warn');else toast('✓ Guardado correctamente');
-  document.getElementById('cer-hil').value='';document.getElementById('cer-pla').value='';document.getElementById('cer-obs').value='';document.getElementById('cer-ram').value='';document.getElementById('cer-tot').textContent='0';
+  document.getElementById('cer-hil').value='';document.getElementById('cer-pla').value='';document.getElementById('cer-obs').value='';document.getElementById('cer-ram').value='';document.getElementById('cer-deje').value='';document.getElementById('cer-tot').textContent='0';
   document.getElementById('cer-abaj').classList.remove('vis');document.getElementById('cer-aalt').classList.remove('vis');
   resetCar();loadCer();
 }
