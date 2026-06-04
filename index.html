@@ -994,7 +994,7 @@ function rnCirCal(){
   const tot=regs.length,cG={A:0,B:0,C:0};regs.forEach(r=>{if(cG[r.cal]!==undefined)cG[r.cal]++;});
   const pA=Math.round(cG.A/tot*100),pB=Math.round(cG.B/tot*100),pC=Math.round(cG.C/tot*100);
   const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,A:0,B:0,C:0,comps:new Set()};const x=d[r.c];x.t++;if(x[r.cal]!==undefined)x[r.cal]++;if(r.comp)x.comps.add(r.comp);});
-  const rowsC=Object.keys(d).sort().map(c=>{const x=d[c];const compList=[...x.comps].join(', ');return`<tr style="cursor:pointer" onclick="openDetCir('${c}')"><td style="color:var(--po);font-weight:500;text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pctP(x.A,x.t,true)}</td><td style="text-align:center">${pctP(x.B,x.t)}</td><td style="text-align:center">${pctP(x.C,x.t)}</td><td style="font-size:10px;color:var(--tm)">${compList}</td></tr>`;}).join('');
+  const rowsC=Object.keys(d).sort().map(c=>{const x=d[c];const compList=[...x.comps].join(', ');return`<tr style="cursor:pointer" onclick="openDetCirCal('${c}')"><td style="color:var(--po);font-weight:500;text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pctP(x.A,x.t,true)}</td><td style="text-align:center">${pctP(x.B,x.t)}</td><td style="text-align:center">${pctP(x.C,x.t)}</td><td style="font-size:10px;color:var(--tm)">${compList}</td></tr>`;}).join('');
   const obs=regs.filter(r=>r.cal==='C').slice(-30).reverse();
   const rowsO=obs.length?obs.map(r=>`<tr><td>${r.c}</td><td style="font-size:10px">${r.pod||''}</td><td><span class="pill pill-c">C</span></td><td class="otd" title="${r.obs}">${r.obs}</td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--tm);padding:12px">Sin observaciones</td></tr>';
   el.innerHTML=`<button class="ref-btn ref-p" onclick="loadCir()"><i class="ti ti-refresh"></i>Actualizar</button>
@@ -1104,6 +1104,26 @@ function openActDet(esp,nombre){
     document.getElementById('modal-thead').innerHTML='<th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Metros</th><th>Cal.</th>';
     document.getElementById('modal-tbody').innerHTML=regs.map(r=>{const hora=r.ts?r.ts.split(' ')[1]||r.ts:'—';const pc=r.f==='bajo'?'pill-bj':r.f==='alto'?'pill-al':'pill-ok';return`<tr><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="font-weight:500;color:var(--po)">${r.ml}</td><td><span class="pill ${pc}">${r.cal||'—'}</span></td></tr>`;}).join('')||'<tr><td colspan="6" class="empty">Sin conteos</td></tr>';
   }
+  ov.classList.add('open');
+}
+
+function openDetCirCal(c){
+  const regs=cirRegs.filter(r=>r.c===c);
+  const ov=document.getElementById('modal-ov');
+  document.getElementById('modal-hdr').className='modal-hdr modal-hdr-p';
+  document.getElementById('modal-tit').textContent='Calidad '+c+' — '+regs.length+' conteos';
+  const tot=regs.length,cG={A:0,B:0,C:0};
+  regs.forEach(r=>{if(cG[r.cal]!==undefined)cG[r.cal]++;});
+  const pA=tot?Math.round(cG.A/tot*100):0,pB=tot?Math.round(cG.B/tot*100):0,pC=tot?Math.round(cG.C/tot*100):0;
+  document.getElementById('modal-stats').innerHTML=`
+    <div class="mstat" style="background:var(--vc)"><div class="mstat-val" style="color:var(--vo)">${pA}%</div><div class="mstat-lbl">Cal. A</div></div>
+    <div class="mstat" style="background:var(--ac)"><div class="mstat-val" style="color:#633806">${pB}%</div><div class="mstat-lbl">Cal. B</div></div>
+    <div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${pC}%</div><div class="mstat-lbl">Cal. C</div></div>`;
+  document.getElementById('modal-thead').innerHTML='<th>H</th><th>P</th><th>Podador</th><th>Cal.</th><th>Observación</th>';
+  document.getElementById('modal-tbody').innerHTML=regs.map(r=>{
+    const calPill=r.cal?`<span class="pill pill-${r.cal.toLowerCase()}">${r.cal}</span>`:'—';
+    return`<tr><td>${r.h}</td><td>${r.p}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}</td><td>${calPill}</td><td class="otd" title="${r.obs||''}">${r.obs||''}</td></tr>`;
+  }).join('')||'<tr><td colspan="5" class="empty">Sin conteos</td></tr>';
   ov.classList.add('open');
 }
 
