@@ -571,6 +571,35 @@ const DARDOS2025={
   'C-20':285,'C-21':292,'C-22':250,'C-23':382,
   'C-24':239,'C-25':352,'C-26':313,'C-29':328
 };
+const KILOS2025={
+  'C-6':19342,'C-10':14953,'C-11':16605,'C-12':16543,
+  'C-15':27815,'C-17':15636,'C-18':13572,'C-19':19547,
+  'C-20':19308,'C-21':16715,'C-22':13944,'C-23':15285,
+  'C-24':17420,'C-25':17222,'C-26':15796,'C-29':19372
+};
+const HA_CER={
+  'C-6':7.05,'C-10':13.98,'C-11':9.61,'C-12':8.72,
+  'C-15':5.10,'C-17':2.52,'C-18':5.66,'C-19':8.24,
+  'C-20':9.68,'C-21':11.62,'C-22':13.77,'C-23':3.63,
+  'C-24':6.92,'C-25':6.84,'C-26':8.79,'C-29':7.53
+};
+// Frutos/dardo estimación 2026 (de tabla azul)
+const FRUTOS_DARDO_EST={
+  'C-6':5.0,'C-10':5.0,'C-11':3.5,'C-12':3.5,
+  'C-15':5.0,'C-17':5.0,'C-18':5.0,'C-19':5.0,
+  'C-20':3.5,'C-21':3.5,'C-22':5.0,'C-23':3.5,
+  'C-24':5.0,'C-25':3.5,'C-26':3.5,'C-29':3.5
+};
+const PESO_FRUTO={
+  'C-6':11.7,'C-10':11.7,'C-11':10.9,'C-12':10.9,
+  'C-15':11.7,'C-17':11.7,'C-18':11.7,'C-19':11.7,
+  'C-20':10.9,'C-21':10.9,'C-22':11.7,'C-23':10.9,
+  'C-24':11.7,'C-25':10.9,'C-26':10.9,'C-29':10.9
+};
+const PLANTAS_HA_CER=1316;
+const PLANTAS_HA_CER_ESP={
+  'C-10':1429,'C-11':1429
+};
 let cDashCuartel=null;
 const CCIR=[
   {n:'C-28',v:'Angeleno',mn:14.6,ob:17.5,mx:21.0,ap:16.6},
@@ -796,6 +825,39 @@ function rcDash(){
     <div class="scard"><div class="slbl">Dardos 2025</div><div class="sval" style="color:#555">${d25txt}</div><div class="ssub">año anterior</div></div>
     <div class="scard"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
   </div>
+  \${(()=>{
+    const kg25=KILOS2025[cDashCuartel];const ha=HA_CER[cDashCuartel];
+    const fd=FRUTOS_DARDO_EST[cDashCuartel];const pf=PESO_FRUTO[cDashCuartel];
+    if(!kg25||!ha||avgTCq==='-')return '';
+    // Fórmula: Dardos × Frutos/dardo × Peso_fruto(gr) × Plantas/ha ÷ 1000
+    const phaC=PLANTAS_HA_CER_ESP[cDashCuartel]||PLANTAS_HA_CER;
+    const kg26ha=Math.round(parseFloat(avgTCq)*fd*pf*phaC/1000);
+    const kg25tot=Math.round(kg25*ha);const kg26tot=Math.round(kg26ha*ha);
+    const pctKg=Math.round((kg26ha/kg25)*100);
+    const pctKgColor=pctKg>=100?'#0E6655':'#791F1F';
+    const pctKgIcon=pctKg>=100?'↑':'↓';
+    return \`<div style="background:#fff;border:2px solid var(--rd);border-radius:10px;padding:12px 14px;margin-bottom:14px">
+      <div style="font-size:10px;font-family:var(--mo);color:var(--ro);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;font-weight:600">📊 Estimación de Kilos — \${cDashCuartel}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="background:var(--rc);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:9px;font-family:var(--mo);color:var(--ro);text-transform:uppercase;margin-bottom:4px">Kilos/ha 2025</div>
+          <div style="font-size:20px;font-family:var(--mo);font-weight:500;color:var(--ro)">\${kg25.toLocaleString()}</div>
+          <div style="font-size:9px;font-family:var(--mo);color:var(--tm)">\${kg25tot.toLocaleString()} kg total</div>
+        </div>
+        <div style="background:#E8F8F5;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:9px;font-family:var(--mo);color:#0E6655;text-transform:uppercase;margin-bottom:4px">Estimado 2026</div>
+          <div style="font-size:20px;font-family:var(--mo);font-weight:500;color:#0E6655">\${kg26ha.toLocaleString()}</div>
+          <div style="font-size:9px;font-family:var(--mo);color:var(--tm)">\${kg26tot.toLocaleString()} kg total</div>
+        </div>
+        <div style="background:\${pctKg>=100?'#E8F8F5':'var(--rc)'};border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:9px;font-family:var(--mo);color:\${pctKgColor};text-transform:uppercase;margin-bottom:4px">Cumplimiento</div>
+          <div style="font-size:22px;font-family:var(--mo);font-weight:700;color:\${pctKgColor}">\${pctKgIcon} \${pctKg}%</div>
+          <div style="font-size:9px;font-family:var(--mo);color:var(--tm)">2026 vs 2025</div>
+        </div>
+      </div>
+      <div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-top:8px;text-align:center">*Estimación basada en promedio acumulado de dardos</div>
+    </div>\`;
+  })()}
   ${fr>0?`<div class="alerta bajo vis" style="margin-bottom:14px"><i class="ti ti-alert-circle"></i><span>${fr} planta${fr>1?'s':''} fuera de rango</span></div>`:''}
   <p class="sec-title">Resumen por cuartel</p><div class="rango-ref rr-r"><i class="ti ti-target"></i>Rango según variedad y cuartel</div>
   <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>↓ Bajo%</th><th>✓ Dentro%</th><th>↑ Sobre%</th><th>Contratista</th></tr></thead><tbody>${rows}</tbody></table></div>
