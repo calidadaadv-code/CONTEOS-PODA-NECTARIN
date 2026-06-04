@@ -887,9 +887,6 @@ function rcDash(){
     <div class="scard"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
   </div>
   ${kgBlock}
-  ${fr>0?`<div class="alerta bajo vis" style="margin-bottom:14px"><i class="ti ti-alert-circle"></i><span>${fr} planta${fr>1?'s':''} fuera de rango</span></div>`:''}
-  <p class="sec-title">Resumen por cuartel</p><div class="rango-ref rr-r"><i class="ti ti-target"></i>Rango según variedad y cuartel</div>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>↓ Bajo%</th><th>✓ Dentro%</th><th>↑ Sobre%</th><th>Contratista</th></tr></thead><tbody>${rows}</tbody></table></div>
   <button class="exp-btn exp-r" onclick="expCSV('cer','dash')"><i class="ti ti-download"></i>Exportar CSV</button>`;
 }
 
@@ -898,7 +895,15 @@ function rcReg(){
   const regs=fnReg().slice(-100).reverse();
   if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-list"></i>Sin registros.</div>';return;}
   const rows=regs.map(r=>{const tp=r.tipo==='pre'?'<span style="background:var(--rc);color:var(--ro);padding:2px 6px;border-radius:3px;font-size:9px">PRE</span>':'<span style="background:#E8F8F5;color:#0E6655;padding:2px 6px;border-radius:3px;font-size:9px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';return`<tr><td>${r.c}</td><td>${tp}</td><td>H${r.h}·P${r.p}</td><td style="${tc};font-weight:500">${r.tot}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}${r.obs?`<br><span style='font-size:9px;color:var(--tm);font-style:italic'><i class='ti ti-message' style='font-size:9px'></i> ${r.obs}</span>`:''}</td></tr>`;}).join('');
+  // Resumen por cuartel
+  const dReg={};fnReg().forEach(r=>{if(!dReg[r.c])dReg[r.c]={t:0,st:0,b:0,al:0,dn:0,info:CCER.find(x=>x.n===r.c)};const x=dReg[r.c];x.t++;x.st+=r.tot;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
+  const frReg=fnReg().filter(r=>r.f!=='no').length;
+  const rowsCuartel=Object.keys(dReg).sort().map(c=>{const x=dReg[c];const inf=x.info||{mn:0,mx:0};const a=Math.round(x.st/x.t);const ac=a<inf.mn?'color:#791F1F':a>inf.mx?'color:#633806':'color:var(--ro)';return`<tr style="cursor:pointer" onclick="openDet('cer','${c}','')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="${ac};font-weight:500">${a}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.dn,x.t,'r2')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
+  ${frReg>0?`<div class="alerta bajo vis" style="margin-bottom:14px"><i class="ti ti-alert-circle"></i><span>${frReg} planta${frReg>1?'s':''} fuera de rango</span></div>`:''}
+  <p class="sec-title">Resumen por cuartel</p><div class="rango-ref rr-r"><i class="ti ti-target"></i>Rango según variedad y cuartel</div>
+  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>↓ Bajo%</th><th>✓ Dentro%</th><th>↑ Sobre%</th></tr></thead><tbody>${rowsCuartel}</tbody></table></div>
+  <p class="sec-title" style="margin-top:16px">Últimos registros</p>
   <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Tipo</th><th>Ubic.</th><th>Total</th><th>Podador · Obs.</th></tr></thead><tbody>${rows}</tbody></table></div>
   <button class="exp-btn exp-r" onclick="expCSV('cer','reg')"><i class="ti ti-download"></i>Exportar CSV</button>`;
 }
