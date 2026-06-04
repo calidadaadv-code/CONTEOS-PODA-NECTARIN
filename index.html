@@ -571,6 +571,18 @@ const DARDOS2025={
   'C-20':285,'C-21':292,'C-22':250,'C-23':382,
   'C-24':239,'C-25':352,'C-26':313,'C-29':328
 };
+const FRUTOS_DARDO_2025={
+  'C-6':4.3,'C-10':3.9,'C-11':3.6,'C-12':3.7,
+  'C-15':6.2,'C-17':3.9,'C-18':3.1,'C-19':4.2,
+  'C-20':4.8,'C-21':3.9,'C-22':3.8,'C-23':2.9,
+  'C-24':4.9,'C-25':3.4,'C-26':3.5,'C-29':4.1
+};
+const RAMILLAS_2025={
+  'C-6':12.5,'C-10':2,'C-11':13,'C-12':12,
+  'C-15':8,'C-17':2,'C-18':8,'C-19':9,
+  'C-20':17,'C-21':17,'C-22':2,'C-23':1,
+  'C-24':3,'C-25':9.5,'C-26':6,'C-29':5
+};
 const KILOS_EST2026={
   'C-6':21250,'C-10':21250,'C-11':17647,'C-12':17647,
   'C-15':21250,'C-17':21250,'C-18':21250,'C-19':21250,
@@ -874,6 +886,9 @@ function rcDash(){
   }
   // Opciones selector
   const opts=cuartsDisp.map(c=>`<option value="${c}"${c===cDashCuartel?' selected':''}>${c}</option>`).join('');
+  const _fd25=FRUTOS_DARDO_2025[cDashCuartel]||'-';
+  const _ram25=RAMILLAS_2025[cDashCuartel]||'-';
+  const _fd26est=FRUTOS_DARDO_EST[cDashCuartel]||'-';
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${cVista==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   <div style="margin-bottom:12px">
@@ -885,6 +900,9 @@ function rcDash(){
     <div class="scard"><div class="slbl">Prom. dardos 2026</div><div class="sval" style="color:var(--ro)">${avgTCq}</div><div class="ssub">dardos+ramillas</div></div>
     <div class="scard"><div class="slbl">Dardos 2025</div><div class="sval" style="color:#555">${d25txt}</div><div class="ssub">año anterior</div></div>
     <div class="scard"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
+    <div class="scard"><div class="slbl">Frutos/Dardo 2025</div><div class="sval" style="color:#555">${_fd25}</div><div class="ssub">real año anterior</div></div>
+    <div class="scard"><div class="slbl">Frutos/Dardo 2026</div><div class="sval" style="color:var(--ro)">${_fd26est}</div><div class="ssub">estimación programa</div></div>
+    <div class="scard"><div class="slbl">Ramillas/Planta 2025</div><div class="sval" style="color:#555">${_ram25}</div><div class="ssub">real año anterior</div></div>
   </div>
   ${kgBlock}
   <button class="exp-btn exp-r" onclick="expCSV('cer','dash')"><i class="ti ti-download"></i>Exportar CSV</button>`;
