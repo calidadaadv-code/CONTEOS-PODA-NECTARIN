@@ -571,6 +571,12 @@ const DARDOS2025={
   'C-20':285,'C-21':292,'C-22':250,'C-23':382,
   'C-24':239,'C-25':352,'C-26':313,'C-29':328
 };
+const KILOS_EST2026={
+  'C-6':21250,'C-10':21250,'C-11':17647,'C-12':17647,
+  'C-15':21250,'C-17':21250,'C-18':21250,'C-19':21250,
+  'C-20':17647,'C-21':17647,'C-22':21250,'C-23':17647,
+  'C-24':21250,'C-25':17647,'C-26':17647,'C-29':17647
+};
 const KILOS2025={
   'C-6':19342,'C-10':14953,'C-11':16605,'C-12':16543,
   'C-15':27815,'C-17':15636,'C-18':13572,'C-19':19547,
@@ -803,9 +809,10 @@ function rcDash(){
   let pctDif='-',pctColor='inherit',pctIcon='';
   if(d25!==undefined&&avgTCq!=='-'){
     const diff=((parseFloat(avgTCq)/d25)*100).toFixed(1);
-    pctDif=diff+'%';
-    pctColor=parseFloat(diff)>=100?'#0E6655':'#791F1F';
-    pctIcon=parseFloat(diff)>=100?'↑':'↓';
+    const diffVal=(parseFloat(avgTCq)/d25*100-100).toFixed(1);
+    pctDif=(diffVal>=0?'+':'')+diffVal+'%';
+    pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';
+    pctIcon=parseFloat(diffVal)>=0?'↑':'↓';
   }
   // Tabla resumen todos cuarteles
   const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,st:0,b:0,al:0,dn:0,info:CCER.find(x=>x.n===r.c)};const x=d[r.c];x.t++;x.st+=r.tot;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
@@ -814,16 +821,56 @@ function rcDash(){
   // Estimación kilos
   let kgBlock='';
   const _kg25=KILOS2025[cDashCuartel],_ha=HA_CER[cDashCuartel];
+  const _kg26est=KILOS_EST2026[cDashCuartel];
   const _fd=FRUTOS_DARDO_EST[cDashCuartel],_pf=PESO_FRUTO[cDashCuartel];
   if(_kg25&&_ha&&avgTCq!=='-'){
     const _phaC=PLANTAS_HA_CER_ESP[cDashCuartel]||PLANTAS_HA_CER;
     const _kg26ha=Math.round(parseFloat(avgTCq)*_fd*_pf*_phaC/1000);
     const _kg25tot=Math.round(_kg25*_ha),_kg26tot=Math.round(_kg26ha*_ha);
-    const _pctKg=Math.round((_kg26ha/_kg25)*100);
-    const _pctC=_pctKg>=100?'#0E6655':'#791F1F';
-    const _pctI=_pctKg>=100?'↑':'↓';
-    const _bg=_pctKg>=100?'#E8F8F5':'var(--rc)';
-    kgBlock=`<div style="background:#fff;border:2px solid var(--rd);border-radius:10px;padding:12px 14px;margin-bottom:14px"><div style="font-size:10px;font-family:var(--mo);color:var(--ro);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;font-weight:600">📊 Estimación de Kilos — ${cDashCuartel}</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><div style="background:var(--rc);border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;font-family:var(--mo);color:var(--ro);text-transform:uppercase;margin-bottom:4px">Kilos/ha 2025</div><div style="font-size:20px;font-family:var(--mo);font-weight:500;color:var(--ro)">${_kg25.toLocaleString()}</div><div style="font-size:9px;font-family:var(--mo);color:var(--tm)">${_kg25tot.toLocaleString()} kg total</div></div><div style="background:#E8F8F5;border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;font-family:var(--mo);color:#0E6655;text-transform:uppercase;margin-bottom:4px">Estimado 2026</div><div style="font-size:20px;font-family:var(--mo);font-weight:500;color:#0E6655">${_kg26ha.toLocaleString()}</div><div style="font-size:9px;font-family:var(--mo);color:var(--tm)">${_kg26tot.toLocaleString()} kg total</div></div><div style="background:${_bg};border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;font-family:var(--mo);color:${_pctC};text-transform:uppercase;margin-bottom:4px">Cumplimiento</div><div style="font-size:22px;font-family:var(--mo);font-weight:700;color:${_pctC}">${_pctI} ${_pctKg}%</div><div style="font-size:9px;font-family:var(--mo);color:var(--tm)">2026 vs 2025</div></div></div><div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-top:8px;text-align:center">*Estimación basada en promedio acumulado de dardos</div></div>`;
+    const _kg26esttot=Math.round(_kg26est*_ha);
+    // vs 2025
+    const _pctKgRaw=Math.round((_kg26ha/_kg25)*100);
+    const _pctKg=_pctKgRaw-100;
+    const _pctC=_pctKg>=0?'#0E6655':'#791F1F';
+    const _pctI=_pctKg>=0?'↑':'↓';
+    const _bg=_pctKg>=0?'#E8F8F5':'var(--rc)';
+    // vs estimacion 2026
+    const _pctEstRaw=Math.round((_kg26ha/_kg26est)*100);
+    const _pctEst=_pctEstRaw-100;
+    const _pctEstC=_pctEst>=0?'#0E6655':'#791F1F';
+    const _pctEstI=_pctEst>=0?'↑':'↓';
+    const _bgEst=_pctEst>=0?'#E8F8F5':'var(--rc)';
+    kgBlock=`<div style="background:#fff;border:2px solid var(--rd);border-radius:10px;padding:12px 14px;margin-bottom:14px">
+      <div style="font-size:10px;font-family:var(--mo);color:var(--ro);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;font-weight:600">📊 Estimación de Kilos — ${cDashCuartel}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div style="background:var(--rc);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:9px;font-family:var(--mo);color:var(--ro);text-transform:uppercase;margin-bottom:4px">Kilos/ha 2025</div>
+          <div style="font-size:18px;font-family:var(--mo);font-weight:500;color:var(--ro)">${_kg25.toLocaleString()}</div>
+          <div style="font-size:9px;font-family:var(--mo);color:var(--tm)">${_kg25tot.toLocaleString()} kg total</div>
+        </div>
+        <div style="background:#EEF2FF;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:9px;font-family:var(--mo);color:#3730A3;text-transform:uppercase;margin-bottom:4px">Meta 2026</div>
+          <div style="font-size:18px;font-family:var(--mo);font-weight:500;color:#3730A3">${_kg26est.toLocaleString()}</div>
+          <div style="font-size:9px;font-family:var(--mo);color:var(--tm)">${_kg26esttot.toLocaleString()} kg total</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="background:#E8F8F5;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:9px;font-family:var(--mo);color:#0E6655;text-transform:uppercase;margin-bottom:4px">Estimado actual</div>
+          <div style="font-size:18px;font-family:var(--mo);font-weight:500;color:#0E6655">${_kg26ha.toLocaleString()}</div>
+          <div style="font-size:9px;font-family:var(--mo);color:var(--tm)">${_kg26tot.toLocaleString()} kg total</div>
+        </div>
+        <div style="background:${_bg};border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:9px;font-family:var(--mo);color:${_pctC};text-transform:uppercase;margin-bottom:4px">vs 2025</div>
+          <div style="font-size:20px;font-family:var(--mo);font-weight:700;color:${_pctC}">${_pctI} ${Math.abs(_pctKg)}%</div>
+        </div>
+        <div style="background:${_bgEst};border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:9px;font-family:var(--mo);color:${_pctEstC};text-transform:uppercase;margin-bottom:4px">vs Meta 2026</div>
+          <div style="font-size:20px;font-family:var(--mo);font-weight:700;color:${_pctEstC}">${_pctEstI} ${Math.abs(_pctEst)}%</div>
+        </div>
+      </div>
+      <div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-top:8px;text-align:center">*Estimación basada en promedio acumulado de dardos</div>
+    </div>`;
   }
   // Opciones selector
   const opts=cuartsDisp.map(c=>`<option value="${c}"${c===cDashCuartel?' selected':''}>${c}</option>`).join('');
@@ -850,9 +897,9 @@ function rcReg(){
   const el=document.getElementById('cer-dreg');if(!el)return;
   const regs=fnReg().slice(-100).reverse();
   if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-list"></i>Sin registros.</div>';return;}
-  const rows=regs.map(r=>{const tp=r.tipo==='pre'?'<span style="background:var(--rc);color:var(--ro);padding:2px 6px;border-radius:3px;font-size:9px">PRE</span>':'<span style="background:#E8F8F5;color:#0E6655;padding:2px 6px;border-radius:3px;font-size:9px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';const obs=r.obs?`<tr><td colspan="5" style="font-size:10px;color:var(--tm);background:#fafafa;padding:4px 8px"><i class="ti ti-message" style="font-size:10px;margin-right:4px"></i>${r.obs}</td></tr>`:'';return`<tr><td>${r.c}</td><td>${tp}</td><td>H${r.h}·P${r.p}</td><td style="${tc};font-weight:500">${r.tot}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}</td></tr>${obs}`;}).join('');
+  const rows=regs.map(r=>{const tp=r.tipo==='pre'?'<span style="background:var(--rc);color:var(--ro);padding:2px 6px;border-radius:3px;font-size:9px">PRE</span>':'<span style="background:#E8F8F5;color:#0E6655;padding:2px 6px;border-radius:3px;font-size:9px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';return`<tr><td>${r.c}</td><td>${tp}</td><td>H${r.h}·P${r.p}</td><td style="${tc};font-weight:500">${r.tot}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}${r.obs?`<br><span style='font-size:9px;color:var(--tm);font-style:italic'><i class='ti ti-message' style='font-size:9px'></i> ${r.obs}</span>`:''}</td></tr>`;}).join('');
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Tipo</th><th>Ubic.</th><th>Total</th><th>Podador</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Tipo</th><th>Ubic.</th><th>Total</th><th>Podador · Obs.</th></tr></thead><tbody>${rows}</tbody></table></div>
   <button class="exp-btn exp-r" onclick="expCSV('cer','reg')"><i class="ti ti-download"></i>Exportar CSV</button>`;
 }
 
