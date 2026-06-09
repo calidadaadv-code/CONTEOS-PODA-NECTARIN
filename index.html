@@ -1255,13 +1255,12 @@ function rnRevPanel(esp,regs,color,unidad){
     return`<tr style="cursor:pointer" onclick="abrirDetRev('${esp}','${nEsc}')">
       <td style="font-weight:600;text-align:left;color:${color};text-decoration:underline dotted">${n}</td>
       <td style="text-align:center">${mapCnt[n].count}</td>
-      <td style="text-align:center">${fmtPctErr(avg)}</td>
       <td style="text-align:center"><span style="background:${bgOk};color:${fgOk};font-size:11px;font-family:var(--mo);font-weight:700;padding:3px 8px;border-radius:5px">${d.ok}</span></td>
       <td style="text-align:center"><span style="background:${bgMal};color:${fgMal};font-size:11px;font-family:var(--mo);font-weight:700;padding:3px 8px;border-radius:5px">${d.mal}</span></td>
     </tr>`;
   }).join('')||`<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:10px;font-family:var(--mo);font-size:12px">Sin revisiones aún</td></tr>`;
   return`<p class="sec-title" style="margin-top:8px">% Error por Contadora</p>
-  <div class="twrap"><table><thead><tr><th>Contadora</th><th>Revisiones</th><th>% Error prom.</th><th>✓ Dif ≤10</th><th>✗ Dif >10</th></tr></thead><tbody>${rowsCnt2}</tbody></table></div>`;
+  <div class="twrap"><table><thead><tr><th>Contadora</th><th>Revisiones</th><th>✓ Dif ≤10</th><th>✗ Dif >10</th></tr></thead><tbody>${rowsCnt2}</tbody></table></div>`;
 }
 
 async function rnRevNec(){await loadRevisiones();const el=document.getElementById('nec-rev-panel');if(!el)return;el.innerHTML=rnRevPanel('nec',nRegs,'var(--vo)','Ramillas');}
@@ -1324,7 +1323,6 @@ function abrirDetRev(esp, contador){
       <td style="font-weight:600">${r.valor_original||0}</td>
       <td style="font-weight:600;color:${color}">${r.valor_revision||0}</td>
       <td style="text-align:center"><span style="background:${bg};color:${c};font-size:11px;font-family:var(--mo);font-weight:700;padding:2px 7px;border-radius:4px">${dif}</span></td>
-      <td style="text-align:center"><span style="background:${bg};color:${c};font-size:11px;font-family:var(--mo);font-weight:700;padding:2px 7px;border-radius:4px">${pct}%</span></td>
     </tr>`;
   }).join('')||'<tr><td colspan="7" class="empty">Sin revisiones</td></tr>';
 
@@ -1345,12 +1343,9 @@ function abrirDetRev(esp, contador){
       <div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${ok}</div><div class="mstat-lbl">Dif ≤10</div></div>
       <div class="mstat" style="background:#FFC7CE"><div class="mstat-val" style="color:#9C0006">${mal}</div><div class="mstat-lbl">Dif >10</div></div>
     </div>
-    <div style="background:#f9f9f7;border-radius:8px;padding:10px;margin-bottom:12px;display:flex;justify-content:space-between">
-      <span style="font-size:11px;font-family:var(--mo);color:var(--tm);text-transform:uppercase">% Error promedio</span>
-      <span style="font-size:18px;font-family:var(--mo);font-weight:700;color:${parseFloat(avgPct)<=10?'#0E6655':'#9C0006'}">${avgPct}%</span>
-    </div>
+
     <div class="twrap"><table>
-      <thead><tr><th>Fecha</th><th>Cuartel</th><th>Ubic.</th><th>${unid} orig.</th><th>${unid} rev.</th><th>Dif.</th><th>% Error</th></tr></thead>
+      <thead><tr><th>Fecha</th><th>Cuartel</th><th>Ubic.</th><th>${unid} orig.</th><th>${unid} rev.</th><th>Dif.</th></tr></thead>
       <tbody>${tbody}</tbody>
     </table></div>`;
   document.getElementById('modal-ov').classList.add('open');
