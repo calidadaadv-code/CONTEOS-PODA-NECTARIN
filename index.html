@@ -836,43 +836,21 @@ function openActDet(esp,nombre){
 }
 
 function renderActDet(){
-  const esp=actDetEsp, nombre=actDetNombre, v=actDetVista;
+  const esp=actDetEsp,nombre=actDetNombre,v=actDetVista;
   const allRegs=(esp==='nec'?nRegs:esp==='cer'?cRegs:cirRegs).filter(r=>r.cnt===nombre);
   const hoyRegs=allRegs.filter(r=>r.ts&&r.ts.includes(hoy()));
   const regs=v==='hoy'?hoyRegs:allRegs;
   const color=esp==='nec'?'var(--vo)':esp==='cer'?'var(--ro)':'var(--po)';
   const colorCls=esp==='nec'?'modal-hdr-g':esp==='cer'?'modal-hdr-r':'modal-hdr-p';
-  const ov=document.getElementById('modal-ov');
   document.getElementById('modal-hdr').className='modal-hdr '+colorCls;
   document.getElementById('modal-tit').textContent=nombre;
-
-  // Cards resumen
-  const cuartsHoy=[...new Set(hoyRegs.map(r=>r.c))].length;
   const cuartsAcum=[...new Set(allRegs.map(r=>r.c))].length;
   const ultimo=allRegs.length?allRegs[allRegs.length-1].ts:'—';
-  const ultimoHora=ultimo!=='—'?ultimo.split(' ')[1]||ultimo:'—';
-  const avgVal=regs.length?(esp==='nec'?regs.reduce((s,r)=>s+r.ram,0)/regs.length:esp==='cer'?regs.reduce((s,r)=>s+r.tot,0)/regs.length:regs.reduce((s,r)=>s+r.ml,0)/regs.length).toFixed(1):'—';
+  const ultimoHora=ultimo!=='—'?(ultimo.split(' ')[1]||ultimo):'—';
   const unid=esp==='nec'?'Ramillas':esp==='cer'?'Dardos':'Metros';
-
-  document.getElementById('modal-stats').innerHTML=`
-    <div class="mstat"><div class="mstat-val" style="color:${color}">${hoyRegs.length}</div><div class="mstat-lbl">Hoy</div></div>
-    <div class="mstat"><div class="mstat-val">${allRegs.length}</div><div class="mstat-lbl">Acumulado</div></div>
-    <div class="mstat"><div class="mstat-val">${cuartsHoy}/${cuartsAcum}</div><div class="mstat-lbl">Cuarteles</div></div>`;
-
-  // Toggle hoy/acum + promedio
-  const togHtml=`<div style="display:flex;gap:8px;margin-bottom:10px">
-    <button onclick="actDetVista='hoy';renderActDet()" style="flex:1;padding:8px;border-radius:7px;font-size:12px;font-family:var(--mo);border:1.5px solid ${v==='hoy'?color:'var(--gb2)'};background:${v==='hoy'?color:'#f9f9f7'};color:${v==='hoy'?'#fff':'var(--tm)'};cursor:pointer"><i class="ti ti-sun" style="font-size:12px;margin-right:3px"></i>Hoy (${hoyRegs.length})</button>
-    <button onclick="actDetVista='acum';renderActDet()" style="flex:1;padding:8px;border-radius:7px;font-size:12px;font-family:var(--mo);border:1.5px solid ${v==='acum'?color:'var(--gb2)'};background:${v==='acum'?color:'#f9f9f7'};color:${v==='acum'?'#fff':'var(--tm)'};cursor:pointer"><i class="ti ti-history" style="font-size:12px;margin-right:3px"></i>Acumulado (${allRegs.length})</button>
-  </div>
-  <div style="background:#f9f9f7;border-radius:8px;padding:10px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
-    <span style="font-size:11px;font-family:var(--mo);color:var(--tm);text-transform:uppercase">Prom. ${unid}</span>
-    <span style="font-size:20px;font-family:var(--mo);font-weight:700;color:${color}">${avgVal}</span>
-  </div>
-  <div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-bottom:8px">Último conteo: ${ultimoHora}</div>`;
-
-  // Tabla compacta (máx 30 filas, más recientes primero)
+  const avgVal=regs.length?((esp==='nec'?regs.reduce((s,r)=>s+r.ram,0):esp==='cer'?regs.reduce((s,r)=>s+r.tot,0):regs.reduce((s,r)=>s+r.ml,0))/regs.length).toFixed(1):'—';
   const mostrar=regs.slice(-200).reverse();
-  let thead='', tbody='';
+  let thead='',tbody='';
   if(esp==='nec'){
     thead='<th>Fecha</th><th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Ram.</th><th>Cal.</th>';
     tbody=mostrar.map(r=>{const ts=r.ts||'';const fecha=ts.split(' ')[0]||'—';const hora=ts.split(' ')[1]||'—';const pc=r.f==='bajo'?'pill-bj':r.f==='alto'?'pill-al':'pill-ok';return`<tr><td style="font-size:10px;color:var(--tm)">${fecha}</td><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="font-weight:500">${r.ram}</td><td><span class="pill ${pc}">${r.cal||'—'}</span></td></tr>`;}).join('');
@@ -883,19 +861,7 @@ function renderActDet(){
     thead='<th>Fecha</th><th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Metros</th><th>Cal.</th>';
     tbody=mostrar.map(r=>{const ts=r.ts||'';const fecha=ts.split(' ')[0]||'—';const hora=ts.split(' ')[1]||'—';const pc=r.f==='bajo'?'pill-bj':r.f==='alto'?'pill-al':'pill-ok';return`<tr><td style="font-size:10px;color:var(--tm)">${fecha}</td><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="font-weight:500;color:var(--po)">${r.ml}</td><td><span class="pill ${pc}">${r.cal||'—'}</span></td></tr>`;}).join('');
   }
-  if(!tbody)tbody='<tr><td colspan="6" class="empty">Sin conteos</td></tr>';
-
-  document.getElementById('modal-thead').innerHTML=thead;
-  document.getElementById('modal-tbody').innerHTML=togHtml+'</table></div><div class="twrap"><table><thead><tr>'+thead+'</tr></thead><tbody>'+tbody+'</tbody></table></div><div style="display:none">';
-
-  // Hack: insertar el togHtml antes de la tabla dentro del modal-body
-  // Mejor: usar el modal-stats + un div extra
-  document.getElementById('modal-stats').innerHTML=`
-    <div class="mstat"><div class="mstat-val" style="color:${color}">${hoyRegs.length}</div><div class="mstat-lbl">Hoy</div></div>
-    <div class="mstat"><div class="mstat-val">${allRegs.length}</div><div class="mstat-lbl">Acumulado</div></div>
-    <div class="mstat"><div class="mstat-val">${cuartsAcum}</div><div class="mstat-lbl">Cuarteles</div></div>`;
-
-  // Construir el body del modal manualmente
+  if(!tbody)tbody='<tr><td colspan="7" class="empty">Sin conteos</td></tr>';
   const modalBody=document.querySelector('#modal-ov .modal-body');
   modalBody.innerHTML=`
     <div class="modal-stats">
@@ -912,8 +878,7 @@ function renderActDet(){
       <span style="font-size:22px;font-family:var(--mo);font-weight:700;color:${color}">${avgVal}</span>
     </div>
     <div class="twrap"><table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table></div>`;
-
-  ov.classList.add('open');
+  document.getElementById('modal-ov').classList.add('open');
 }
 // FIX 4: openDetCirCal recibe vista y filtra con fnCir
 function openDetCirCal(c,vista){const regs=fnCir(vista||'acum').filter(r=>r.c===c);const ov=document.getElementById('modal-ov');document.getElementById('modal-hdr').className='modal-hdr modal-hdr-p';document.getElementById('modal-tit').textContent='Calidad '+c+(vista==='hoy'?' — Hoy':'')+' — '+regs.length+' conteos';const tot=regs.length,cG={A:0,B:0,C:0};regs.forEach(r=>{if(cG[r.cal]!==undefined)cG[r.cal]++;});const pA=tot?Math.round(cG.A/tot*100):0,pB=tot?Math.round(cG.B/tot*100):0,pC=tot?Math.round(cG.C/tot*100):0;document.getElementById('modal-stats').innerHTML=`<div class="mstat" style="background:var(--vc)"><div class="mstat-val" style="color:var(--vo)">${pA}%</div><div class="mstat-lbl">Cal. A</div></div><div class="mstat" style="background:var(--ac)"><div class="mstat-val" style="color:#633806">${pB}%</div><div class="mstat-lbl">Cal. B</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${pC}%</div><div class="mstat-lbl">Cal. C</div></div>`;document.getElementById('modal-thead').innerHTML='<th>H</th><th>P</th><th>Podador</th><th>Cal.</th><th>Observación</th>';document.getElementById('modal-tbody').innerHTML=regs.map(r=>{const calPill=r.cal?`<span class="pill pill-${r.cal.toLowerCase()}">${r.cal}</span>`:'—';return`<tr><td>${r.h}</td><td>${r.p}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}</td><td>${calPill}</td><td class="otd" title="${r.obs||''}">${r.obs||''}</td></tr>`;}).join('')||'<tr><td colspan="5" class="empty">Sin conteos</td></tr>';ov.classList.add('open');}
