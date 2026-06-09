@@ -287,20 +287,6 @@
   </div>
 </div>
 
-<!-- DASHBOARD -->
-<div class="app-view" id="view-dash" style="display:none">
-  <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
-    <div style="display:flex;align-items:center;gap:10px">
-      <button class="back-btn" onclick="volverDash()">← Volver</button>
-      <div><div class="hdr-title">📊 Dashboard General</div><div class="hdr-sub">Poda 2026 · Fundo Lo Ovalle</div></div>
-    </div>
-    <button onclick="loadDash()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11px;font-family:var(--mo);padding:5px 10px;border-radius:6px;cursor:pointer"><i class="ti ti-refresh"></i> Actualizar</button>
-  </div>
-  <div style="padding:16px" id="dash-body">
-    <div class="empty"><i class="ti ti-chart-bar"></i>Cargando...</div>
-  </div>
-</div>
-
 <!-- NECTARIN -->
 <div class="app-view" id="view-nec">
   <div class="hdr-nec">
@@ -1290,229 +1276,41 @@ async function rnRevCer(){await loadRevisiones();const el=document.getElementByI
 async function rnRevCir(){await loadRevisiones();const el=document.getElementById('cir-rev-panel');if(!el)return;el.innerHTML=rnRevPanel('cir',cirRegs,'var(--po)','Metros');}
 
 
-// ═══════════════════════════════════════════════════════════════════
-// DASHBOARD GENERAL
-// ═══════════════════════════════════════════════════════════════════
-const PLANTAS_NEC = {"C-01": 8613, "C-02": 8448, "C-03": 8263, "C-04": 7761, "C-05": 17201, "C-08": 15754, "C-09": 15837, "C-13": 15505, "C-30": 19801, "C-31": 19564, "C-32": 19588, "C-7B": 18055};
-const PLANTAS_CER = {"C-6": 9278, "C-10": 19976, "C-15": 6710, "C-17": 3313, "C-18": 7441, "C-19": 10837, "C-22": 18113, "C-24": 9111, "C-11": 13725, "C-12": 11475, "C-20": 12739, "C-21": 15283, "C-23": 4770, "C-25": 9003, "C-26": 11564, "C-29": 9910};
-const PLANTAS_CIR = {"C-28": 12824, "C-7A": 14667};
-
-function abrirDash(){
-  document.getElementById('pantalla-inicio').style.display='none';
-  document.getElementById('view-dash').style.display='block';
-  loadDash();
-}
-function volverDash(){
-  document.getElementById('view-dash').style.display='none';
-  document.getElementById('pantalla-inicio').style.display='flex';
-}
-
-async function loadDash(){
-  const el=document.getElementById('dash-body');
-  el.innerHTML='<div class="empty"><i class="ti ti-refresh spin"></i>Cargando datos...</div>';
-  const [rNec,rCer,rCir]=await Promise.all([
-    db.from('conteos').select('*').limit(50000),
-    db.from('conteos_cerezas').select('*').limit(50000),
-    db.from('conteos_ciruelas').select('*').limit(50000)
-  ]);
-  const nec=(rNec.data||[]).map(r=>({c:String(r.cuartel),cnt:r.contador,ram:parseInt(r.ramillas)||0,f:r.fuera_rango,cal:r.calidad,ts:r.timestamp}));
-  const cer=(rCer.data||[]).map(r=>({c:r.cuartel,cnt:r.contador,tot:parseInt(r.total_general)||0,f:r.fuera_rango,ts:r.timestamp}));
-  const cir=(rCir.data||[]).map(r=>({c:String(r.cuartel),cnt:r.contador,ml:parseFloat(r.metros_lineales)||0,f:r.fuera_rango,ts:r.timestamp}));
-  renderDash(nec,cer,cir);
-}
-
-function statsDash(regs,valFn){
-  if(!regs.length)return{tot:0,avg:'-',dn:0,bj:0,al:0};
-  const tot=regs.length,sum=regs.reduce((s,r)=>s+valFn(r),0);
-  const dn=regs.filter(r=>r.f==='no'||!r.f).length;
-  const bj=regs.filter(r=>r.f==='bajo').length;
-  const al=regs.filter(r=>r.f==='alto').length;
-  return{tot,avg:(sum/tot).toFixed(1),dn,bj,al,
-    pDn:Math.round(dn/tot*100),pBj:Math.round(bj/tot*100),pAl:Math.round(al/tot*100)};
-}
-
-function estadoBadge(pDn){
-  if(pDn>=70)return'<span style="background:#E8F8F5;color:#0E6655;font-size:10px;font-family:var(--mo);padding:2px 8px;border-radius:4px;font-weight:600">✅ OK</span>';
-  if(pDn>=50)return'<span style="background:var(--ac);color:#633806;font-size:10px;font-family:var(--mo);padding:2px 8px;border-radius:4px;font-weight:600">⚠ REVISAR</span>';
-  if(pDn===0)return'<span style="background:#f0f0ee;color:var(--tm);font-size:10px;font-family:var(--mo);padding:2px 8px;border-radius:4px">SIN DATOS</span>';
-  return'<span style="background:var(--rc);color:#791F1F;font-size:10px;font-family:var(--mo);padding:2px 8px;border-radius:4px;font-weight:600">🔴 ATENCIÓN</span>';
-}
-
-function pctBarra(pct,color){
-  const p=Math.min(pct,100);
-  return`<div style="background:#f0f0ee;border-radius:3px;height:6px;overflow:hidden;margin-top:3px"><div style="width:${p}%;height:100%;background:${color};border-radius:3px"></div></div>`;
-}
-
-function renderDash(nec,cer,cir){
-  const el=document.getElementById('dash-body');
-  // ── Totales generales ─────────────────────────────────────────
-  const sN=statsDash(nec,r=>r.ram);
-  const sC=statsDash(cer,r=>r.tot);
-  const sCir=statsDash(cir,r=>r.ml);
-  const totPlN=Object.values(PLANTAS_NEC).reduce((s,v)=>s+v,0);
-  const totPlC=Object.values(PLANTAS_CER).reduce((s,v)=>s+v,0);
-  const totPlCir=Object.values(PLANTAS_CIR).reduce((s,v)=>s+v,0);
-
-  // ── Resumen por cuartel NEC ───────────────────────────────────
-  const dN={};nec.forEach(r=>{if(!dN[r.c])dN[r.c]={s:0,t:0,dn:0,bj:0,al:0,A:0,B:0,C:0};dN[r.c].s+=r.ram;dN[r.c].t++;if(r.f==='bajo')dN[r.c].bj++;else if(r.f==='alto')dN[r.c].al++;else dN[r.c].dn++;if(r.cal)dN[r.c][r.cal]=(dN[r.c][r.cal]||0)+1;});
-  const rowsN=Object.keys(PLANTAS_NEC).map(c=>{
-    const x=dN[c]||{s:0,t:0,dn:0,bj:0,al:0};
-    const pl=PLANTAS_NEC[c];
-    const avg=x.t?Math.round(x.s/x.t):0;
-    const pAvance=x.t?Math.round(x.t/pl*100):0;
-    const pDn=x.t?Math.round(x.dn/x.t*100):0;
-    const pBj=x.t?Math.round(x.bj/x.t*100):0;
-    const pAl=x.t?Math.round(x.al/x.t*100):0;
-    const avColor=pAvance>=5?'#0E6655':pAvance>=2?'#EF9F27':'#C0392B';
-    return`<tr><td style="font-weight:600;color:var(--vo)">${c}</td><td style="text-align:center">${x.t}</td><td style="text-align:center;font-weight:600;color:${avColor}">${pAvance}%${pctBarra(pAvance,'#1D9E75')}</td><td style="text-align:center;font-weight:500">${avg||'—'}</td><td style="text-align:center"><span style="color:#0E6655;font-weight:600">${pDn}%</span></td><td style="text-align:center"><span style="color:#791F1F">${pBj}%</span></td><td style="text-align:center"><span style="color:#633806">${pAl}%</span></td><td>${estadoBadge(pDn)}</td></tr>`;
-  }).join('');
-
-  // ── Resumen por cuartel CER ───────────────────────────────────
-  const dC={};cer.forEach(r=>{if(!dC[r.c])dC[r.c]={s:0,t:0,dn:0,bj:0,al:0};dC[r.c].s+=r.tot;dC[r.c].t++;if(r.f==='bajo')dC[r.c].bj++;else if(r.f==='alto')dC[r.c].al++;else dC[r.c].dn++;});
-  const rowsC=Object.keys(PLANTAS_CER).map(c=>{
-    const x=dC[c]||{s:0,t:0,dn:0,bj:0,al:0};
-    const pl=PLANTAS_CER[c];
-    const avg=x.t?Math.round(x.s/x.t):0;
-    const pAvance=x.t?Math.round(x.t/pl*100):0;
-    const pDn=x.t?Math.round(x.dn/x.t*100):0;
-    const avColor=pAvance>=5?'#0E6655':pAvance>=2?'#EF9F27':'#C0392B';
-    return`<tr><td style="font-weight:600;color:var(--ro)">${c}</td><td style="text-align:center">${x.t}</td><td style="text-align:center;font-weight:600;color:${avColor}">${pAvance}%${pctBarra(pAvance,'#C0392B')}</td><td style="text-align:center;font-weight:500">${avg||'—'}</td><td style="text-align:center"><span style="color:#0E6655;font-weight:600">${pDn}%</span></td><td style="text-align:center"><span style="color:#791F1F">${Math.round(x.bj/(x.t||1)*100)}%</span></td><td style="text-align:center"><span style="color:#633806">${Math.round(x.al/(x.t||1)*100)}%</span></td><td>${estadoBadge(pDn)}</td></tr>`;
-  }).join('');
-
-  // ── Resumen por cuartel CIR ───────────────────────────────────
-  const dCir={};cir.forEach(r=>{if(!dCir[r.c])dCir[r.c]={s:0,t:0,dn:0,bj:0,al:0};dCir[r.c].s+=r.ml;dCir[r.c].t++;if(r.f==='bajo')dCir[r.c].bj++;else if(r.f==='alto')dCir[r.c].al++;else dCir[r.c].dn++;});
-  const rowsCir=Object.keys(PLANTAS_CIR).map(c=>{
-    const x=dCir[c]||{s:0,t:0,dn:0,bj:0,al:0};
-    const pl=PLANTAS_CIR[c];
-    const avg=x.t?(x.s/x.t).toFixed(2):0;
-    const pAvance=x.t?Math.round(x.t/pl*100):0;
-    const pDn=x.t?Math.round(x.dn/x.t*100):0;
-    const avColor=pAvance>=5?'#0E6655':pAvance>=2?'#EF9F27':'#C0392B';
-    return`<tr><td style="font-weight:600;color:var(--po)">${c}</td><td style="text-align:center">${x.t}</td><td style="text-align:center;font-weight:600;color:${avColor}">${pAvance}%${pctBarra(pAvance,'#7C3AED')}</td><td style="text-align:center;font-weight:500">${avg||'—'}</td><td style="text-align:center"><span style="color:#0E6655;font-weight:600">${pDn}%</span></td><td style="text-align:center"><span style="color:#791F1F">${Math.round(x.bj/(x.t||1)*100)}%</span></td><td style="text-align:center"><span style="color:#633806">${Math.round(x.al/(x.t||1)*100)}%</span></td><td>${estadoBadge(pDn)}</td></tr>`;
-  }).join('');
-
-  // ── Contadores ────────────────────────────────────────────────
-  const contadores={};
-  nec.forEach(r=>{const n=r.cnt||'—';if(!contadores[n])contadores[n]={nec:{t:0,s:0,dn:0},cer:{t:0,s:0,dn:0},cir:{t:0,s:0,dn:0}};contadores[n].nec.t++;contadores[n].nec.s+=r.ram;if(r.f!=='bajo'&&r.f!=='alto')contadores[n].nec.dn++;});
-  cer.forEach(r=>{const n=r.cnt||'—';if(!contadores[n])contadores[n]={nec:{t:0,s:0,dn:0},cer:{t:0,s:0,dn:0},cir:{t:0,s:0,dn:0}};contadores[n].cer.t++;contadores[n].cer.s+=r.tot;if(r.f!=='bajo'&&r.f!=='alto')contadores[n].cer.dn++;});
-  cir.forEach(r=>{const n=r.cnt||'—';if(!contadores[n])contadores[n]={nec:{t:0,s:0,dn:0},cer:{t:0,s:0,dn:0},cir:{t:0,s:0,dn:0}};contadores[n].cir.t++;contadores[n].cir.s+=r.ml;if(r.f!=='bajo'&&r.f!=='alto')contadores[n].cir.dn++;});
-  const rowsCnt=Object.keys(contadores).filter(n=>n!=='—').sort().map(n=>{
-    const d=contadores[n];
-    const totN=d.nec.t,totC=d.cer.t,totCir=d.cir.t;
-    const avgN=totN?(d.nec.s/totN).toFixed(1):'-';
-    const pDnN=totN?Math.round(d.nec.dn/totN*100):0;
-    const pDnC=totC?Math.round(d.cer.dn/totC*100):0;
-    return`<tr><td style="font-weight:600">${n}</td><td style="text-align:center;color:var(--vo)">${totN||'—'}</td><td style="text-align:center">${avgN}</td><td style="text-align:center;color:${pDnN>=70?'#0E6655':'#791F1F'};font-weight:600">${totN?pDnN+'%':'—'}</td><td style="text-align:center;color:var(--ro)">${totC||'—'}</td><td style="text-align:center;color:${pDnC>=70?'#0E6655':'#791F1F'};font-weight:600">${totC?pDnC+'%':'—'}</td><td style="text-align:center;color:var(--po)">${totCir||'—'}</td></tr>`;
-  }).join('');
-
-  const pAvTotN=Math.round(sN.tot/totPlN*100);
-  const pAvTotC=Math.round(sC.tot/totPlC*100);
-  const pAvTotCir=Math.round(sCir.tot/totPlCir*100);
-
-  el.innerHTML=`
-  <!-- RESUMEN GLOBAL -->
-  <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:14px;padding:16px;margin-bottom:18px;color:#fff">
-    <div style="font-size:11px;font-family:var(--mo);opacity:.6;text-transform:uppercase;margin-bottom:12px">Resumen General · Temporada 2026</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-      <div style="text-align:center;background:rgba(255,255,255,.08);border-radius:10px;padding:10px">
-        <div style="font-size:24px">🍑</div>
-        <div style="font-size:22px;font-family:var(--mo);font-weight:700;color:#5DCAA5">${sN.tot.toLocaleString()}</div>
-        <div style="font-size:9px;opacity:.7;font-family:var(--mo);text-transform:uppercase">conteos</div>
-        <div style="font-size:11px;font-family:var(--mo);margin-top:4px;color:#5DCAA5">${pAvTotN}% avance</div>
-        ${pctBarra(pAvTotN,'#5DCAA5')}
-      </div>
-      <div style="text-align:center;background:rgba(255,255,255,.08);border-radius:10px;padding:10px">
-        <div style="font-size:24px">🍒</div>
-        <div style="font-size:22px;font-family:var(--mo);font-weight:700;color:#F1948A">${sC.tot.toLocaleString()}</div>
-        <div style="font-size:9px;opacity:.7;font-family:var(--mo);text-transform:uppercase">conteos</div>
-        <div style="font-size:11px;font-family:var(--mo);margin-top:4px;color:#F1948A">${pAvTotC}% avance</div>
-        ${pctBarra(pAvTotC,'#F1948A')}
-      </div>
-      <div style="text-align:center;background:rgba(255,255,255,.08);border-radius:10px;padding:10px">
-        <div style="font-size:24px">🟣</div>
-        <div style="font-size:22px;font-family:var(--mo);font-weight:700;color:#C4B5FD">${sCir.tot.toLocaleString()}</div>
-        <div style="font-size:9px;opacity:.7;font-family:var(--mo);text-transform:uppercase">conteos</div>
-        <div style="font-size:11px;font-family:var(--mo);margin-top:4px;color:#C4B5FD">${pAvTotCir}% avance</div>
-        ${pctBarra(pAvTotCir,'#C4B5FD')}
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px">
-      <div style="text-align:center"><div style="font-size:9px;opacity:.6;font-family:var(--mo);text-transform:uppercase">Prom. Ram.</div><div style="font-size:18px;font-family:var(--mo);font-weight:700;color:#5DCAA5">${sN.avg}</div></div>
-      <div style="text-align:center"><div style="font-size:9px;opacity:.6;font-family:var(--mo);text-transform:uppercase">Prom. Dardos</div><div style="font-size:18px;font-family:var(--mo);font-weight:700;color:#F1948A">${sC.avg}</div></div>
-      <div style="text-align:center"><div style="font-size:9px;opacity:.6;font-family:var(--mo);text-transform:uppercase">Prom. Metros</div><div style="font-size:18px;font-family:var(--mo);font-weight:700;color:#C4B5FD">${sCir.avg}</div></div>
-    </div>
-  </div>
-
-  <!-- AVANCE NECTARÍN -->
-  <p class="sec-title">🍑 Avance Nectarín por Cuartel</p>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>% Avance</th><th>Prom.</th><th>✓ Dentro</th><th>↓ Bajo</th><th>↑ Sobre</th><th>Estado</th></tr></thead><tbody>${rowsN}</tbody></table></div>
-
-  <!-- AVANCE CEREZO -->
-  <p class="sec-title" style="margin-top:16px">🍒 Avance Cerezo por Cuartel</p>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>% Avance</th><th>Prom.</th><th>✓ Dentro</th><th>↓ Bajo</th><th>↑ Sobre</th><th>Estado</th></tr></thead><tbody>${rowsC}</tbody></table></div>
-
-  <!-- AVANCE CIRUELO -->
-  <p class="sec-title" style="margin-top:16px">🟣 Avance Ciruelo por Cuartel</p>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>% Avance</th><th>Prom.</th><th>✓ Dentro</th><th>↓ Bajo</th><th>↑ Sobre</th><th>Estado</th></tr></thead><tbody>${rowsCir}</tbody></table></div>
-
-  <!-- CONTADORES -->
-  <p class="sec-title" style="margin-top:16px">👥 Rendimiento por Contadora</p>
-  <div class="twrap"><table><thead><tr><th>Contadora</th><th style="color:var(--vo)">🍑 N</th><th>Prom.</th><th>%✓</th><th style="color:var(--ro)">🍒 C</th><th>%✓</th><th style="color:var(--po)">🟣 Cir</th></tr></thead><tbody>${rowsCnt}</tbody></table></div>
-  `;
-}
-
-
 async function expTodos(){
   const btn=document.querySelector('[onclick="expTodos()"]');
-  if(btn){btn.innerHTML='<i class="ti ti-refresh spin"></i> Descargando...';btn.disabled=true;}
+  if(btn){btn.innerHTML='<i class="ti ti-refresh spin"></i> Cargando...';btn.disabled=true;}
   try{
     const [rNec,rCer,rCir]=await Promise.all([
       db.from('conteos').select('*').order('id',{ascending:true}).limit(100000),
       db.from('conteos_cerezas').select('*').order('id',{ascending:true}).limit(100000),
       db.from('conteos_ciruelas').select('*').order('id',{ascending:true}).limit(100000)
     ]);
-    let descargados=0;
+    let n=0;
     if(rNec.data&&rNec.data.length){
-      const cab='Cuartel,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Ramillas,Fuera_Rango,Calidad,Observaciones,Hora';
-      const rows=rNec.data.map(r=>[r.cuartel,r.hilera,r.planta,r.podador||'',r.contador||'',r.supervisor||'',r.contratista||'',r.ramillas,r.fuera_rango||'',r.calidad||'',(r.observaciones||'').replace(/,/g,';'),r.timestamp||''].join(','));
-      descargarCSV('﻿'+[cab,...rows].join('
-'),'conteos_nectarin.csv');
-      descargados++;
-      await new Promise(r=>setTimeout(r,600));
+      const c='Cuartel,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Ramillas,Fuera_Rango,Calidad,Observaciones,Hora';
+      const r=rNec.data.map(d=>[d.cuartel,d.hilera,d.planta,d.podador||'',d.contador||'',d.supervisor||'',d.contratista||'',d.ramillas,d.fuera_rango||'',d.calidad||'',(d.observaciones||'').replace(/,/g,';'),d.timestamp||''].join(','));
+      dl([c,...r].join('
+'),'conteos_nectarin.csv');n++;
+      await new Promise(x=>setTimeout(x,800));
     }
     if(rCer.data&&rCer.data.length){
-      const cab='Cuartel,Variedad,Tipo,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Total_Dardos,Ramillas,Total_General,Fuera_Rango,Observaciones,Hora';
-      const rows=rCer.data.map(r=>[r.cuartel,r.variedad||'',r.tipo_conteo||'',r.hilera,r.planta,r.podador||'',r.contador||'',r.supervisor||'',r.contratista||'',r.total_dardos||0,r.ramillas||0,r.total_general||0,r.fuera_rango||'',(r.observaciones||'').replace(/,/g,';'),r.timestamp||''].join(','));
-      descargarCSV('﻿'+[cab,...rows].join('
-'),'conteos_cerezo.csv');
-      descargados++;
-      await new Promise(r=>setTimeout(r,600));
+      const c='Cuartel,Variedad,Tipo,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Total_Dardos,Ramillas,Total_General,Fuera_Rango,Observaciones,Hora';
+      const r=rCer.data.map(d=>[d.cuartel,d.variedad||'',d.tipo_conteo||'',d.hilera,d.planta,d.podador||'',d.contador||'',d.supervisor||'',d.contratista||'',d.total_dardos||0,d.ramillas||0,d.total_general||0,d.fuera_rango||'',(d.observaciones||'').replace(/,/g,';'),d.timestamp||''].join(','));
+      dl([c,...r].join('
+'),'conteos_cerezo.csv');n++;
+      await new Promise(x=>setTimeout(x,800));
     }
     if(rCir.data&&rCir.data.length){
-      const cab='Cuartel,Variedad,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Metros_Lineales,Fuera_Rango,Calidad,Observaciones,Hora';
-      const rows=rCir.data.map(r=>[r.cuartel,r.variedad||'',r.hilera,r.planta,r.podador||'',r.contador||'',r.supervisor||'',r.contratista||'',r.metros_lineales,r.fuera_rango||'',r.calidad||'',(r.observaciones||'').replace(/,/g,';'),r.timestamp||''].join(','));
-      descargarCSV('﻿'+[cab,...rows].join('
-'),'conteos_ciruelo.csv');
-      descargados++;
+      const c='Cuartel,Variedad,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Metros_Lineales,Fuera_Rango,Calidad,Observaciones,Hora';
+      const r=rCir.data.map(d=>[d.cuartel,d.variedad||'',d.hilera,d.planta,d.podador||'',d.contador||'',d.supervisor||'',d.contratista||'',d.metros_lineales,d.fuera_rango||'',d.calidad||'',(d.observaciones||'').replace(/,/g,';'),d.timestamp||''].join(','));
+      dl([c,...r].join('
+'),'conteos_ciruelo.csv');n++;
     }
-    toast(descargados>0?'✓ '+descargados+' CSV descargados':'Sin datos para descargar');
-  }catch(e){
-    toast('⚠ Error al descargar','warn');
-    console.error(e);
-  }
-  if(btn){btn.innerHTML='<i class="ti ti-download"></i> Exportar CSV — Nectarín + Cerezo + Ciruelo';btn.disabled=false;}
+    toast(n>0?n+' CSV descargados':'Sin datos');
+  }catch(e){toast('Error al descargar','warn');console.error(e);}
+  if(btn){btn.innerHTML='<i class="ti ti-download"></i> Exportar CSV — Nectarin + Cerezo + Ciruelo';btn.disabled=false;}
 }
-
-function descargarCSV(contenido, nombre){
-  const blob=new Blob([contenido],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download=nombre;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},300);
-}
+function dl(txt,name){const b=new Blob([txt],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);}
 
 </script>
 </body>
