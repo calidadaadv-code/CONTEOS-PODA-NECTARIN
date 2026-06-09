@@ -716,27 +716,43 @@ function viCerCal(v){cerVC=v;document.getElementById('cer-cthoy').className='tog
 // Modal detalle cerezo por cuartel (estilo nectarín)
 function openDetCer(c,vista){
   const regs=fnCerDar(vista).filter(r=>r.c===c);
-  const ov=document.getElementById('modal-ov');
-  document.getElementById('modal-hdr').className='modal-hdr modal-hdr-r';
-  document.getElementById('modal-tit').textContent='Detalle '+c+(vista==='hoy'?' — Hoy':'')+' — '+regs.length+' conteos';
   const tot=regs.length,bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=regs.filter(r=>r.f==='no').length;
   const avg=tot?(regs.reduce((s,r)=>s+r.tot,0)/tot).toFixed(1):'-';
-  document.getElementById('modal-stats').innerHTML=`
-    <div class="mstat"><div class="mstat-val" style="color:var(--ro)">${avg}</div><div class="mstat-lbl">Prom. Dardos</div></div>
-    <div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${Math.round(bj/tot*100)}%</div><div class="mstat-lbl">Bajo</div></div>
-    <div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${Math.round(dn/tot*100)}%</div><div class="mstat-lbl">Dentro</div></div>`;
-  document.getElementById('modal-thead').innerHTML='<th>Tipo</th><th>H</th><th>P</th><th>Dardos carg.</th><th>Eje</th><th>Ram.</th><th>Total</th><th>Estado</th>';
-  document.getElementById('modal-tbody').innerHTML=regs.map(r=>{
-    const tp=r.tipo==='pre'?'<span style="font-size:9px;background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px">PRE</span>':'<span style="font-size:9px;background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px">POST</span>';
-    const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';
-    const pill=r.f==='bajo'?'<span class="pill pill-bj">↓</span>':r.f==='alto'?'<span class="pill pill-al">↑</span>':'<span class="pill pill-ok">✓</span>';
-    return`<tr><td>${tp}</td><td>${r.h}</td><td>${r.p}</td><td>${r.td||0}</td><td>${r.deje||0}</td><td>${r.ram||0}</td><td style="${tc};font-weight:500">${r.tot}</td><td>${pill}</td></tr>`;
-  }).join('')||'<tr><td colspan="8" class="empty">Sin conteos</td></tr>';
-  ov.classList.add('open');
+  const stats=`<div class="mstat"><div class="mstat-val" style="color:var(--ro)">${avg}</div><div class="mstat-lbl">Prom.</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${tot?Math.round(bj/tot*100):0}%</div><div class="mstat-lbl">Bajo</div></div><div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${tot?Math.round(dn/tot*100):0}%</div><div class="mstat-lbl">Dentro</div></div>`;
+  const thead='<tr><th>Tipo</th><th>H</th><th>P</th><th>Dardos</th><th>Eje</th><th>Ram.</th><th>Total</th><th>Estado</th></tr>';
+  const tbody=regs.map(r=>{const tp=r.tipo==='pre'?'<span style="font-size:9px;background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px">PRE</span>':'<span style="font-size:9px;background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';const pill=r.f==='bajo'?'<span class="pill pill-bj">↓</span>':r.f==='alto'?'<span class="pill pill-al">↑</span>':'<span class="pill pill-ok">✓</span>';return`<tr><td>${tp}</td><td>${r.h}</td><td>${r.p}</td><td>${r.td||0}</td><td>${r.deje||0}</td><td>${r.ram||0}</td><td style="${tc};font-weight:500">${r.tot}</td><td>${pill}</td></tr>`;}).join('')||'<tr><td colspan="8" class="empty">Sin conteos</td></tr>';
+  document.getElementById('modal-hdr').className='modal-hdr modal-hdr-r';
+  document.getElementById('modal-tit').textContent='Detalle '+c+(vista==='hoy'?' — Hoy':'')+' — '+regs.length+' conteos';
+  document.querySelector('#modal-ov .modal-body').innerHTML=`<div class="modal-stats">${stats}</div><div class="twrap"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+  document.getElementById('modal-ov').classList.add('open');
 }
 
 
-function openDet(esp,c,vista){let regs,cols;if(esp==='nec'){regs=fnNec(vista).filter(r=>r.c===c);document.getElementById('modal-hdr').className='modal-hdr modal-hdr-g';cols='<th>Hilera</th><th>Planta</th><th>Podador</th><th>Ram.</th><th>Cal.</th><th>Obs.</th>';const tot=regs.length,bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=regs.filter(r=>!r.f).length;document.getElementById('modal-stats').innerHTML=`<div class="mstat" style="background:var(--vc)"><div class="mstat-val" style="color:var(--vo)">${Math.round(dn/tot*100)}%</div><div class="mstat-lbl">Dentro</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${Math.round(bj/tot*100)}%</div><div class="mstat-lbl">Bajo</div></div><div class="mstat" style="background:var(--ac)"><div class="mstat-val" style="color:#633806">${Math.round(al/tot*100)}%</div><div class="mstat-lbl">Sobre</div></div>`;document.getElementById('modal-tbody').innerHTML=regs.map(r=>{const e=r.f==='bajo'?`<span style="color:#791F1F;font-size:10px">↓${r.ram}</span>`:r.f==='alto'?`<span style="color:#633806;font-size:10px">↑${r.ram}</span>`:`<span style="color:var(--vo);font-size:10px">✓${r.ram}</span>`;const calPill=r.cal?`<span class="pill pill-${r.cal.toLowerCase()}">${r.cal}</span>`:'';return`<tr><td>${r.h}</td><td>${r.p}</td><td style="font-size:11px">${r.pod||''}</td><td style="font-weight:500">${r.ram}</td><td>${calPill}</td><td class="otd" title="${r.obs||''}">${r.obs||''}</td></tr>`;}).join('');}else{regs=fnCer().filter(r=>r.c===c);document.getElementById('modal-hdr').className='modal-hdr modal-hdr-r';cols='<th>Tipo</th><th>H</th><th>P</th><th>Dardos</th><th>Eje</th><th>Ram.</th><th>Total</th>';const tot=regs.length,bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=regs.filter(r=>r.f==='no').length;document.getElementById('modal-stats').innerHTML=`<div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${Math.round(dn/tot*100)}%</div><div class="mstat-lbl">Dentro</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${Math.round(bj/tot*100)}%</div><div class="mstat-lbl">Bajo</div></div><div class="mstat" style="background:var(--ac)"><div class="mstat-val" style="color:#633806">${Math.round(al/tot*100)}%</div><div class="mstat-lbl">Sobre</div></div>`;document.getElementById('modal-tbody').innerHTML=regs.map(r=>{const tp=r.tipo==='pre'?'<span style="font-size:9px;background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px">PRE</span>':'<span style="font-size:9px;background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';return`<tr><td>${tp}</td><td>${r.h}</td><td>${r.p}</td><td>${r.td}</td><td>${r.deje||0}</td><td>${r.ram}</td><td style="${tc};font-weight:500">${r.tot}</td></tr>`;}).join('');}document.getElementById('modal-thead').innerHTML=cols;document.getElementById('modal-tit').textContent='Detalle '+c+' — '+regs.length+' conteos';document.getElementById('modal-ov').classList.add('open');}
+function openDet(esp,c,vista){
+  let tbody='',stats='',tit='',hdrCls='modal-hdr-g';
+  if(esp==='nec'){
+    const regs=fnNec(vista).filter(r=>r.c===c);
+    hdrCls='modal-hdr-g';tit='Detalle '+c+' — '+regs.length+' conteos';
+    const tot=regs.length,bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=regs.filter(r=>!r.f).length;
+    stats=`<div class="mstat" style="background:var(--vc)"><div class="mstat-val" style="color:var(--vo)">${tot?Math.round(dn/tot*100):0}%</div><div class="mstat-lbl">Dentro</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${tot?Math.round(bj/tot*100):0}%</div><div class="mstat-lbl">Bajo</div></div><div class="mstat" style="background:var(--ac)"><div class="mstat-val" style="color:#633806">${tot?Math.round(al/tot*100):0}%</div><div class="mstat-lbl">Sobre</div></div>`;
+    const thead='<tr><th>H</th><th>P</th><th>Podador</th><th>Ram.</th><th>Cal.</th><th>Obs.</th></tr>';
+    tbody=regs.map(r=>{const calPill=r.cal?`<span class="pill pill-${r.cal.toLowerCase()}">${r.cal}</span>`:'';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--vo)';return`<tr><td>${r.h}</td><td>${r.p}</td><td style="font-size:11px">${r.pod||''}</td><td style="${tc};font-weight:500">${r.ram}</td><td>${calPill}</td><td class="otd">${r.obs||''}</td></tr>`;}).join('')||'<tr><td colspan="6" class="empty">Sin conteos</td></tr>';
+    document.getElementById('modal-hdr').className='modal-hdr '+hdrCls;
+    document.getElementById('modal-tit').textContent=tit;
+    document.querySelector('#modal-ov .modal-body').innerHTML=`<div class="modal-stats">${stats}</div><div class="twrap"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+  }else{
+    const regs=fnCer().filter(r=>r.c===c);
+    hdrCls='modal-hdr-r';tit='Detalle '+c+' — '+regs.length+' conteos';
+    const tot=regs.length,bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=regs.filter(r=>r.f==='no').length;
+    stats=`<div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${tot?Math.round(dn/tot*100):0}%</div><div class="mstat-lbl">Dentro</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${tot?Math.round(bj/tot*100):0}%</div><div class="mstat-lbl">Bajo</div></div><div class="mstat" style="background:var(--ac)"><div class="mstat-val" style="color:#633806">${tot?Math.round(al/tot*100):0}%</div><div class="mstat-lbl">Sobre</div></div>`;
+    const thead='<tr><th>Tipo</th><th>H</th><th>P</th><th>Dardos</th><th>Eje</th><th>Ram.</th><th>Total</th></tr>';
+    tbody=regs.map(r=>{const tp=r.tipo==='pre'?'<span style="font-size:9px;background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px">PRE</span>':'<span style="font-size:9px;background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';return`<tr><td>${tp}</td><td>${r.h}</td><td>${r.p}</td><td>${r.td}</td><td>${r.deje||0}</td><td>${r.ram}</td><td style="${tc};font-weight:500">${r.tot}</td></tr>`;}).join('')||'<tr><td colspan="7" class="empty">Sin conteos</td></tr>';
+    document.getElementById('modal-hdr').className='modal-hdr '+hdrCls;
+    document.getElementById('modal-tit').textContent=tit;
+    document.querySelector('#modal-ov .modal-body').innerHTML=`<div class="modal-stats">${stats}</div><div class="twrap"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+  }
+  document.getElementById('modal-ov').classList.add('open');
+}
 function closeModal(e){if(e.target===document.getElementById('modal-ov'))document.getElementById('modal-ov').classList.remove('open');}
 function closeModalBtn(){document.getElementById('modal-ov').classList.remove('open');}
 function setCal(e,v){nCal=v;document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('on'));document.querySelector('.cbtn.'+v).classList.add('on');}
@@ -881,9 +897,31 @@ function renderActDet(){
   document.getElementById('modal-ov').classList.add('open');
 }
 // FIX 4: openDetCirCal recibe vista y filtra con fnCir
-function openDetCirCal(c,vista){const regs=fnCir(vista||'acum').filter(r=>r.c===c);const ov=document.getElementById('modal-ov');document.getElementById('modal-hdr').className='modal-hdr modal-hdr-p';document.getElementById('modal-tit').textContent='Calidad '+c+(vista==='hoy'?' — Hoy':'')+' — '+regs.length+' conteos';const tot=regs.length,cG={A:0,B:0,C:0};regs.forEach(r=>{if(cG[r.cal]!==undefined)cG[r.cal]++;});const pA=tot?Math.round(cG.A/tot*100):0,pB=tot?Math.round(cG.B/tot*100):0,pC=tot?Math.round(cG.C/tot*100):0;document.getElementById('modal-stats').innerHTML=`<div class="mstat" style="background:var(--vc)"><div class="mstat-val" style="color:var(--vo)">${pA}%</div><div class="mstat-lbl">Cal. A</div></div><div class="mstat" style="background:var(--ac)"><div class="mstat-val" style="color:#633806">${pB}%</div><div class="mstat-lbl">Cal. B</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${pC}%</div><div class="mstat-lbl">Cal. C</div></div>`;document.getElementById('modal-thead').innerHTML='<th>H</th><th>P</th><th>Podador</th><th>Cal.</th><th>Observación</th>';document.getElementById('modal-tbody').innerHTML=regs.map(r=>{const calPill=r.cal?`<span class="pill pill-${r.cal.toLowerCase()}">${r.cal}</span>`:'—';return`<tr><td>${r.h}</td><td>${r.p}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}</td><td>${calPill}</td><td class="otd" title="${r.obs||''}">${r.obs||''}</td></tr>`;}).join('')||'<tr><td colspan="5" class="empty">Sin conteos</td></tr>';ov.classList.add('open');}
+function openDetCirCal(c,vista){
+  const regs=fnCir(vista||'acum').filter(r=>r.c===c);
+  const tot=regs.length,cG={A:0,B:0,C:0};
+  regs.forEach(r=>{if(cG[r.cal]!==undefined)cG[r.cal]++;});
+  const pA=tot?Math.round(cG.A/tot*100):0,pB=tot?Math.round(cG.B/tot*100):0,pC=tot?Math.round(cG.C/tot*100):0;
+  const stats=`<div class="mstat" style="background:var(--vc)"><div class="mstat-val" style="color:var(--vo)">${pA}%</div><div class="mstat-lbl">Cal. A</div></div><div class="mstat" style="background:var(--ac)"><div class="mstat-val" style="color:#633806">${pB}%</div><div class="mstat-lbl">Cal. B</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${pC}%</div><div class="mstat-lbl">Cal. C</div></div>`;
+  const thead='<tr><th>H</th><th>P</th><th>Podador</th><th>Cal.</th><th>Observación</th></tr>';
+  const tbody=regs.map(r=>{const calPill=r.cal?`<span class="pill pill-${r.cal.toLowerCase()}">${r.cal}</span>`:'—';return`<tr><td>${r.h}</td><td>${r.p}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}</td><td>${calPill}</td><td class="otd">${r.obs||''}</td></tr>`;}).join('')||'<tr><td colspan="5" class="empty">Sin conteos</td></tr>';
+  document.getElementById('modal-hdr').className='modal-hdr modal-hdr-p';
+  document.getElementById('modal-tit').textContent='Calidad '+c+(vista==='hoy'?' — Hoy':'')+' — '+regs.length+' conteos';
+  document.querySelector('#modal-ov .modal-body').innerHTML=`<div class="modal-stats">${stats}</div><div class="twrap"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+  document.getElementById('modal-ov').classList.add('open');
+}
 // FIX 2: openDetCir recibe vista y filtra con fnCir
-function openDetCir(c,vista){const regs=fnCir(vista||'acum').filter(r=>r.c===c);const ov=document.getElementById('modal-ov');document.getElementById('modal-hdr').className='modal-hdr modal-hdr-p';document.getElementById('modal-tit').textContent='Detalle '+c+(vista==='hoy'?' — Hoy':'')+' — '+regs.length+' conteos';const tot=regs.length,fr=regs.filter(r=>r.f).length,avg=tot?(regs.reduce((s,r)=>s+r.ml,0)/tot).toFixed(2):'-';document.getElementById('modal-stats').innerHTML=`<div class="mstat" style="background:var(--pc)"><div class="mstat-val" style="color:var(--po)">${tot}</div><div class="mstat-lbl">Conteos</div></div><div class="mstat"><div class="mstat-val" style="color:var(--po)">${avg}</div><div class="mstat-lbl">Prom. ml</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${fr}</div><div class="mstat-lbl">Fuera rango</div></div>`;document.getElementById('modal-thead').innerHTML='<th>H</th><th>P</th><th>Podador</th><th>Metros</th><th>Estado</th>';document.getElementById('modal-tbody').innerHTML=regs.map(r=>{const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--po)';const estado=r.f==='bajo'?`<span style="color:#791F1F;font-size:10px">↓${r.ml}</span>`:r.f==='alto'?`<span style="color:#633806;font-size:10px">↑${r.ml}</span>`:`<span style="color:var(--po);font-size:10px">✓${r.ml}</span>`;return`<tr><td>${r.h}</td><td>${r.p}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}</td><td style="${tc};font-weight:500">${r.ml}</td><td>${estado}</td></tr>`;}).join('')||'<tr><td colspan="5" class="empty">Sin conteos</td></tr>';ov.classList.add('open');}
+function openDetCir(c,vista){
+  const regs=fnCir(vista||'acum').filter(r=>r.c===c);
+  const tot=regs.length,fr=regs.filter(r=>r.f).length,avg=tot?(regs.reduce((s,r)=>s+r.ml,0)/tot).toFixed(2):'-';
+  const stats=`<div class="mstat" style="background:var(--pc)"><div class="mstat-val" style="color:var(--po)">${tot}</div><div class="mstat-lbl">Conteos</div></div><div class="mstat"><div class="mstat-val" style="color:var(--po)">${avg}</div><div class="mstat-lbl">Prom. ml</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${fr}</div><div class="mstat-lbl">Fuera rango</div></div>`;
+  const thead='<tr><th>H</th><th>P</th><th>Podador</th><th>Metros</th><th>Estado</th></tr>';
+  const tbody=regs.map(r=>{const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--po)';const estado=r.f==='bajo'?`<span style="color:#791F1F;font-size:10px">↓${r.ml}</span>`:r.f==='alto'?`<span style="color:#633806;font-size:10px">↑${r.ml}</span>`:`<span style="color:var(--po);font-size:10px">✓${r.ml}</span>`;return`<tr><td>${r.h}</td><td>${r.p}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}</td><td style="${tc};font-weight:500">${r.ml}</td><td>${estado}</td></tr>`;}).join('')||'<tr><td colspan="5" class="empty">Sin conteos</td></tr>';
+  document.getElementById('modal-hdr').className='modal-hdr modal-hdr-p';
+  document.getElementById('modal-tit').textContent='Detalle '+c+(vista==='hoy'?' — Hoy':'')+' — '+regs.length+' conteos';
+  document.querySelector('#modal-ov .modal-body').innerHTML=`<div class="modal-stats">${stats}</div><div class="twrap"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+  document.getElementById('modal-ov').classList.add('open');
+}
 function toggleDesglose(){const d=document.getElementById('cer-desglose'),ico=document.getElementById('des-ico');if(!d)return;if(d.style.display==='none'||d.style.display===''){d.style.display='block';if(ico)ico.className='ti ti-chevron-up';}else{d.style.display='none';if(ico)ico.className='ti ti-chevron-down';}}
 
 // ═══════════════════════════════════════════════════════
