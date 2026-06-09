@@ -693,47 +693,45 @@ let necVProd='acum', cerVProd='acum', cirVProd='acum';
 // ── DATOS BASE ──────────────────────────────────────────
 // NEC: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, frutos_ram, peso_fruto_grs, plantas_ha]
 const PROD_NEC=[
-  // [c, v, ha, kgHa25, kgTot25, kgHaMeta, fRam26, pFruto26grs, pHa, ram25, fRam25]
-  // pFruto26 = 8000grs / calibre esperado 2026
-  ['C-01','Luciana',     4.9094, 37940, 186261, 45000, 2.5, 166.67,1754, 58, 2.10],
-  ['C-02','Garcica',     4.8154, 34442, 165851, 37500, 2.5, 160.00,1754, 58, 2.24],
-  ['C-03','Arctic Red',  4.7099, 49626, 233736, 60000, 3.0, 173.91,1754, 66, 2.57],
-  ['C-04','Arctic Red',  4.4238, 50722, 224382, 60000, 3.0, 173.91,1754, 67, 2.37],
-  ['C-05','Arctic Red',  9.8046, 50677, 496866, 60000, 3.0, 173.91,1754, 58, 2.80],
-  ['C-08','Luciana',     8.9798, 49797, 447170, 45000, 2.5, 166.67,1754, 69, 2.52],
-  ['C-09','Garcica',     9.0271, 29312, 264602, 37500, 2.5, 160.00,1754, 54, 1.93],
-  ['C-13','Gardeta',     8.8378, 32263, 285133, 45000, 2.5, 166.67,1754, 61, 1.85],
-  ['C-30','Gardeta',    11.2866, 32154, 362911, 45000, 2.5, 166.67,1754, 60, 1.99],
-  ['C-31','Kinolea',    11.1515, 29757, 331829, 50000, 3.0, 173.91,1754, 57, 1.82],
-  ['C-32','Andesnecdos',11.1652, 48358, 539921, 60000, 3.0, 173.91,1754, 62, 2.39],
-  ['C-7B','Gartairo',   10.2913, 29304, 301580, 30000, 2.0, 160.00,1754, 56, 1.75],
+  // [c, v, ha, kgHa25, kgTot25, kgHaMeta, fRam26, pFruto26grs, pHa, ram25, fRam25, ram_est26, kgHa_pp, kgTot_pp, ram_pp, fRam_pp]
+  ['C-01','Luciana',     4.9094, 37940, 186261, 45000, 2.5, 166.67,1754, 58, 2.10, 65, 39757, 195185, 68, 2.0],
+  ['C-02','Garcica',     4.8154, 34442, 165851, 37500, 2.5, 160.00,1754, 58, 2.24, 65, 36483, 175680, 65, 2.0],
+  ['C-03','Arctic Red',  4.7099, 49626, 233736, 60000, 3.0, 173.91,1754, 66, 2.57, 65, 56738, 267231, 62, 3.0],
+  ['C-04','Arctic Red',  4.4238, 50722, 224382, 60000, 3.0, 173.91,1754, 67, 2.37, 65, 56738, 250996, 62, 3.0],
+  ['C-05','Arctic Red',  9.8046, 50677, 496866, 60000, 3.0, 173.91,1754, 58, 2.80, 65, 57653, 565265, 63, 3.0],
+  ['C-08','Luciana',     8.9798, 49797, 447170, 45000, 2.5, 166.67,1754, 69, 2.52, 65, 37419, 336011, 64, 2.0],
+  ['C-09','Garcica',     9.0271, 29312, 264602, 37500, 2.5, 160.00,1754, 54, 1.93, 65, 35922, 324270, 64, 2.0],
+  ['C-13','Gardeta',     8.8378, 32263, 285133, 45000, 2.5, 166.67,1754, 61, 1.85, 65, 38588, 341035, 66, 2.0],
+  ['C-30','Gardeta',    11.2866, 32154, 362911, 45000, 2.5, 166.67,1754, 60, 1.99, 65, 38003, 428927, 65, 2.0],
+  ['C-31','Kinolea',    11.1515, 29757, 331829, 50000, 3.0, 173.91,1754, 57, 1.82, 65, 57653, 642919, 63, 3.0],
+  ['C-32','Andesnecdos',11.1652, 48358, 539921, 60000, 3.0, 173.91,1754, 62, 2.39, 65, 55823, 623272, 61, 3.0],
+  ['C-7B','Gartairo',   10.2913, 29304, 301580, 30000, 2.0, 160.00,1754, 56, 1.75, 65, 33677, 346580, 60, 2.0],
 ];
 // CER: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, kg_tot_meta26, frutos_dardo, peso_fruto_grs, plantas_ha]
 const PROD_CER=[
-  // [c, v, ha, kgHa25, kgTot25, kgHaMeta, kgTotMeta, fDar26, pFruto26, pHa, dar25, fDar25]
-  ['C-6', 'Lapins',  7.0513, 19342, 136359, 21250, 149840, 5.0,11.7,1316, 270, 4.2],
-  ['C-10','Lapins', 13.9832, 14953, 209049, 21250, 297143, 5.0,11.7,1429, 222, 4.0],
-  ['C-15','Lapins',  5.0996, 27815, 141855, 21250, 108366, 5.0,11.7,1316, 268, 6.0],
-  ['C-17','Lapins',  2.5179, 15636,  39402, 21250,  53505, 5.0,11.7,1316, 259, 4.9],
-  ['C-18','Lapins',  5.6552, 13572,  80346, 21250, 120172, 5.0,11.7,1316, 266, 4.0],
-  ['C-19','Lapins',  8.2361, 19547, 161069, 21250, 175018, 5.0,11.7,1316, 297, 5.0],
-  ['C-22','Lapins', 13.7659, 13944, 191175, 21250, 292525, 5.0,11.7,1316, 248, 5.0],
-  ['C-24','Lapins',  6.9244, 17420, 120547, 21250, 147143, 5.0,11.7,1316, 236, 5.0],
-  ['C-11','Santina', 9.6075, 16605, 159571, 17647, 169544, 3.5,10.9,1429, 276, 4.5],
-  ['C-12','Santina', 8.7210, 16543, 144254, 17647, 153900, 3.5,10.9,1316, 285, 4.7],
-  ['C-20','Santina', 9.6816, 19308, 186901, 17647, 170852, 3.5,10.9,1316, 268, 5.5],
-  ['C-21','Santina',11.6151, 16715, 194563, 17647, 204972, 3.5,10.9,1316, 275, 4.3],
-  ['C-23','Santina', 3.6252, 15285,  55330, 17647,  63974, 3.5,10.9,1316, 381, 4.0],
-  ['C-25','Santina', 6.8423, 17222, 117800, 17647, 120746, 3.5,10.9,1316, 342, 3.7],
-  ['C-26','Santina', 8.7886, 15796, 138849, 17647, 155094, 3.5,10.9,1316, 307, 4.1],
-  ['C-29','Santina', 7.5316, 19372, 145869, 17647, 132911, 3.5,10.9,1316, 323, 4.7],
+  // [c, v, ha, kgHa25, kgTot25, kgHaMeta, kgTotMeta, fDar26, pFruto26grs, pHa, dar25, fDar25, kgHa_pp, kgTot_pp, dar_pp]
+  ['C-6', 'Lapins',  7.0513, 19342, 136359, 21250, 149840, 5.0,11.7,1316, 270, 4.2,     0,      0,   0],
+  ['C-10','Lapins', 13.9832, 14953, 209049, 21250, 297143, 5.0,11.7,1429, 222, 4.0,     0,      0,   0],
+  ['C-15','Lapins',  5.0996, 27815, 141855, 21250, 108366, 5.0,11.7,1316, 268, 6.0,     0,      0,   0],
+  ['C-17','Lapins',  2.5179, 15636,  39402, 21250,  53505, 5.0,11.7,1316, 259, 4.9,     0,      0,   0],
+  ['C-18','Lapins',  5.6552, 13572,  80346, 21250, 120172, 5.0,11.7,1316, 266, 4.0,     0,      0,   0],
+  ['C-19','Lapins',  8.2361, 19547, 161069, 21250, 175018, 5.0,11.7,1316, 297, 5.0,     0,      0,   0],
+  ['C-22','Lapins', 13.7659, 13944, 191175, 21250, 292525, 5.0,11.7,1316, 248, 5.0,     0,      0,   0],
+  ['C-24','Lapins',  6.9244, 17420, 120547, 21250, 147143, 5.0,11.7,1316, 236, 5.0,     0,      0,   0],
+  ['C-11','Santina', 9.6075, 16605, 159571, 17647, 169544, 3.5,10.9,1429, 276, 4.5,     0,      0,   0],
+  ['C-12','Santina', 8.7210, 16543, 144254, 17647, 153900, 3.5,10.9,1316, 285, 4.7,     0,      0,   0],
+  ['C-20','Santina', 9.6816, 19308, 186901, 17647, 170852, 3.5,10.9,1316, 268, 5.5,     0,      0,   0],
+  ['C-21','Santina',11.6151, 16715, 194563, 17647, 204972, 3.5,10.9,1316, 275, 4.3,     0,      0,   0],
+  ['C-23','Santina', 3.6252, 15285,  55330, 17647,  63974, 3.5,10.9,1316, 381, 4.0,     0,      0,   0],
+  ['C-25','Santina', 6.8423, 17222, 117800, 17647, 120746, 3.5,10.9,1316, 342, 3.7,     0,      0,   0],
+  ['C-26','Santina', 8.7886, 15796, 138849, 17647, 155094, 3.5,10.9,1316, 307, 4.1,     0,      0,   0],
+  ['C-29','Santina', 7.5316, 19372, 145869, 17647, 132911, 3.5,10.9,1316, 323, 4.7,     0,      0,   0],
 ];
 // CIR: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, kg_tot_meta26, frutos_ml, peso_fruto_grs, plantas_ha]
 const PROD_CIR=[
-  // [c, v, ha, kgHa25, kgTot25, kgHaMeta, kgTotMeta, fML26, pFruto26grs, pHa, ml25, fML25]
-  // pFruto26 = 7000grs / calibre esperado 2026
-  ['C-28','Angeleno',       7.3097, 32075, 234458, 47500, 347210, 15.0, 102.94,1754, 16.6, 11.96],
-  ['C-7A','Sweet Pekeetah', 8.3600, 42025, 351329, 56250, 470250, 12.0, 145.83,1754, 17.3, 12.46],
+  // [c, v, ha, kgHa25, kgTot25, kgHaMeta, kgTotMeta, fML26, pFruto26grs, pHa, ml25, fML25, kgHa_pp, kgTot_pp, ml_pp]
+  ['C-28','Angeleno',       7.3097, 32075, 234458, 47500, 347210, 15.0, 102.94,1754, 16.6, 11.96, 46855, 342495, 17.3],
+  ['C-7A','Sweet Pekeetah', 8.3600, 42025, 351329, 56250, 470250, 12.0, 145.83,1754, 17.3, 12.46, 61697, 515787, 20.1],
 ];
 
 // ── FUNCIONES AUXILIARES ────────────────────────────────
@@ -797,7 +795,7 @@ function rnNecProd(v){
   // cards estilo cerezo
   const totCq=map[c]?map[c].n:0;
   const avgTxt=avg!==null?parseFloat(avg).toFixed(1):'-';
-  const ram25=rd[9]; const fRam25=rd[10];
+  const ram25=rd[9]; const fRam25=rd[10]; const ramEst26=rd[11];
   if(ram25&&avg!==null){const diffVal=(parseFloat(avg)/ram25*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
   const opts=PROD_NEC.filter(r=>avgRam[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===necProdCuartel?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
   const kg26blk=kgHa25?kgEstBlock(avg,fRam,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgHaMeta*ha,c,'var(--vd)'):'';
@@ -808,7 +806,7 @@ function rnNecProd(v){
     <div class="scard"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}</div></div>
     <div class="scard"><div class="slbl">Prom. Ramillas 2026</div><div class="sval" style="color:var(--vo)">${avgTxt}</div><div class="ssub">promedio acumulado</div></div>
     <div class="scard"><div class="slbl">Ramillas 2025</div><div class="sval" style="color:#555">${ram25||'—'}</div><div class="ssub">año anterior</div></div>
-    <div class="scard"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
+    <div class="scard"><div class="slbl">Obj. Ramillas 2026</div><div class="sval" style="color:#3730A3">${rd[11]||'—'}</div><div class="ssub">meta de poda</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2025</div><div class="sval" style="color:#555">${fRam25}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2026</div><div class="sval" style="color:var(--vo)">${fRam}</div><div class="ssub">estimación programa</div></div>
   </div>
