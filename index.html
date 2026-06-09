@@ -693,42 +693,45 @@ let necVProd='acum', cerVProd='acum', cirVProd='acum';
 // ── DATOS BASE ──────────────────────────────────────────
 // NEC: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, frutos_ram, peso_fruto_grs, plantas_ha]
 const PROD_NEC=[
-  ['C-01','Luciana',    4.9094, 91084,447170, 45000, 2.5,177.78,1754],
-  ['C-02','Garcica',    4.8154, 34442,165851, 37500, 2.5,150.94,1754],
-  ['C-03','Arctic Red', 4.7099, 49626,233736, 60000, 3.0,166.67,1754],
-  ['C-04','Arctic Red', 4.4238, 50722,224382, 60000, 3.0,181.82,1754],
-  ['C-05','Arctic Red', 9.8046, 50677,496866, 60000, 3.0,177.78,1754],
-  ['C-08','Luciana',    8.9798, 20742,186261, 45000, 2.5,163.27,1754],
-  ['C-09','Garcica',    9.0271, 29312,264602, 37500, 2.5,160.00,1754],
-  ['C-13','Gardeta',    8.8379, 32263,285133, 45000, 2.5,163.27,1754],
-  ['C-30','Gardeta',   11.2866, 32154,362911, 45000, 2.5,153.85,1754],
-  ['C-31','Kinolea',   11.1515, 29757,331829, 50000, 3.0,163.27,1754],
-  ['C-32','Andesnecdos',11.1652,48358,539921, 60000, 3.0,186.05,1754],
-  ['C-7B','Gartairo',  10.2913, 29304,301580, 30000, 2.0,170.21,1754],
+  // [cuartel, variedad, ha, kgHa25, kgTot25, kgHaMeta, fRam26, pFruto, pHa, ram25, fRam25]
+  ['C-01','Luciana',     4.9094, 91084,447170, 45000, 2.5,177.78,1754, 58, 2.85],
+  ['C-02','Garcica',     4.8154, 34442,165851, 37500, 2.5,150.94,1754, 58, 2.01],
+  ['C-03','Arctic Red',  4.7099, 49626,233736, 60000, 3.0,166.67,1754, 66, 3.02],
+  ['C-04','Arctic Red',  4.4238, 50722,224382, 60000, 3.0,181.82,1754, 67, 2.75],
+  ['C-05','Arctic Red',  9.8046, 50677,496866, 60000, 3.0,177.78,1754, 58, 3.29],
+  ['C-08','Luciana',     8.9798, 20742,186261, 45000, 2.5,163.27,1754, 69, 2.24],
+  ['C-09','Garcica',     9.0271, 29312,264602, 37500, 2.5,160.00,1754, 54, 2.14],
+  ['C-13','Gardeta',     8.8379, 32263,285133, 45000, 2.5,163.27,1754, 61, 2.48],
+  ['C-30','Gardeta',    11.2866, 32154,362911, 45000, 2.5,153.85,1754, 60, 2.39],
+  ['C-31','Kinolea',    11.1515, 29757,331829, 50000, 3.0,163.27,1754, 57, 2.74],
+  ['C-32','Andesnecdos',11.1652, 48358,539921, 60000, 3.0,186.05,1754, 62, 3.04],
+  ['C-7B','Gartairo',   10.2913, 29304,301580, 30000, 2.0,170.21,1754, 56, 1.86],
 ];
 // CER: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, kg_tot_meta26, frutos_dardo, peso_fruto_grs, plantas_ha]
 const PROD_CER=[
-  ['C-6', 'Lapins',  7.0513, 19342,136359, 21250,149839, 5,11.7,1316],
-  ['C-10','Lapins', 13.9832, 14953,209049, 21250,297143, 5,11.7,1429],
-  ['C-15','Lapins',  5.0996, 27815,141855, 21250,108367, 5,11.7,1316],
-  ['C-17','Lapins',  2.5179, 15636, 39402, 21250, 53505, 5,11.7,1316],
-  ['C-18','Lapins',  5.6552, 13572, 80346, 21250,120172, 5,11.7,1316],
-  ['C-19','Lapins',  8.2361, 19547,161069, 21250,175018, 5,11.7,1316],
-  ['C-22','Lapins', 13.7659, 13944,191175, 21250,292525, 5,11.7,1316],
-  ['C-24','Lapins',  6.9244, 17420,120547, 21250,147143, 5,11.7,1316],
-  ['C-11','Santina', 9.6075, 16605,159571, 17647,169544,3.5,10.9,1429],
-  ['C-12','Santina', 8.7210, 16543,144254, 17647,153900,3.5,10.9,1316],
-  ['C-20','Santina', 9.6816, 19308,186901, 17647,170852,3.5,10.9,1316],
-  ['C-21','Santina',11.6151, 16715,194563, 17647,204972,3.5,10.9,1316],
-  ['C-23','Santina', 3.6252, 15285, 55330, 17647, 63974,3.5,10.9,1316],
-  ['C-25','Santina', 6.8423, 17222,117800, 17647,120746,3.5,10.9,1316],
-  ['C-26','Santina', 8.7886, 15796,138849, 17647,155094,3.5,10.9,1316],
-  ['C-29','Santina', 7.5316, 19372,145869, 17647,132911,3.5,10.9,1316],
+  // [c, v, ha, kgHa25, kgTot25, kgHaMeta, kgTotMeta, fDar26, pFruto, pHa, dar25, fDar25]
+  ['C-6', 'Lapins',  7.0513, 19342,136359, 21250,149839, 5,11.7,1316, 270,  4.2],
+  ['C-10','Lapins', 13.9832, 14953,209049, 21250,297143, 5,11.7,1429, 222,  4.0],
+  ['C-15','Lapins',  5.0996, 27815,141855, 21250,108367, 5,11.7,1316, 268,  6.0],
+  ['C-17','Lapins',  2.5179, 15636, 39402, 21250, 53505, 5,11.7,1316, 259,  4.9],
+  ['C-18','Lapins',  5.6552, 13572, 80346, 21250,120172, 5,11.7,1316, 266,  4.0],
+  ['C-19','Lapins',  8.2361, 19547,161069, 21250,175018, 5,11.7,1316, 297,  5.0],
+  ['C-22','Lapins', 13.7659, 13944,191175, 21250,292525, 5,11.7,1316, 248,  5.0],
+  ['C-24','Lapins',  6.9244, 17420,120547, 21250,147143, 5,11.7,1316, 236,  5.0],
+  ['C-11','Santina', 9.6075, 16605,159571, 17647,169544,3.5,10.9,1429, 276,  4.5],
+  ['C-12','Santina', 8.7210, 16543,144254, 17647,153900,3.5,10.9,1316, 285,  4.7],
+  ['C-20','Santina', 9.6816, 19308,186901, 17647,170852,3.5,10.9,1316, 268,  5.5],
+  ['C-21','Santina',11.6151, 16715,194563, 17647,204972,3.5,10.9,1316, 275,  4.3],
+  ['C-23','Santina', 3.6252, 15285, 55330, 17647, 63974,3.5,10.9,1316, 381,  4.0],
+  ['C-25','Santina', 6.8423, 17222,117800, 17647,120746,3.5,10.9,1316, 342,  3.7],
+  ['C-26','Santina', 8.7886, 15796,138849, 17647,155094,3.5,10.9,1316, 307,  4.1],
+  ['C-29','Santina', 7.5316, 19372,145869, 17647,132911,3.5,10.9,1316, 323,  4.7],
 ];
 // CIR: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, kg_tot_meta26, frutos_ml, peso_fruto_grs, plantas_ha]
 const PROD_CIR=[
-  ['C-28','Angeleno',      7.3097,    0,     0, 47500,347210,15.0, 93.33,1754],
-  ['C-7A','Sweet Pekeetah',8.3600,39677,331700, 56250,470250,12.0,112.90,1754],
+  // [c, v, ha, kgHa25, kgTot25, kgHaMeta, kgTotMeta, fML26, pFruto, pHa, ml25, fML25]
+  ['C-28','Angeleno',       7.3097,    0,     0, 47500,347210,15.0, 93.33,1754, 16.6, 16.22],
+  ['C-7A','Sweet Pekeetah', 8.3600,39677,331700, 56250,470250,12.0,112.90,1754, 17.3, 12.73],
 ];
 
 // ── FUNCIONES AUXILIARES ────────────────────────────────
@@ -792,8 +795,8 @@ function rnNecProd(v){
   // cards estilo cerezo
   const totCq=map[c]?map[c].n:0;
   const avgTxt=avg!==null?parseFloat(avg).toFixed(1):'-';
-  const ram25_ref=kgHa25>0?Math.round(kgHa25/(fRam*pFruto*pHa/1000)):null;
-  if(ram25_ref&&avg!==null){const diffVal=(parseFloat(avg)/ram25_ref*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
+  const ram25=rd[9]; const fRam25=rd[10];
+  if(ram25&&avg!==null){const diffVal=(parseFloat(avg)/ram25*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
   const opts=PROD_NEC.filter(r=>avgRam[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===necProdCuartel?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
   const kg26blk=kgHa25?kgEstBlock(avg,fRam,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgHaMeta*ha,c,'var(--vd)'):'';
   el.innerHTML=`<button class="ref-btn ref-g" onclick="loadNec()"><i class="ti ti-refresh"></i>Actualizar</button>
@@ -802,9 +805,9 @@ function rnNecProd(v){
   <div class="stats2">
     <div class="scard"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}</div></div>
     <div class="scard"><div class="slbl">Prom. Ramillas 2026</div><div class="sval" style="color:var(--vo)">${avgTxt}</div><div class="ssub">promedio acumulado</div></div>
-    <div class="scard"><div class="slbl">Ref. Ramillas 2025</div><div class="sval" style="color:#555">${ram25_ref||'—'}</div><div class="ssub">año anterior</div></div>
+    <div class="scard"><div class="slbl">Ramillas 2025</div><div class="sval" style="color:#555">${ram25||'—'}</div><div class="ssub">año anterior</div></div>
     <div class="scard"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
-    <div class="scard"><div class="slbl">Frutos/Ramilla 2025</div><div class="sval" style="color:#555">${fRam}</div><div class="ssub">real año anterior</div></div>
+    <div class="scard"><div class="slbl">Frutos/Ramilla 2025</div><div class="sval" style="color:#555">${fRam25}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2026</div><div class="sval" style="color:var(--vo)">${fRam}</div><div class="ssub">estimación programa</div></div>
   </div>
   ${kg26blk}`;
@@ -824,12 +827,12 @@ function rnCerProd(v){
   const avg=avgDar[c]||null;
   const totCq=map[c]?map[c].n:0;
   const avgTxt=avg!==null?parseFloat(avg).toFixed(1):'-';
-  const d25=DARDOS2025[c];
-  const d25txt=d25!==undefined?d25:'-';
+  const dar25=rd[10]; const fDar25=rd[11];
+  const d25txt=dar25||'-';
   let pctDif='-',pctColor='inherit',pctIcon='';
-  if(d25!==undefined&&avg!==null){const diffVal=(parseFloat(avg)/d25*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
-  const fd25=FRUTOS_DARDO_2025[c]||'-';
-  const fd26=FRUTOS_DARDO_EST[c]||'-';
+  if(dar25&&avg!==null){const diffVal=(parseFloat(avg)/dar25*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
+  const fd25=fDar25||'-';
+  const fd26=fDar||'-';
   const opts=PROD_CER.filter(r=>avgDar[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cerProdCuartelP?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
   const kg26blk=kgHa25?kgEstBlock(avg,fDar,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,'var(--rd)'):'';
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
@@ -841,7 +844,7 @@ function rnCerProd(v){
     <div class="scard"><div class="slbl">Dardos 2025</div><div class="sval" style="color:#555">${d25txt}</div><div class="ssub">año anterior</div></div>
     <div class="scard"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
     <div class="scard"><div class="slbl">Frutos/Dardo 2025</div><div class="sval" style="color:#555">${fd25}</div><div class="ssub">real año anterior</div></div>
-    <div class="scard"><div class="slbl">Frutos/Dardo 2026</div><div class="sval" style="color:var(--ro)">${fd26}</div><div class="ssub">estimación programa</div></div>
+    <div class="scard"><div class="slbl">Frutos/Dardo 2026</div><div class="sval" style="color:var(--ro)">${fDar}</div><div class="ssub">estimación programa</div></div>
   </div>
   ${kg26blk}`;
 }
@@ -861,9 +864,9 @@ function rnCirProd(v){
   const totCq=map[c]?map[c].n:0;
   const avgTxt=avg!==null?parseFloat(avg).toFixed(2):'-';
   // ref ml año anterior (invertida desde kg/ha)
-  const ml25ref=kgHa25>0?Math.round((kgHa25/(fML*pFruto*pHa/1000))*100)/100:null;
+  const ml25=rd[10]; const fML25=rd[11];
   let pctDif='-',pctColor='inherit',pctIcon='';
-  if(ml25ref&&avg!==null){const diffVal=(parseFloat(avg)/ml25ref*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
+  if(ml25&&avg!==null){const diffVal=(parseFloat(avg)/ml25*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
   const opts=PROD_CIR.filter(r=>avgML[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cirProdCuartelP?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
   const kg26blk=kgEstBlock(avg,fML,pFruto,pHa,ha,kgHa25>0?kgHa25:kgHaMeta,kgTot25>0?kgTot25:kgTotMeta,kgHaMeta,kgTotMeta,c,'var(--pd)');
   el.innerHTML=`<button class="ref-btn ref-p" onclick="loadCir()"><i class="ti ti-refresh"></i>Actualizar</button>
@@ -872,9 +875,9 @@ function rnCirProd(v){
   <div class="stats2">
     <div class="scard"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}</div></div>
     <div class="scard"><div class="slbl">Prom. metros 2026</div><div class="sval" style="color:var(--po)">${avgTxt}</div><div class="ssub">metros lineales</div></div>
-    <div class="scard"><div class="slbl">Ref. metros 2025</div><div class="sval" style="color:#555">${ml25ref?ml25ref.toFixed(2):(kgHa25>0?'—':'nuevo')}</div><div class="ssub">${kgHa25>0?'año anterior':'cuartel nuevo'}</div></div>
+    <div class="scard"><div class="slbl">Metros 2025</div><div class="sval" style="color:#555">${ml25?ml25.toFixed(1):(kgHa25>0?'—':'nuevo')}</div><div class="ssub">${kgHa25>0?'año anterior':'cuartel nuevo'}</div></div>
     <div class="scard"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
-    <div class="scard"><div class="slbl">Frutos/Ml 2025</div><div class="sval" style="color:#555">${fML}</div><div class="ssub">referencia</div></div>
+    <div class="scard"><div class="slbl">Frutos/Ml 2025</div><div class="sval" style="color:#555">${fML25}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Frutos/Ml 2026</div><div class="sval" style="color:var(--po)">${fML}</div><div class="ssub">estimación programa</div></div>
   </div>
   ${kg26blk}`;
