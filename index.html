@@ -1289,22 +1289,19 @@ async function expTodos(){
     if(rNec.data&&rNec.data.length){
       const c='Cuartel,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Ramillas,Fuera_Rango,Calidad,Observaciones,Hora';
       const r=rNec.data.map(d=>[d.cuartel,d.hilera,d.planta,d.podador||'',d.contador||'',d.supervisor||'',d.contratista||'',d.ramillas,d.fuera_rango||'',d.calidad||'',(d.observaciones||'').replace(/,/g,';'),d.timestamp||''].join(','));
-      dl([c,...r].join('
-'),'conteos_nectarin.csv');n++;
+      dl([c,...r].join('\n'),'conteos_nectarin.csv');n++;
       await new Promise(x=>setTimeout(x,800));
     }
     if(rCer.data&&rCer.data.length){
       const c='Cuartel,Variedad,Tipo,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Total_Dardos,Ramillas,Total_General,Fuera_Rango,Observaciones,Hora';
       const r=rCer.data.map(d=>[d.cuartel,d.variedad||'',d.tipo_conteo||'',d.hilera,d.planta,d.podador||'',d.contador||'',d.supervisor||'',d.contratista||'',d.total_dardos||0,d.ramillas||0,d.total_general||0,d.fuera_rango||'',(d.observaciones||'').replace(/,/g,';'),d.timestamp||''].join(','));
-      dl([c,...r].join('
-'),'conteos_cerezo.csv');n++;
+      dl([c,...r].join('\n'),'conteos_cerezo.csv');n++;
       await new Promise(x=>setTimeout(x,800));
     }
     if(rCir.data&&rCir.data.length){
       const c='Cuartel,Variedad,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Metros_Lineales,Fuera_Rango,Calidad,Observaciones,Hora';
       const r=rCir.data.map(d=>[d.cuartel,d.variedad||'',d.hilera,d.planta,d.podador||'',d.contador||'',d.supervisor||'',d.contratista||'',d.metros_lineales,d.fuera_rango||'',d.calidad||'',(d.observaciones||'').replace(/,/g,';'),d.timestamp||''].join(','));
-      dl([c,...r].join('
-'),'conteos_ciruelo.csv');n++;
+      dl([c,...r].join('\n'),'conteos_ciruelo.csv');n++;
     }
     toast(n>0?n+' CSV descargados':'Sin datos');
   }catch(e){toast('Error al descargar','warn');console.error(e);}
