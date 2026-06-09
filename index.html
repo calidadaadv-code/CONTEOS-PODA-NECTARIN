@@ -595,7 +595,7 @@ let cDashCuartel=null;
 const CCIR=[{n:'C-28',v:'Angeleno',mn:14.6,ob:17.5,mx:21.0,ap:16.6},{n:'C-7A',v:'Sweet Pekeetah',mn:15.3,ob:18.3,mx:22.0,ap:18.3}];
 const RM=54,RX=78,RI=65;
 let nIdx=0,nCal=null,nRegs=[],nVR='hoy',nVC='hoy',nPass='poda2024',nAdm=false;
-let cIdx=0,cTipo='pre',cCal=null,cRegs=[],cerVD='hoy',cerVC='hoy',cPass='poda2024',cAdm=false;
+let cIdx=0,cTipo='pre',cCal=null,cRegs=[],cerVD='hoy',cerVC='hoy',cerTipoFilt='pre',cPass='poda2024',cAdm=false;
 let cirIdx=0,cirCal=null,cirRegs=[],cirVML='hoy',cirVCal='hoy',cirPass='poda2024',cirAdm=false;
 let nCar=1;
 const L={
@@ -657,7 +657,7 @@ function resetCar(){nCar=1;document.getElementById('car-list').innerHTML='<div c
 async function guardarCer(){const h=document.getElementById('cer-hil').value,p=document.getElementById('cer-pla').value;const pod=document.getElementById('cer-pod').value,cnt=document.getElementById('cer-cnt').value;const sup=document.getElementById('cer-sup').value,comp=document.getElementById('cer-con').value;const obs=document.getElementById('cer-obs').value;const ram=parseInt(document.getElementById('cer-ram').value)||0;const deje=parseInt(document.getElementById('cer-deje').value)||0;if(!h||!p||!pod||!cnt){toast('⚠ Completa todos los campos','warn');return;}const cars=[];let td=0;for(let i=1;i<=nCar;i++){const x=document.getElementById('ci'+i);if(x){const v=parseInt(x.value)||0;cars.push({cargador:i,dardos:v});td+=v;}}const tot=td+deje+ram;const c=CCER[cIdx];const f=tot<c.mn?'bajo':tot>c.mx?'alto':'no';const btn=document.getElementById('cer-sub');btn.disabled=true;btn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';sync('sync-cer','L','Guardando...');const {error}=await db.from('conteos_cerezas').insert([{timestamp:ts(),cuartel:c.n,variedad:c.v,tipo_conteo:cTipo,hilera:String(h),planta:String(p),podador:pod,contador:cnt,supervisor:sup,contratista:comp,cargadores:JSON.stringify(cars),total_dardos:td,dardos_eje:deje,ramillas:ram,total_general:tot,fuera_rango:f,observaciones:obs||''}]);btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar registro';if(error){sync('sync-cer','E','Error');toast('⚠ Error al guardar','warn');return;}sync('sync-cer','O','✓ Guardado');setTimeout(()=>sync('sync-cer','O','En línea'),2000);if(f==='bajo')toast('⚠ Guardado — BAJO rango','warn');else if(f==='alto')toast('⚠ Guardado — SOBRE rango','warn');else toast('✓ Guardado correctamente');document.getElementById('cer-hil').value='';document.getElementById('cer-pla').value='';document.getElementById('cer-obs').value='';document.getElementById('cer-ram').value='';document.getElementById('cer-deje').value='';document.getElementById('cer-tot').textContent='0';document.getElementById('cer-abaj').classList.remove('vis');document.getElementById('cer-aalt').classList.remove('vis');resetCar();loadCer();}
 function fnCer(){let r=cRegs;if(cVista==='hoy')r=r.filter(x=>x.ts&&x.ts.includes(hoy()));if(cFilt!=='todos')r=r.filter(x=>x.tipo===cFilt);return r;}
 function fnReg(){let r=cRegs;if(cFiltR!=='todos')r=r.filter(x=>x.tipo===cFiltR);return r;}
-function fnCerDar(v){let r=cRegs;if(v==='hoy')r=r.filter(x=>x.ts&&x.ts.includes(hoy()));return r;}
+function fnCerDar(v){let r=cRegs;if(v==='hoy')r=r.filter(x=>x.ts&&x.ts.includes(hoy()));if(cerTipoFilt!=='todos')r=r.filter(x=>x.tipo===cerTipoFilt);return r;}
 
 function rnCerDar(){
   const el=document.getElementById('cer-ddar');if(!el)return;
@@ -669,6 +669,10 @@ function rnCerDar(){
   const rows=Object.keys(d).sort().map(c=>{const x=d[c];const inf=x.info||{mn:0,mx:0,ob:0};const a=Math.round(x.s/x.t);const ac=a<inf.mn?'color:#791F1F':a>inf.mx?'color:#633806':'color:var(--ro)';return`<tr style="cursor:pointer" onclick="openDetCer('${c}','${cerVD}')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="${ac};font-weight:500">${a}</td><td style="color:var(--tm);font-size:10px">${inf.ob||'—'}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${cerVD==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
+  <div class="filt-row" style="margin-bottom:12px">
+    <button class="filt-btn${cerTipoFilt==='pre'?' on':''}" onclick="cerTipoFilt='pre';rnCerDar()">PRE PODA</button>
+    <button class="filt-btn${cerTipoFilt==='post'?' on':''}" onclick="cerTipoFilt='post';rnCerDar()">POST PODA</button>
+  </div>
   <div class="stats2"><div class="scard"><div class="slbl">Total conteos</div><div class="sval">${tot}</div><div class="ssub">${cuarts} cuarteles</div></div><div class="scard"><div class="slbl">Prom. dardos</div><div class="sval" style="color:var(--ro)">${avg}</div><div class="ssub">dardos+ramillas</div></div></div>
   ${fr>0?`<div class="alerta bajo vis" style="margin-bottom:14px"><i class="ti ti-alert-circle"></i><span>${fr} planta${fr>1?'s':''} fuera de rango</span></div>`:''}
   <p class="sec-title">Resumen por cuartel</p>
