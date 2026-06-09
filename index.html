@@ -888,6 +888,25 @@ function rnCirProd(v){
 }
 
 loadListas();resetCar();
+
+// ── AUTO-REFRESH cada 5 minutos ─────────────────────────────────────
+// Refresca los datos de la especie activa sin interrumpir al usuario
+setInterval(()=>{
+  // detectar qué vista está activa
+  const vNec = document.getElementById('view-nec');
+  const vCer = document.getElementById('view-cer');
+  const vCir = document.getElementById('view-cir');
+  if(vNec && vNec.style.display!=='none'){
+    loadNec();
+    sync('sync-nec','O','Auto-sync...');
+  } else if(vCer && vCer.style.display!=='none'){
+    loadCer();
+    sync('sync-cer','O','Auto-sync...');
+  } else if(vCir && vCir.style.display!=='none'){
+    loadCir();
+    sync('sync-cir','O','Auto-sync...');
+  }
+}, 5 * 60 * 1000); // 5 minutos
 </script>
 </body>
 </html>
