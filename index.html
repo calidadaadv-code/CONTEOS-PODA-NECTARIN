@@ -1465,48 +1465,53 @@ function renderDash(nec,cer,cir){
 async function expTodos(){
   const btn=document.querySelector('[onclick="expTodos()"]');
   if(btn){btn.innerHTML='<i class="ti ti-refresh spin"></i> Descargando...';btn.disabled=true;}
-
-  // Cargar los 3 si no están cargados
-  const [rNec,rCer,rCir]=await Promise.all([
-    db.from('conteos').select('*').order('id',{ascending:true}).limit(100000),
-    db.from('conteos_cerezas').select('*').order('id',{ascending:true}).limit(100000),
-    db.from('conteos_ciruelas').select('*').order('id',{ascending:true}).limit(100000)
-  ]);
-
-  // CSV Nectarín
-  if(rNec.data&&rNec.data.length){
-    const cab='Cuartel,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Ramillas,Fuera_Rango,Calidad,Observaciones,Hora';
-    const rows=rNec.data.map(r=>[r.cuartel,r.hilera,r.planta,r.podador,r.contador,r.supervisor,r.contratista,r.ramillas,r.fuera_rango,r.calidad,(r.observaciones||'').replace(/,/g,';'),r.timestamp].join(','));
-    descargarCSV([cab,...rows].join('
+  try{
+    const [rNec,rCer,rCir]=await Promise.all([
+      db.from('conteos').select('*').order('id',{ascending:true}).limit(100000),
+      db.from('conteos_cerezas').select('*').order('id',{ascending:true}).limit(100000),
+      db.from('conteos_ciruelas').select('*').order('id',{ascending:true}).limit(100000)
+    ]);
+    let descargados=0;
+    if(rNec.data&&rNec.data.length){
+      const cab='Cuartel,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Ramillas,Fuera_Rango,Calidad,Observaciones,Hora';
+      const rows=rNec.data.map(r=>[r.cuartel,r.hilera,r.planta,r.podador||'',r.contador||'',r.supervisor||'',r.contratista||'',r.ramillas,r.fuera_rango||'',r.calidad||'',(r.observaciones||'').replace(/,/g,';'),r.timestamp||''].join(','));
+      descargarCSV('﻿'+[cab,...rows].join('
 '),'conteos_nectarin.csv');
-  }
-
-  // CSV Cerezo
-  if(rCer.data&&rCer.data.length){
-    const cab='Cuartel,Variedad,Tipo,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Total_Dardos,Ramillas,Total_General,Fuera_Rango,Observaciones,Hora';
-    const rows=rCer.data.map(r=>[r.cuartel,r.variedad,r.tipo_conteo,r.hilera,r.planta,r.podador,r.contador,r.supervisor,r.contratista,r.total_dardos,r.ramillas,r.total_general,r.fuera_rango,(r.observaciones||'').replace(/,/g,';'),r.timestamp].join(','));
-    descargarCSV([cab,...rows].join('
+      descargados++;
+      await new Promise(r=>setTimeout(r,600));
+    }
+    if(rCer.data&&rCer.data.length){
+      const cab='Cuartel,Variedad,Tipo,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Total_Dardos,Ramillas,Total_General,Fuera_Rango,Observaciones,Hora';
+      const rows=rCer.data.map(r=>[r.cuartel,r.variedad||'',r.tipo_conteo||'',r.hilera,r.planta,r.podador||'',r.contador||'',r.supervisor||'',r.contratista||'',r.total_dardos||0,r.ramillas||0,r.total_general||0,r.fuera_rango||'',(r.observaciones||'').replace(/,/g,';'),r.timestamp||''].join(','));
+      descargarCSV('﻿'+[cab,...rows].join('
 '),'conteos_cerezo.csv');
-  }
-
-  // CSV Ciruelo
-  if(rCir.data&&rCir.data.length){
-    const cab='Cuartel,Variedad,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Metros_Lineales,Fuera_Rango,Calidad,Observaciones,Hora';
-    const rows=rCir.data.map(r=>[r.cuartel,r.variedad,r.hilera,r.planta,r.podador,r.contador,r.supervisor,r.contratista,r.metros_lineales,r.fuera_rango,r.calidad,(r.observaciones||'').replace(/,/g,';'),r.timestamp].join(','));
-    descargarCSV([cab,...rows].join('
+      descargados++;
+      await new Promise(r=>setTimeout(r,600));
+    }
+    if(rCir.data&&rCir.data.length){
+      const cab='Cuartel,Variedad,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Metros_Lineales,Fuera_Rango,Calidad,Observaciones,Hora';
+      const rows=rCir.data.map(r=>[r.cuartel,r.variedad||'',r.hilera,r.planta,r.podador||'',r.contador||'',r.supervisor||'',r.contratista||'',r.metros_lineales,r.fuera_rango||'',r.calidad||'',(r.observaciones||'').replace(/,/g,';'),r.timestamp||''].join(','));
+      descargarCSV('﻿'+[cab,...rows].join('
 '),'conteos_ciruelo.csv');
+      descargados++;
+    }
+    toast(descargados>0?'✓ '+descargados+' CSV descargados':'Sin datos para descargar');
+  }catch(e){
+    toast('⚠ Error al descargar','warn');
+    console.error(e);
   }
-
   if(btn){btn.innerHTML='<i class="ti ti-download"></i> Exportar CSV — Nectarín + Cerezo + Ciruelo';btn.disabled=false;}
-  toast('✓ CSVs descargados');
 }
 
 function descargarCSV(contenido, nombre){
   const blob=new Blob([contenido],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
+  a.href=url;
   a.download=nombre;
+  document.body.appendChild(a);
   a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},300);
 }
 
 </script>
