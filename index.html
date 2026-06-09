@@ -693,19 +693,19 @@ let necVProd='acum', cerVProd='acum', cirVProd='acum';
 // ── DATOS BASE ──────────────────────────────────────────
 // NEC: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, frutos_ram, peso_fruto_grs, plantas_ha]
 const PROD_NEC=[
-  // [c, v, ha, kgHa25, kgTot25, kgHaMeta, fRam26, pFruto26grs, pHa, ram25, fRam25, ram_est26, kgHa_pp, kgTot_pp, ram_pp, fRam_pp]
-  ['C-01','Luciana',     4.9094, 37940, 186261, 45000, 2.5, 166.67,1754, 58, 2.10, 65, 39757, 195185, 68, 2.0],
-  ['C-02','Garcica',     4.8154, 34442, 165851, 37500, 2.5, 160.00,1754, 58, 2.24, 65, 36483, 175680, 65, 2.0],
-  ['C-03','Arctic Red',  4.7099, 49626, 233736, 60000, 3.0, 173.91,1754, 66, 2.57, 65, 56738, 267231, 62, 3.0],
-  ['C-04','Arctic Red',  4.4238, 50722, 224382, 60000, 3.0, 173.91,1754, 67, 2.37, 65, 56738, 250996, 62, 3.0],
-  ['C-05','Arctic Red',  9.8046, 50677, 496866, 60000, 3.0, 173.91,1754, 58, 2.80, 65, 57653, 565265, 63, 3.0],
-  ['C-08','Luciana',     8.9798, 49797, 447170, 45000, 2.5, 166.67,1754, 69, 2.52, 65, 37419, 336011, 64, 2.0],
-  ['C-09','Garcica',     9.0271, 29312, 264602, 37500, 2.5, 160.00,1754, 54, 1.93, 65, 35922, 324270, 64, 2.0],
-  ['C-13','Gardeta',     8.8378, 32263, 285133, 45000, 2.5, 166.67,1754, 61, 1.85, 65, 38588, 341035, 66, 2.0],
-  ['C-30','Gardeta',    11.2866, 32154, 362911, 45000, 2.5, 166.67,1754, 60, 1.99, 65, 38003, 428927, 65, 2.0],
-  ['C-31','Kinolea',    11.1515, 29757, 331829, 50000, 3.0, 173.91,1754, 57, 1.82, 65, 57653, 642919, 63, 3.0],
-  ['C-32','Andesnecdos',11.1652, 48358, 539921, 60000, 3.0, 173.91,1754, 62, 2.39, 65, 55823, 623272, 61, 3.0],
-  ['C-7B','Gartairo',   10.2913, 29304, 301580, 30000, 2.0, 160.00,1754, 56, 1.75, 65, 33677, 346580, 60, 2.0],
+  // [c, v, ha, kgHa25, kgTot25, kgHaMeta, fRam26, pFruto26, pHa, ram25, fRam25, ram_est26, kgHa_pp, kgTot_pp, ram_pp, fRam_pp, cal25, cal26]
+  ['C-01','Luciana',     4.9094, 37940, 186261, 45000, 2.5, 166.67,1754, 58, 2.10, 65, 39757, 195185, 68, 2.0, 45, 48],
+  ['C-02','Garcica',     4.8154, 34442, 165851, 37500, 2.5, 160.00,1754, 58, 2.24, 65, 36483, 175680, 65, 2.0, 53, 50],
+  ['C-03','Arctic Red',  4.7099, 49626, 233736, 60000, 3.0, 173.91,1754, 66, 2.57, 65, 56738, 267231, 62, 3.0, 48, 46],
+  ['C-04','Arctic Red',  4.4238, 50722, 224382, 60000, 3.0, 173.91,1754, 67, 2.37, 65, 56738, 250996, 62, 3.0, 44, 46],
+  ['C-05','Arctic Red',  9.8046, 50677, 496866, 60000, 3.0, 173.91,1754, 58, 2.80, 65, 57653, 565265, 63, 3.0, 45, 46],
+  ['C-08','Luciana',     8.9798, 49797, 447170, 45000, 2.5, 166.67,1754, 69, 2.52, 65, 37419, 336011, 64, 2.0, 49, 48],
+  ['C-09','Garcica',     9.0271, 29312, 264602, 37500, 2.5, 160.00,1754, 54, 1.93, 65, 35922, 324270, 64, 2.0, 50, 50],
+  ['C-13','Gardeta',     8.8378, 32263, 285133, 45000, 2.5, 166.67,1754, 61, 1.85, 65, 38588, 341035, 66, 2.0, 49, 48],
+  ['C-30','Gardeta',    11.2866, 32154, 362911, 45000, 2.5, 166.67,1754, 60, 1.99, 65, 38003, 428927, 65, 2.0, 52, 48],
+  ['C-31','Kinolea',    11.1515, 29757, 331829, 50000, 3.0, 173.91,1754, 57, 1.82, 65, 57653, 642919, 63, 3.0, 49, 46],
+  ['C-32','Andesnecdos',11.1652, 48358, 539921, 60000, 3.0, 173.91,1754, 62, 2.39, 65, 55823, 623272, 61, 3.0, 43, 46],
+  ['C-7B','Gartairo',   10.2913, 29304, 301580, 30000, 2.0, 160.00,1754, 56, 1.75, 65, 33677, 346580, 60, 2.0, 47, 50],
 ];
 // CER: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, kg_tot_meta26, frutos_dardo, peso_fruto_grs, plantas_ha]
 const PROD_CER=[
@@ -729,9 +729,9 @@ const PROD_CER=[
 ];
 // CIR: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, kg_tot_meta26, frutos_ml, peso_fruto_grs, plantas_ha]
 const PROD_CIR=[
-  // [c, v, ha, kgHa25, kgTot25, kgHaMeta, kgTotMeta, fML26, pFruto26grs, pHa, ml25, fML25, kgHa_pp, kgTot_pp, ml_pp]
-  ['C-28','Angeleno',       7.3097, 32075, 234458, 47500, 347210, 15.0, 102.94,1754, 16.6, 11.96, 46855, 342495, 17.3],
-  ['C-7A','Sweet Pekeetah', 8.3600, 42025, 351329, 56250, 470250, 12.0, 145.83,1754, 17.3, 12.46, 61697, 515787, 20.1],
+  // [c, v, ha, kgHa25, kgTot25, kgHaMeta, kgTotMeta, fML26, pFruto26, pHa, ml25, fML25, kgHa_pp, kgTot_pp, ml_pp, cal25, cal26]
+  ['C-28','Angeleno',       7.3097, 32075, 234458, 47500, 347210, 15.0, 102.94,1754, 16.6, 11.96, 46855, 342495, 17.3, 76, 68],
+  ['C-7A','Sweet Pekeetah', 8.3600, 42025, 351329, 56250, 470250, 12.0, 145.83,1754, 17.3, 12.46, 61697, 515787, 20.1, 63, 48],
 ];
 
 // ── FUNCIONES AUXILIARES ────────────────────────────────
@@ -809,6 +809,8 @@ function rnNecProd(v){
     <div class="scard"><div class="slbl">Obj. Ramillas 2026</div><div class="sval" style="color:#3730A3">${rd[11]||'—'}</div><div class="ssub">meta de poda</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2025</div><div class="sval" style="color:#555">${fRam25}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2026</div><div class="sval" style="color:var(--vo)">${fRam}</div><div class="ssub">estimación programa</div></div>
+    <div class="scard"><div class="slbl">Calibre 2025</div><div class="sval" style="color:#555">${rd[16]||'—'}</div><div class="ssub">calibre obtenido</div></div>
+    <div class="scard"><div class="slbl">Calibre Meta 2026</div><div class="sval" style="color:#3730A3">${rd[17]||'—'}</div><div class="ssub">calibre esperado</div></div>
   </div>
   ${kg26blk}`;
 }
@@ -879,6 +881,8 @@ function rnCirProd(v){
     <div class="scard"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
     <div class="scard"><div class="slbl">Frutos/Ml 2025</div><div class="sval" style="color:#555">${fML25}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Frutos/Ml 2026</div><div class="sval" style="color:var(--po)">${fML}</div><div class="ssub">estimación programa</div></div>
+    <div class="scard"><div class="slbl">Calibre 2025</div><div class="sval" style="color:#555">${rd[15]||'—'}</div><div class="ssub">calibre obtenido</div></div>
+    <div class="scard"><div class="slbl">Calibre Meta 2026</div><div class="sval" style="color:#3730A3">${rd[16]||'—'}</div><div class="ssub">calibre esperado</div></div>
   </div>
   ${kg26blk}`;
 }
