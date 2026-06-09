@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v4.1.2 -->
+  <!-- v4.2.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -287,10 +287,11 @@
     <div class="hdr-l"><button class="back-btn" onclick="volver()">← Volver</button><div><div class="hdr-title">🍑 Nectarín 2026</div><div class="hdr-sub">Conteo de ramillas</div></div></div>
     <div class="hdr-r"><div class="sync-bdg" id="sync-nec"><i class="ti ti-cloud"></i><span id="sync-nec-t">...</span></div><div class="bdg-vivo-g"><span class="dot"></span>EN VIVO</div><button class="adm-bdg" onclick="toggleAdm('nec')"><i class="ti ti-lock" id="lock-nec-i"></i></button></div>
   </div>
-  <div class="tabs-nec">
+  <div class="tabs-nec" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
     <button class="tab-nec active" onclick="tabNec('ing')"><i class="ti ti-edit"></i>Ingresar</button>
     <button class="tab-nec" onclick="tabNec('ram')"><i class="ti ti-chart-bar"></i>Ramillas</button>
     <button class="tab-nec" onclick="tabNec('cal')"><i class="ti ti-rosette"></i>Calidad</button>
+    <button class="tab-nec" onclick="tabNec('prod')"><i class="ti ti-trending-up"></i>Producción</button>
     <button class="tab-nec" onclick="tabNec('cfg')"><i class="ti ti-settings"></i>Listas<span id="lock-nec-t" style="font-size:9px;margin-left:1px">🔒</span></button>
   </div>
   <div class="panel active" id="nec-ing">
@@ -326,6 +327,13 @@
     </div>
     <div id="nec-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div>
   </div>
+  <div class="panel" id="nec-prod">
+    <div class="tog-row">
+      <button class="tog-btn tog-g" id="nec-phoy" onclick="viNecProd('hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
+      <button class="tog-btn" id="nec-pacum" onclick="viNecProd('acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
+    </div>
+    <div id="nec-dprod"><div class="empty"><i class="ti ti-trending-up"></i>Cargando...</div></div>
+  </div>
   <div class="panel" id="nec-cfg">
     <div id="nec-lock" class="lock-scr">
       <i class="ti ti-shield-lock lock-ico"></i><div class="lock-title">Zona de Administrador</div><div class="lock-sub">Ingresa tu contraseña</div>
@@ -353,10 +361,11 @@
     <div class="hdr-l"><button class="back-btn" onclick="volver()">← Volver</button><div><div class="hdr-title">🍒 Cerezo 2026</div><div class="hdr-sub">Conteo de dardos</div></div></div>
     <div class="hdr-r"><div class="sync-bdg" id="sync-cer"><i class="ti ti-cloud"></i><span id="sync-cer-t">...</span></div><div class="bdg-vivo-r"><span class="dot"></span>EN VIVO</div><button class="adm-bdg" onclick="toggleAdm('cer')"><i class="ti ti-lock" id="lock-cer-i"></i></button></div>
   </div>
-  <div class="tabs-cer">
+  <div class="tabs-cer" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
     <button class="tab-cer active" onclick="tabCer('ing')"><i class="ti ti-edit"></i>Ingresar</button>
     <button class="tab-cer" onclick="tabCer('dash')"><i class="ti ti-chart-bar"></i>Dashboard</button>
     <button class="tab-cer" onclick="tabCer('reg')"><i class="ti ti-list"></i>Registros</button>
+    <button class="tab-cer" onclick="tabCer('prod')"><i class="ti ti-trending-up"></i>Producción</button>
     <button class="tab-cer" onclick="tabCer('cfg')"><i class="ti ti-settings"></i>Listas<span id="lock-cer-t" style="font-size:9px;margin-left:1px">🔒</span></button>
   </div>
   <div class="panel active" id="cer-ing">
@@ -415,6 +424,13 @@
     </div>
     <div id="cer-dreg"><div class="empty"><i class="ti ti-list"></i>Cargando...</div></div>
   </div>
+  <div class="panel" id="cer-prod">
+    <div class="tog-row">
+      <button class="tog-btn tog-r" id="cer-phoy" onclick="viCerProd('hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
+      <button class="tog-btn" id="cer-pacum" onclick="viCerProd('acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
+    </div>
+    <div id="cer-dprod"><div class="empty"><i class="ti ti-trending-up"></i>Cargando...</div></div>
+  </div>
   <div class="panel" id="cer-cfg">
     <div id="cer-lock" class="lock-scr">
       <i class="ti ti-shield-lock lock-ico"></i><div class="lock-title">Zona de Administrador</div><div class="lock-sub">Ingresa tu contraseña</div>
@@ -442,10 +458,11 @@
     <div class="hdr-l"><button class="back-btn" onclick="volver()">← Volver</button><div><div class="hdr-title">🟣 Ciruelo 2026</div><div class="hdr-sub">Conteo de metros lineales</div></div></div>
     <div class="hdr-r"><div class="sync-bdg" id="sync-cir"><i class="ti ti-cloud"></i><span id="sync-cir-t">...</span></div><div class="bdg-vivo-p"><span class="dot"></span>EN VIVO</div><button class="adm-bdg" onclick="toggleAdm('cir')"><i class="ti ti-lock" id="lock-cir-i"></i></button></div>
   </div>
-  <div class="tabs-cir">
+  <div class="tabs-cir" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
     <button class="tab-cir active" onclick="tabCir('ing')"><i class="ti ti-edit"></i>Ingresar</button>
     <button class="tab-cir" onclick="tabCir('ml')"><i class="ti ti-ruler"></i>Metros</button>
     <button class="tab-cir" onclick="tabCir('cal')"><i class="ti ti-rosette"></i>Calidad</button>
+    <button class="tab-cir" onclick="tabCir('prod')"><i class="ti ti-trending-up"></i>Producción</button>
     <button class="tab-cir" onclick="tabCir('cfg')"><i class="ti ti-settings"></i>Listas<span id="lock-cir-t" style="font-size:9px;margin-left:1px">🔒</span></button>
   </div>
   <div class="panel active" id="cir-ing">
@@ -480,6 +497,13 @@
       <button class="tog-btn" id="cir-cacum" onclick="viCir('cal','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
     </div>
     <div id="cir-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div>
+  </div>
+  <div class="panel" id="cir-prod">
+    <div class="tog-row">
+      <button class="tog-btn tog-p" id="cir-phoy" onclick="viCirProd('hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
+      <button class="tog-btn" id="cir-pacum" onclick="viCirProd('acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
+    </div>
+    <div id="cir-dprod"><div class="empty"><i class="ti ti-trending-up"></i>Cargando...</div></div>
   </div>
   <div class="panel" id="cir-cfg">
     <div id="cir-lock" class="lock-scr">
@@ -536,20 +560,46 @@ let cIdx=0,cTipo='pre',cCal=null,cRegs=[],cVista='hoy',cFilt='todos',cFiltR='tod
 let cirIdx=0,cirCal=null,cirRegs=[],cirVML='hoy',cirVCal='hoy',cirPass='poda2024',cirAdm=false;
 let nCar=1;
 const L={
-  nec:{con:['PAOLA RIQUELME','HAYDEE RUIZ','PAULINA ARRIAZA','IVONNE CARREÑO','CONSTANZA SALAS'],sup:['EDUARDO GAMBOA','CARLOS ROJAS','NESTOR CESPEDES','LUIS ROJAS','GRIMI GAMBOA'],comp:['ANTHONY SANDOVAL','FLOR ARAVENA','MIRIAM PINTO','OSCAR PINTO','DENYS SANDOVAL']},
-  cer:{con:['PAOLA RIQUELME','HAYDEE RUIZ','PAULINA ARRIAZA','IVONNE CARREÑO','CONSTANZA SALAS'],sup:['EDUARDO GAMBOA','CARLOS ROJAS','NESTOR CESPEDES','LUIS ROJAS','GRIMI GAMBOA'],comp:['ANTHONY SANDOVAL','FLOR ARAVENA','MIRIAM PINTO','OSCAR PINTO','DENYS SANDOVAL']},
-  cir:{con:['PAOLA RIQUELME','HAYDEE RUIZ','PAULINA ARRIAZA','IVONNE CARREÑO','CONSTANZA SALAS'],sup:['EDUARDO GAMBOA','CARLOS ROJAS','NESTOR CESPEDES','LUIS ROJAS','GRIMI GAMBOA'],comp:['ANTHONY SANDOVAL','FLOR ARAVENA','MIRIAM PINTO','OSCAR PINTO','DENYS SANDOVAL']}
+  nec:{con:[],sup:[],comp:[]},
+  cer:{con:[],sup:[],comp:[]},
+  cir:{con:[],sup:[],comp:[]}
 };
+let listasLoaded=false;
+
+async function loadListas(){
+  const {data,error}=await db.from('config_listas').select('*').order('nombre',{ascending:true});
+  if(error){console.error('Error cargando listas:',error);return;}
+  // resetear
+  ['nec','cer','cir'].forEach(e=>['con','sup','comp'].forEach(t=>L[e][t]=[]));
+  data.forEach(r=>{
+    if(L[r.especie]&&L[r.especie][r.tipo])
+      L[r.especie][r.tipo].push(r.nombre);
+  });
+  listasLoaded=true;
+  rlists('nec');rlists('cer');rlists('cir');
+}
+
+async function addLSB(e,t,nombre){
+  const {error}=await db.from('config_listas').insert([{especie:e,tipo:t,nombre:nombre}]);
+  if(error){toast('Error al guardar','warn');return false;}
+  return true;
+}
+
+async function delLSB(e,t,nombre){
+  const {error}=await db.from('config_listas').delete().eq('especie',e).eq('tipo',t).eq('nombre',nombre);
+  if(error){toast('Error al eliminar','warn');return false;}
+  return true;
+}
 function hoy(){const d=new Date();return d.getDate()+'/'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'/'+d.getFullYear();}
 function ts(){const d=new Date();return d.getDate()+'/'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'/'+d.getFullYear()+' '+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes()+':'+(d.getSeconds()<10?'0':'')+d.getSeconds();}
 function toast(m,t){const el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ok');setTimeout(()=>el.classList.remove('show'),2500);}
 function sync(id,tipo,txt){const b=document.getElementById(id);if(!b)return;if(tipo==='L'){b.innerHTML='<i class="ti ti-refresh spin"></i><span>'+txt+'</span>';b.style.background='rgba(255,255,255,.15)';}else if(tipo==='E'){b.innerHTML='<i class="ti ti-cloud-off"></i><span>'+txt+'</span>';b.style.background='rgba(226,75,74,.3)';}else{b.innerHTML='<i class="ti ti-cloud-check"></i><span>'+txt+'</span>';b.style.background='rgba(255,255,255,.15)';}}
 function pct(n,fn,fn2){const p=Math.round(n/fn*100);const c=fn2==='g'?(p>=70?'background:#E1F5EE;color:#085041;font-weight:600':(p>15?'background:#FAEEDA;color:#633806;font-weight:600':'color:var(--tm)')):(p>15?'background:#FADBD8;color:#791F1F;font-weight:600':'color:var(--tm)');return`<span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mo);${c}">${p}%</span>`;}
-function entrar(e){document.getElementById('pantalla-inicio').style.display='none';document.getElementById('view-nec').style.display=e==='nec'?'block':'none';document.getElementById('view-cer').style.display=e==='cer'?'block':'none';document.getElementById('view-cir').style.display=e==='cir'?'block':'none';if(e==='nec')loadNec();else if(e==='cer')loadCer();else loadCir();}
+function entrar(e){document.getElementById('pantalla-inicio').style.display='none';document.getElementById('view-nec').style.display=e==='nec'?'block':'none';document.getElementById('view-cer').style.display=e==='cer'?'block':'none';document.getElementById('view-cir').style.display=e==='cir'?'block':'none';if(e==='nec')loadNec();else if(e==='cer')loadCer();else loadCir();if(!listasLoaded)loadListas();}
 function volver(){document.getElementById('pantalla-inicio').style.display='flex';document.getElementById('view-nec').style.display='none';document.getElementById('view-cer').style.display='none';document.getElementById('view-cir').style.display='none';}
-function tabNec(t){['ing','ram','cal','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-nec')[i];const pan=document.getElementById('nec-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='ram'||t==='cal')loadNec();}
-function tabCer(t){['ing','dash','reg','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cer')[i];const pan=document.getElementById('cer-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='dash'||t==='reg')loadCer();}
-function tabCir(t){['ing','ml','cal','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cir')[i];const pan=document.getElementById('cir-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='ml'||t==='cal')loadCir();}
+function tabNec(t){['ing','ram','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-nec')[i];const pan=document.getElementById('nec-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='ram'||t==='cal')loadNec();if(t==='prod')rnNecProd(necVProd);}
+function tabCer(t){['ing','dash','reg','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cer')[i];const pan=document.getElementById('cer-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='dash'||t==='reg')loadCer();if(t==='prod')rnCerProd(cerVProd);}
+function tabCir(t){['ing','ml','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cir')[i];const pan=document.getElementById('cir-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='ml'||t==='cal')loadCir();if(t==='prod')rnCirProd(cirVProd);}
 async function loadNec(){sync('sync-nec','L','Cargando...');const {data,error}=await db.from('conteos').select('*').order('id',{ascending:true}).limit(10000);if(error){sync('sync-nec','E','Sin conexión');return;}nRegs=data.map(r=>({c:String(r.cuartel),h:r.hilera,p:r.planta,pod:r.podador,cnt:r.contador,sup:r.supervisor,comp:r.contratista,ram:parseInt(r.ramillas)||0,f:r.fuera_rango==='no'?null:r.fuera_rango,cal:r.calidad,obs:r.observaciones||'',ts:r.timestamp}));sync('sync-nec','O','En línea · '+nRegs.length);rnRam();rnCal();}
 function fnNec(v){if(v==='hoy')return nRegs.filter(r=>r.ts&&r.ts.includes(hoy()));return nRegs;}
 function rnRam(){const el=document.getElementById('nec-dram');if(!el)return;const regs=fnNec(nVR);if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-leaf"></i>'+(nVR==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}const tot=regs.length,avg=(regs.reduce((s,r)=>s+r.ram,0)/tot).toFixed(1);const fr=regs.filter(r=>r.f).length,cuarts=[...new Set(regs.map(r=>r.c))].length;const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,s:0,b:0,al:0,dn:0,comps:new Set()};const x=d[r.c];x.t++;x.s+=r.ram;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;if(r.comp)x.comps.add(r.comp);});const rows=Object.keys(d).sort().map(c=>{const x=d[c];const a=Math.round(x.s/x.t);const ac=a<RM?'color:#791F1F':a>RX?'color:#633806':'color:#085041';const compList=[...x.comps].join(', ');return`<tr style="cursor:pointer" onclick="openDet('nec','${c}','${nVR}')"><td style="color:var(--vo);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="${ac};font-weight:500">${a}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td><td style="font-size:10px;color:var(--tm)">${compList}</td></tr>`;}).join('');el.innerHTML=`<button class="ref-btn ref-g" onclick="loadNec()"><i class="ti ti-refresh"></i>Actualizar</button>${nVR==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}<div class="stats2"><div class="scard"><div class="slbl">Total conteos</div><div class="sval">${tot}</div><div class="ssub">${cuarts} cuarteles</div></div><div class="scard"><div class="slbl">Prom. ramillas</div><div class="sval">${avg}</div><div class="ssub">ideal: ${RI} · rango ${RM}–${RX}</div></div></div>${fr>0?`<div class="alerta bajo vis" style="margin-bottom:14px"><i class="ti ti-alert-circle"></i><span>${fr} planta${fr>1?'s':''} fuera de rango</span></div>`:''}<p class="sec-title">Resumen por cuartel</p><div class="rango-ref rr-g"><i class="ti ti-target"></i>Rango ${RM}–${RX} · Ideal ${RI}</div><div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Prom.</th><th>↓ Bajo%</th><th>✓ Dentro%</th><th>↑ Sobre%</th><th>Contratista</th></tr></thead><tbody>${rows}</tbody></table></div><button class="exp-btn exp-g" onclick="expCSV('nec','ram')"><i class="ti ti-download"></i>Exportar CSV</button>`;}
@@ -584,8 +634,27 @@ function tvPass(e){const i=document.getElementById(e+'-pass'),ic=document.getEle
 function chgPass(e){const n=document.getElementById(e+'-pn').value.trim(),c=document.getElementById(e+'-pc').value.trim();if(!n||n.length<4){toast('Mínimo 4 caracteres','warn');return;}if(n!==c){toast('No coinciden','warn');return;}if(e==='nec')nPass=n;else if(e==='cer')cPass=n;else cirPass=n;document.getElementById(e+'-pn').value='';document.getElementById(e+'-pc').value='';toast('✓ Contraseña actualizada');}
 function rlists(e){const fldMap={nec:{con:'nec-cnt',sup:'nec-sup',comp:'nec-con'},cer:{con:'cer-cnt',sup:'cer-sup',comp:'cer-con'},cir:{con:'cir-cnt',sup:'cir-sup',comp:'cir-con'}};const saved={};['con','sup','comp'].forEach(t=>{const inp=document.getElementById(fldMap[e][t]);if(inp)saved[t]=inp.value;});['con','sup','comp'].forEach(t=>{const ul=document.getElementById(e+'-l'+t);if(!ul)return;ul.innerHTML=L[e][t].map((n,i)=>`<div class="cfg-item"><span class="cfg-name">${n}</span><button class="cfg-del" onclick="delL('${e}','${t}',${i})"><i class="ti ti-x"></i></button></div>`).join('');rdd(e,t);});['con','sup','comp'].forEach(t=>{const inp=document.getElementById(fldMap[e][t]);if(inp&&saved[t])inp.value=saved[t];});}
 function rdd(e,t){const ddMap={nec:{con:'nec-cnt-dd',sup:'nec-sup-dd',comp:'nec-con-dd'},cer:{con:'cer-cnt-dd',sup:'cer-sup-dd',comp:'cer-con-dd'},cir:{con:'cir-cnt-dd',sup:'cir-sup-dd',comp:'cir-con-dd'}};const dd=document.getElementById(ddMap[e][t]);if(!dd)return;const fld=e==='nec'?{con:'nec-cnt',sup:'nec-sup',comp:'nec-con'}:e==='cer'?{con:'cer-cnt',sup:'cer-sup',comp:'cer-con'}:{con:'cir-cnt',sup:'cir-sup',comp:'cir-con'};dd.innerHTML=L[e][t].map(n=>`<div class="copt" onclick="selDD('${fld[t]}','${ddMap[e][t]}','${n.replace(/'/g,"\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="copt nuevo" onclick="clrDD('${fld[t]}','${ddMap[e][t]}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;}
-function addL(e,t){const inp=document.getElementById(e+'-a'+t);const v=inp.value.trim();if(!v)return;if(L[e][t].includes(v)){toast('Ya existe','warn');return;}L[e][t].push(v);inp.value='';rlists(e);toast('✓ Agregado: '+v);}
-function delL(e,t,i){L[e][t].splice(i,1);rlists(e);}
+async function addL(e,t){
+  const inp=document.getElementById(e+'-a'+t);
+  const v=inp.value.trim().toUpperCase();
+  if(!v)return;
+  if(L[e][t].includes(v)){toast('Ya existe','warn');return;}
+  const ok=await addLSB(e,t,v);
+  if(!ok)return;
+  L[e][t].push(v);
+  inp.value='';
+  rlists(e);
+  toast('✓ Guardado: '+v);
+}
+async function delL(e,t,i){
+  const nombre=L[e][t][i];
+  if(!nombre)return;
+  const ok=await delLSB(e,t,nombre);
+  if(!ok)return;
+  L[e][t].splice(i,1);
+  rlists(e);
+  toast('✓ Eliminado: '+nombre);
+}
 function openDD(id){document.querySelectorAll('.cdd').forEach(d=>{if(d.id!==id)d.classList.remove('open');});document.getElementById(id).classList.toggle('open');}
 function selDD(fld,ddId,val){const inp=document.getElementById(fld);inp.value=val;inp.readOnly=true;document.getElementById(ddId).classList.remove('open');}
 function clrDD(fld,ddId){const inp=document.getElementById(fld);inp.value='';inp.readOnly=false;inp.placeholder='Escribe...';inp.focus();document.getElementById(ddId).classList.remove('open');}
@@ -615,7 +684,203 @@ function openDetCirCal(c,vista){const regs=fnCir(vista||'acum').filter(r=>r.c===
 // FIX 2: openDetCir recibe vista y filtra con fnCir
 function openDetCir(c,vista){const regs=fnCir(vista||'acum').filter(r=>r.c===c);const ov=document.getElementById('modal-ov');document.getElementById('modal-hdr').className='modal-hdr modal-hdr-p';document.getElementById('modal-tit').textContent='Detalle '+c+(vista==='hoy'?' — Hoy':'')+' — '+regs.length+' conteos';const tot=regs.length,fr=regs.filter(r=>r.f).length,avg=tot?(regs.reduce((s,r)=>s+r.ml,0)/tot).toFixed(2):'-';document.getElementById('modal-stats').innerHTML=`<div class="mstat" style="background:var(--pc)"><div class="mstat-val" style="color:var(--po)">${tot}</div><div class="mstat-lbl">Conteos</div></div><div class="mstat"><div class="mstat-val" style="color:var(--po)">${avg}</div><div class="mstat-lbl">Prom. ml</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${fr}</div><div class="mstat-lbl">Fuera rango</div></div>`;document.getElementById('modal-thead').innerHTML='<th>H</th><th>P</th><th>Podador</th><th>Metros</th><th>Estado</th>';document.getElementById('modal-tbody').innerHTML=regs.map(r=>{const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--po)';const estado=r.f==='bajo'?`<span style="color:#791F1F;font-size:10px">↓${r.ml}</span>`:r.f==='alto'?`<span style="color:#633806;font-size:10px">↑${r.ml}</span>`:`<span style="color:var(--po);font-size:10px">✓${r.ml}</span>`;return`<tr><td>${r.h}</td><td>${r.p}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}</td><td style="${tc};font-weight:500">${r.ml}</td><td>${estado}</td></tr>`;}).join('')||'<tr><td colspan="5" class="empty">Sin conteos</td></tr>';ov.classList.add('open');}
 function toggleDesglose(){const d=document.getElementById('cer-desglose'),ico=document.getElementById('des-ico');if(!d)return;if(d.style.display==='none'||d.style.display===''){d.style.display='block';if(ico)ico.className='ti ti-chevron-up';}else{d.style.display='none';if(ico)ico.className='ti ti-chevron-down';}}
-rlists('nec');rlists('cer');rlists('cir');resetCar();
+
+// ═══════════════════════════════════════════════════════
+// TAB PRODUCCIÓN — datos base desde Excel estimaciones
+// ═══════════════════════════════════════════════════════
+let necVProd='acum', cerVProd='acum', cirVProd='acum';
+
+// ── DATOS BASE ──────────────────────────────────────────
+// NEC: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, frutos_ram, peso_fruto_grs, plantas_ha]
+const PROD_NEC=[
+  ['C-01','Luciana',    4.9094, 91084,447170, 45000, 2.5,177.78,1754],
+  ['C-02','Garcica',    4.8154, 34442,165851, 37500, 2.5,150.94,1754],
+  ['C-03','Arctic Red', 4.7099, 49626,233736, 60000, 3.0,166.67,1754],
+  ['C-04','Arctic Red', 4.4238, 50722,224382, 60000, 3.0,181.82,1754],
+  ['C-05','Arctic Red', 9.8046, 50677,496866, 60000, 3.0,177.78,1754],
+  ['C-08','Luciana',    8.9798, 20742,186261, 45000, 2.5,163.27,1754],
+  ['C-09','Garcica',    9.0271, 29312,264602, 37500, 2.5,160.00,1754],
+  ['C-13','Gardeta',    8.8379, 32263,285133, 45000, 2.5,163.27,1754],
+  ['C-30','Gardeta',   11.2866, 32154,362911, 45000, 2.5,153.85,1754],
+  ['C-31','Kinolea',   11.1515, 29757,331829, 50000, 3.0,163.27,1754],
+  ['C-32','Andesnecdos',11.1652,48358,539921, 60000, 3.0,186.05,1754],
+  ['C-7B','Gartairo',  10.2913, 29304,301580, 30000, 2.0,170.21,1754],
+];
+// CER: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, kg_tot_meta26, frutos_dardo, peso_fruto_grs, plantas_ha]
+const PROD_CER=[
+  ['C-6', 'Lapins',  7.0513, 19342,136359, 21250,149839, 5,11.7,1316],
+  ['C-10','Lapins', 13.9832, 14953,209049, 21250,297143, 5,11.7,1429],
+  ['C-15','Lapins',  5.0996, 27815,141855, 21250,108367, 5,11.7,1316],
+  ['C-17','Lapins',  2.5179, 15636, 39402, 21250, 53505, 5,11.7,1316],
+  ['C-18','Lapins',  5.6552, 13572, 80346, 21250,120172, 5,11.7,1316],
+  ['C-19','Lapins',  8.2361, 19547,161069, 21250,175018, 5,11.7,1316],
+  ['C-22','Lapins', 13.7659, 13944,191175, 21250,292525, 5,11.7,1316],
+  ['C-24','Lapins',  6.9244, 17420,120547, 21250,147143, 5,11.7,1316],
+  ['C-11','Santina', 9.6075, 16605,159571, 17647,169544,3.5,10.9,1429],
+  ['C-12','Santina', 8.7210, 16543,144254, 17647,153900,3.5,10.9,1316],
+  ['C-20','Santina', 9.6816, 19308,186901, 17647,170852,3.5,10.9,1316],
+  ['C-21','Santina',11.6151, 16715,194563, 17647,204972,3.5,10.9,1316],
+  ['C-23','Santina', 3.6252, 15285, 55330, 17647, 63974,3.5,10.9,1316],
+  ['C-25','Santina', 6.8423, 17222,117800, 17647,120746,3.5,10.9,1316],
+  ['C-26','Santina', 8.7886, 15796,138849, 17647,155094,3.5,10.9,1316],
+  ['C-29','Santina', 7.5316, 19372,145869, 17647,132911,3.5,10.9,1316],
+];
+// CIR: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, kg_tot_meta26, frutos_ml, peso_fruto_grs, plantas_ha]
+const PROD_CIR=[
+  ['C-28','Angeleno',      7.3097,    0,     0, 47500,347210,15.0, 93.33,1754],
+  ['C-7A','Sweet Pekeetah',8.3600,39677,331700, 56250,470250,12.0,112.90,1754],
+];
+
+// ── FUNCIONES AUXILIARES ────────────────────────────────
+
+
+// ── NECTARÍN PRODUCCIÓN ─────────────────────────────────
+function viNecProd(v){necVProd=v;document.getElementById('nec-phoy').className='tog-btn'+(v==='hoy'?' tog-g':'');document.getElementById('nec-pacum').className='tog-btn'+(v==='acum'?' tog-g':'');rnNecProd(v);}
+
+let necProdCuartel=PROD_NEC[0][0];
+let cerProdCuartelP=PROD_CER[0][0];
+let cirProdCuartelP=PROD_CIR[0][0];
+
+// ── helpers compartidos ─────────────────────────────────────────────────
+function fmtKg(v){if(v>=1000000)return(v/1000000).toFixed(2)+' M kg';if(v>=1000)return Math.round(v/1000).toLocaleString()+' t';return Math.round(v).toLocaleString()+' kg';}
+function pctBar(pct){const p=Math.min(Math.max(pct,0),200);const bg=pct>=100?'#1D9E75':pct>=80?'#EF9F27':'#C0392B';return`<div style="background:#f0f0ee;border-radius:4px;height:8px;overflow:hidden;margin-top:4px"><div style="width:${Math.min(p,100)}%;height:100%;background:${bg};border-radius:4px"></div></div><div style="font-size:10px;font-family:var(--mo);color:${bg};margin-top:2px;font-weight:600">${pct.toFixed(1)}% de meta</div>`;}
+function kgEstBlock(avgVal, fUnit, pFruto, pHa, ha, kg25ha, kg25tot, kg26haEst, kg26totEst, cuartel, borderColor){
+  if(avgVal===null||avgVal===undefined||isNaN(avgVal))return`<div style="background:#fff;border:2px solid ${borderColor};border-radius:10px;padding:12px 14px;margin-bottom:14px"><div style="font-size:10px;font-family:var(--mo);color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;font-weight:600">📊 Estimación de Kilos — ${cuartel}</div><div style="font-size:12px;font-family:var(--mo);color:var(--tm);padding:8px 0">Sin conteos aún para este cuartel</div></div>`;
+  const kg26ha=Math.round(avgVal*fUnit*pFruto*pHa/1000);
+  const kg26tot=Math.round(kg26ha*ha);
+  const kg26estTot=Math.round(kg26haEst*ha);
+  const _pctKg=Math.round((kg26ha/kg25ha)*100)-100;
+  const _pctC=_pctKg>=0?'#0E6655':'#791F1F';const _pctI=_pctKg>=0?'↑':'↓';const _bg=_pctKg>=0?'#E8F8F5':'var(--rc)';
+  const _pctEst=Math.round((kg26ha/kg26haEst)*100)-100;
+  const _pctEstC=_pctEst>=0?'#0E6655':'#791F1F';const _pctEstI=_pctEst>=0?'↑':'↓';const _bgEst=_pctEst>=0?'#E8F8F5':'var(--rc)';
+  return`<div style="background:#fff;border:2px solid ${borderColor};border-radius:10px;padding:12px 14px;margin-bottom:14px">
+    <div style="font-size:10px;font-family:var(--mo);color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;font-weight:600">📊 Estimación de Kilos — ${cuartel}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div style="background:var(--rc);border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;font-family:var(--mo);color:var(--ro);text-transform:uppercase;margin-bottom:4px">Kilos/ha 2025</div><div style="font-size:18px;font-family:var(--mo);font-weight:500;color:var(--ro)">${kg25ha.toLocaleString()}</div><div style="font-size:9px;font-family:var(--mo);color:var(--tm)">${fmtKg(kg25tot)} total</div></div>
+      <div style="background:#EEF2FF;border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;font-family:var(--mo);color:#3730A3;text-transform:uppercase;margin-bottom:4px">Meta 2026</div><div style="font-size:18px;font-family:var(--mo);font-weight:500;color:#3730A3">${kg26haEst.toLocaleString()}</div><div style="font-size:9px;font-family:var(--mo);color:var(--tm)">${fmtKg(kg26estTot)} total</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div style="background:#E8F8F5;border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;font-family:var(--mo);color:#0E6655;text-transform:uppercase;margin-bottom:4px">Estimado actual</div><div style="font-size:18px;font-family:var(--mo);font-weight:500;color:#0E6655">${kg26ha.toLocaleString()}</div><div style="font-size:9px;font-family:var(--mo);color:var(--tm)">${fmtKg(kg26tot)} total</div></div>
+      <div style="background:${_bg};border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;font-family:var(--mo);color:${_pctC};text-transform:uppercase;margin-bottom:4px">vs 2025</div><div style="font-size:20px;font-family:var(--mo);font-weight:700;color:${_pctC}">${_pctI} ${Math.abs(_pctKg)}%</div></div>
+      <div style="background:${_bgEst};border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;font-family:var(--mo);color:${_pctEstC};text-transform:uppercase;margin-bottom:4px">vs Meta 2026</div><div style="font-size:20px;font-family:var(--mo);font-weight:700;color:${_pctEstC}">${_pctEstI} ${Math.abs(_pctEst)}%</div></div>
+    </div>
+    <div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-top:8px;text-align:center">*Estimación basada en promedio acumulado de conteos</div>
+  </div>`;
+}
+function selectorDropdown(opts, onchg, borderColor, txtColor){
+  return`<div style="margin-bottom:14px"><label style="font-size:11px;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Cuartel</label><select onchange="${onchg}" style="width:100%;padding:10px 14px;border-radius:10px;border:2px solid ${borderColor};font-size:15px;font-weight:600;color:${txtColor};background:#fff;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22${encodeURIComponent(txtColor)}%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>');background-repeat:no-repeat;background-position:right 12px center;cursor:pointer">${opts}</select></div>`;
+}
+
+// ── NECTARÍN PRODUCCIÓN ─────────────────────────────────────────────────
+function viNecProd(v){necVProd=v;document.getElementById('nec-phoy').className='tog-btn'+(v==='hoy'?' tog-g':'');document.getElementById('nec-pacum').className='tog-btn'+(v==='acum'?' tog-g':'');rnNecProd(v);}
+function rnNecProd(v){
+  const el=document.getElementById('nec-dprod');if(!el)return;
+  const regs=fnNec(v);
+  if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(v==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
+  // avg ramillas por cuartel
+  const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={s:0,n:0};map[r.c].s+=r.ram;map[r.c].n++;});
+  const avgRam={};Object.keys(map).forEach(c=>{avgRam[c]=(map[c].s/map[c].n);});
+  // cuartel seleccionado
+  if(!avgRam[necProdCuartel])necProdCuartel=Object.keys(avgRam)[0];
+  const rd=PROD_NEC.find(r=>r[0]===necProdCuartel)||PROD_NEC[0];
+  const [c,vr,ha,kgHa25,kgTot25,kgHaMeta,fRam,pFruto,pHa]=rd;
+  const avg=avgRam[c]||null;
+  const avg25_ram=rd[6];// frutos/ramilla 2025 (del excel — usamos campo frutos/ramilla)
+  const avg25_obj=PROD_NEC.find(r=>r[0]===c);
+  // Dif promedio vs año anterior no disponible directamente, mostramos lo que tenemos
+  let pctDif='-',pctColor='inherit',pctIcon='';
+  // cards estilo cerezo
+  const totCq=map[c]?map[c].n:0;
+  const avgTxt=avg!==null?parseFloat(avg).toFixed(1):'-';
+  const ram25_ref=kgHa25>0?Math.round(kgHa25/(fRam*pFruto*pHa/1000)):null;
+  if(ram25_ref&&avg!==null){const diffVal=(parseFloat(avg)/ram25_ref*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
+  const opts=PROD_NEC.filter(r=>avgRam[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===necProdCuartel?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
+  const kg26blk=kgHa25?kgEstBlock(avg,fRam,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgHaMeta*ha,c,'var(--vd)'):'';
+  el.innerHTML=`<button class="ref-btn ref-g" onclick="loadNec()"><i class="ti ti-refresh"></i>Actualizar</button>
+  ${v==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
+  ${selectorDropdown(opts,"necProdCuartel=this.value;rnNecProd(necVProd)",'var(--vd)','var(--vo)')}
+  <div class="stats2">
+    <div class="scard"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}</div></div>
+    <div class="scard"><div class="slbl">Prom. Ramillas 2026</div><div class="sval" style="color:var(--vo)">${avgTxt}</div><div class="ssub">promedio acumulado</div></div>
+    <div class="scard"><div class="slbl">Ref. Ramillas 2025</div><div class="sval" style="color:#555">${ram25_ref||'—'}</div><div class="ssub">año anterior</div></div>
+    <div class="scard"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
+    <div class="scard"><div class="slbl">Frutos/Ramilla 2025</div><div class="sval" style="color:#555">${fRam}</div><div class="ssub">real año anterior</div></div>
+    <div class="scard"><div class="slbl">Frutos/Ramilla 2026</div><div class="sval" style="color:var(--vo)">${fRam}</div><div class="ssub">estimación programa</div></div>
+  </div>
+  ${kg26blk}`;
+}
+
+// ── CEREZO PRODUCCIÓN ───────────────────────────────────────────────────
+function viCerProd(v){cerVProd=v;document.getElementById('cer-phoy').className='tog-btn'+(v==='hoy'?' tog-r':'');document.getElementById('cer-pacum').className='tog-btn'+(v==='acum'?' tog-r':'');rnCerProd(v);}
+function rnCerProd(v){
+  const el=document.getElementById('cer-dprod');if(!el)return;
+  const regsProd=cerVProd==='hoy'?cRegs.filter(x=>x.ts&&x.ts.includes(hoy())):cRegs;
+  if(!regsProd.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(cerVProd==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
+  const map={};regsProd.forEach(r=>{if(!map[r.c])map[r.c]={s:0,n:0};map[r.c].s+=r.tot;map[r.c].n++;});
+  const avgDar={};Object.keys(map).forEach(c=>{avgDar[c]=(map[c].s/map[c].n);});
+  if(!avgDar[cerProdCuartelP])cerProdCuartelP=Object.keys(avgDar)[0];
+  const rd=PROD_CER.find(r=>r[0]===cerProdCuartelP)||PROD_CER[0];
+  const [c,vr,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,fDar,pFruto,pHa]=rd;
+  const avg=avgDar[c]||null;
+  const totCq=map[c]?map[c].n:0;
+  const avgTxt=avg!==null?parseFloat(avg).toFixed(1):'-';
+  const d25=DARDOS2025[c];
+  const d25txt=d25!==undefined?d25:'-';
+  let pctDif='-',pctColor='inherit',pctIcon='';
+  if(d25!==undefined&&avg!==null){const diffVal=(parseFloat(avg)/d25*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
+  const fd25=FRUTOS_DARDO_2025[c]||'-';
+  const fd26=FRUTOS_DARDO_EST[c]||'-';
+  const opts=PROD_CER.filter(r=>avgDar[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cerProdCuartelP?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
+  const kg26blk=kgHa25?kgEstBlock(avg,fDar,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,'var(--rd)'):'';
+  el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
+  ${cerVProd==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
+  ${selectorDropdown(opts,"cerProdCuartelP=this.value;rnCerProd(cerVProd)",'var(--rd)','var(--ro)')}
+  <div class="stats2">
+    <div class="scard"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}</div></div>
+    <div class="scard"><div class="slbl">Prom. dardos 2026</div><div class="sval" style="color:var(--ro)">${avgTxt}</div><div class="ssub">dardos+ramillas</div></div>
+    <div class="scard"><div class="slbl">Dardos 2025</div><div class="sval" style="color:#555">${d25txt}</div><div class="ssub">año anterior</div></div>
+    <div class="scard"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
+    <div class="scard"><div class="slbl">Frutos/Dardo 2025</div><div class="sval" style="color:#555">${fd25}</div><div class="ssub">real año anterior</div></div>
+    <div class="scard"><div class="slbl">Frutos/Dardo 2026</div><div class="sval" style="color:var(--ro)">${fd26}</div><div class="ssub">estimación programa</div></div>
+  </div>
+  ${kg26blk}`;
+}
+
+// ── CIRUELO PRODUCCIÓN ──────────────────────────────────────────────────
+function viCirProd(v){cirVProd=v;document.getElementById('cir-phoy').className='tog-btn'+(v==='hoy'?' tog-p':'');document.getElementById('cir-pacum').className='tog-btn'+(v==='acum'?' tog-p':'');rnCirProd(v);}
+function rnCirProd(v){
+  const el=document.getElementById('cir-dprod');if(!el)return;
+  const regsProd=cirVProd==='hoy'?cirRegs.filter(x=>x.ts&&x.ts.includes(hoy())):cirRegs;
+  if(!regsProd.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(cirVProd==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
+  const map={};regsProd.forEach(r=>{if(!map[r.c])map[r.c]={s:0,n:0};map[r.c].s+=r.ml;map[r.c].n++;});
+  const avgML={};Object.keys(map).forEach(c=>{avgML[c]=(map[c].s/map[c].n);});
+  if(!avgML[cirProdCuartelP])cirProdCuartelP=Object.keys(avgML)[0];
+  const rd=PROD_CIR.find(r=>r[0]===cirProdCuartelP)||PROD_CIR[0];
+  const [c,vr,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,fML,pFruto,pHa]=rd;
+  const avg=avgML[c]||null;
+  const totCq=map[c]?map[c].n:0;
+  const avgTxt=avg!==null?parseFloat(avg).toFixed(2):'-';
+  // ref ml año anterior (invertida desde kg/ha)
+  const ml25ref=kgHa25>0?Math.round((kgHa25/(fML*pFruto*pHa/1000))*100)/100:null;
+  let pctDif='-',pctColor='inherit',pctIcon='';
+  if(ml25ref&&avg!==null){const diffVal=(parseFloat(avg)/ml25ref*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
+  const opts=PROD_CIR.filter(r=>avgML[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cirProdCuartelP?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
+  const kg26blk=kgEstBlock(avg,fML,pFruto,pHa,ha,kgHa25>0?kgHa25:kgHaMeta,kgTot25>0?kgTot25:kgTotMeta,kgHaMeta,kgTotMeta,c,'var(--pd)');
+  el.innerHTML=`<button class="ref-btn ref-p" onclick="loadCir()"><i class="ti ti-refresh"></i>Actualizar</button>
+  ${cirVProd==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
+  ${selectorDropdown(opts,"cirProdCuartelP=this.value;rnCirProd(cirVProd)",'var(--pd)','var(--po)')}
+  <div class="stats2">
+    <div class="scard"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}</div></div>
+    <div class="scard"><div class="slbl">Prom. metros 2026</div><div class="sval" style="color:var(--po)">${avgTxt}</div><div class="ssub">metros lineales</div></div>
+    <div class="scard"><div class="slbl">Ref. metros 2025</div><div class="sval" style="color:#555">${ml25ref?ml25ref.toFixed(2):(kgHa25>0?'—':'nuevo')}</div><div class="ssub">${kgHa25>0?'año anterior':'cuartel nuevo'}</div></div>
+    <div class="scard"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
+    <div class="scard"><div class="slbl">Frutos/Ml 2025</div><div class="sval" style="color:#555">${fML}</div><div class="ssub">referencia</div></div>
+    <div class="scard"><div class="slbl">Frutos/Ml 2026</div><div class="sval" style="color:var(--po)">${fML}</div><div class="ssub">estimación programa</div></div>
+  </div>
+  ${kg26blk}`;
+}
+
+loadListas();resetCar();
 </script>
 </body>
 </html>
