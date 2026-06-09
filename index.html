@@ -1236,10 +1236,32 @@ function rnRevPanel(esp,regs,color,unidad){
     const avg=mapCuart[c].sum/mapCuart[c].count;
     return`<tr><td style="font-weight:500;color:${color}">${c}</td><td style="text-align:center">${mapCuart[c].count}</td><td style="text-align:center">${fmtPctErr(avg)}</td></tr>`;
   }).join('')||`<tr><td colspan="3" style="text-align:center;color:var(--tm);padding:10px;font-family:var(--mo);font-size:12px">Sin revisiones aún</td></tr>`;
+  // Calcular ≤10 y >10 por contadora
+  const mapDif={};
+  revEsp.forEach(r=>{
+    const n=r.contador||'Sin nombre';
+    if(!mapDif[n])mapDif[n]={ok:0,mal:0};
+    const dif=Math.abs((r.valor_original||0)-(r.valor_revision||0));
+    if(dif<=10)mapDif[n].ok++;else mapDif[n].mal++;
+  });
+  const rowsCnt2=Object.keys(mapCnt).sort().map(n=>{
+    const avg=mapCnt[n].sum/mapCnt[n].count;
+    const d=mapDif[n]||{ok:0,mal:0};
+    const tot=d.ok+d.mal;
+    const pOk=tot?Math.round(d.ok/tot*100):0;
+    const bgOk=pOk>=80?'#E8F8F5':'#FFC7CE'; const fgOk=pOk>=80?'#0E6655':'#9C0006';
+    const bgMal=d.mal>0?'#FFC7CE':'#E8F8F5'; const fgMal=d.mal>0?'#9C0006':'#0E6655';
+    const nEsc=n.replace(/'/g,"\'");
+    return`<tr style="cursor:pointer" onclick="abrirDetRev('${esp}','${nEsc}')">
+      <td style="font-weight:600;text-align:left;color:${color};text-decoration:underline dotted">${n}</td>
+      <td style="text-align:center">${mapCnt[n].count}</td>
+      <td style="text-align:center">${fmtPctErr(avg)}</td>
+      <td style="text-align:center"><span style="background:${bgOk};color:${fgOk};font-size:11px;font-family:var(--mo);font-weight:700;padding:3px 8px;border-radius:5px">${d.ok}</span></td>
+      <td style="text-align:center"><span style="background:${bgMal};color:${fgMal};font-size:11px;font-family:var(--mo);font-weight:700;padding:3px 8px;border-radius:5px">${d.mal}</span></td>
+    </tr>`;
+  }).join('')||`<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:10px;font-family:var(--mo);font-size:12px">Sin revisiones aún</td></tr>`;
   return`<p class="sec-title" style="margin-top:8px">% Error por Contadora</p>
-  <div class="twrap"><table><thead><tr><th>Contadora</th><th>Revisiones</th><th>% Error prom.</th></tr></thead><tbody>${rowsCnt}</tbody></table></div>
-  <p class="sec-title" style="margin-top:12px">% Error por Cuartel</p>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Revisiones</th><th>% Error prom.</th></tr></thead><tbody>${rowsCuart}</tbody></table></div>`;
+  <div class="twrap"><table><thead><tr><th>Contadora</th><th>Revisiones</th><th>% Error prom.</th><th>✓ Dif ≤10</th><th>✗ Dif >10</th></tr></thead><tbody>${rowsCnt2}</tbody></table></div>`;
 }
 
 async function rnRevNec(){await loadRevisiones();const el=document.getElementById('nec-rev-panel');if(!el)return;el.innerHTML=rnRevPanel('nec',nRegs,'var(--vo)','Ramillas');}
@@ -1279,6 +1301,60 @@ async function expTodos(){
   if(btn){btn.innerHTML='<i class="ti ti-download"></i> Exportar CSV — Nectarin + Cerezo + Ciruelo';btn.disabled=false;}
 }
 function dl(txt,name){const b=new Blob([txt],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);}
+
+
+function abrirDetRev(esp, contador){
+  const revs = todasRevisiones.filter(r=>r.especie===esp && r.contador===contador);
+  const color = esp==='nec'?'var(--vo)':esp==='cer'?'var(--ro)':'var(--po)';
+  const colorCls = esp==='nec'?'modal-hdr-g':esp==='cer'?'modal-hdr-r':'modal-hdr-p';
+  const unid = esp==='nec'?'Ramillas':esp==='cer'?'Dardos':'Metros';
+  document.getElementById('modal-hdr').className='modal-hdr '+colorCls;
+  document.getElementById('modal-tit').textContent='Revisiones — '+contador;
+
+  const tbody = revs.map(r=>{
+    const dif = Math.abs((r.valor_original||0)-(r.valor_revision||0));
+    const pct = r.valor_original>0?(dif/r.valor_original*100).toFixed(1):0;
+    const c = dif<=10?'#0E6655':'#9C0006';
+    const bg = dif<=10?'#E8F8F5':'#FFC7CE';
+    const fecha = r.timestamp_revision?(new Date(r.timestamp_revision).toLocaleDateString('es-CL')+' '+new Date(r.timestamp_revision).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})):'—';
+    return`<tr>
+      <td style="font-size:10px;color:var(--tm)">${fecha}</td>
+      <td style="color:${color};font-weight:600">${r.cuartel||'—'}</td>
+      <td>H${r.hilera||'?'}·P${r.planta||'?'}</td>
+      <td style="font-weight:600">${r.valor_original||0}</td>
+      <td style="font-weight:600;color:${color}">${r.valor_revision||0}</td>
+      <td style="text-align:center"><span style="background:${bg};color:${c};font-size:11px;font-family:var(--mo);font-weight:700;padding:2px 7px;border-radius:4px">${dif}</span></td>
+      <td style="text-align:center"><span style="background:${bg};color:${c};font-size:11px;font-family:var(--mo);font-weight:700;padding:2px 7px;border-radius:4px">${pct}%</span></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="7" class="empty">Sin revisiones</td></tr>';
+
+  const tot=revs.length;
+  const avgPct=tot?(revs.reduce((s,r)=>s+parseFloat(r.pct_error||0),0)/tot).toFixed(1):0;
+  const ok=revs.filter(r=>Math.abs((r.valor_original||0)-(r.valor_revision||0))<=10).length;
+  const mal=tot-ok;
+
+  document.getElementById('modal-stats').innerHTML=`
+    <div class="mstat"><div class="mstat-val" style="color:${color}">${tot}</div><div class="mstat-lbl">Revisiones</div></div>
+    <div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${ok}</div><div class="mstat-lbl">Dif ≤10</div></div>
+    <div class="mstat" style="background:#FFC7CE"><div class="mstat-val" style="color:#9C0006">${mal}</div><div class="mstat-lbl">Dif >10</div></div>`;
+
+  const modalBody = document.querySelector('#modal-ov .modal-body');
+  modalBody.innerHTML=`
+    <div class="modal-stats">
+      <div class="mstat"><div class="mstat-val" style="color:${color}">${tot}</div><div class="mstat-lbl">Revisiones</div></div>
+      <div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${ok}</div><div class="mstat-lbl">Dif ≤10</div></div>
+      <div class="mstat" style="background:#FFC7CE"><div class="mstat-val" style="color:#9C0006">${mal}</div><div class="mstat-lbl">Dif >10</div></div>
+    </div>
+    <div style="background:#f9f9f7;border-radius:8px;padding:10px;margin-bottom:12px;display:flex;justify-content:space-between">
+      <span style="font-size:11px;font-family:var(--mo);color:var(--tm);text-transform:uppercase">% Error promedio</span>
+      <span style="font-size:18px;font-family:var(--mo);font-weight:700;color:${parseFloat(avgPct)<=10?'#0E6655':'#9C0006'}">${avgPct}%</span>
+    </div>
+    <div class="twrap"><table>
+      <thead><tr><th>Fecha</th><th>Cuartel</th><th>Ubic.</th><th>${unid} orig.</th><th>${unid} rev.</th><th>Dif.</th><th>% Error</th></tr></thead>
+      <tbody>${tbody}</tbody>
+    </table></div>`;
+  document.getElementById('modal-ov').classList.add('open');
+}
 
 </script>
 </body>
