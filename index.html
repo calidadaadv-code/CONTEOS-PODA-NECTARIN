@@ -774,10 +774,47 @@ function setCalCir(v){cirCal=v;document.querySelectorAll('.cbtn-cir').forEach(b=
 function viCir(t,v){if(t==='ml'){cirVML=v;document.getElementById('cir-thoy').className='tog-btn'+(v==='hoy'?' tog-p':'');document.getElementById('cir-tacum').className='tog-btn'+(v==='acum'?' tog-p':'');rnCirML();}else{cirVCal=v;document.getElementById('cir-choy').className='tog-btn'+(v==='hoy'?' tog-p':'');document.getElementById('cir-cacum').className='tog-btn'+(v==='acum'?' tog-p':'');rnCirCal();}}
 async function guardarCir(){const h=document.getElementById('cir-hil').value,p=document.getElementById('cir-pla').value;const pod=document.getElementById('cir-pod').value,cnt=document.getElementById('cir-cnt').value;const sup=document.getElementById('cir-sup').value,comp=document.getElementById('cir-con').value;const obs=document.getElementById('cir-obs').value;const ri=document.getElementById('cir-ml-inp');const ml=parseFloat(ri.value);if(!h||!p||!pod||!cnt||isNaN(ml)||!cirCal){toast('⚠ Completa todos los campos','warn');return;}const c=CCIR[cirIdx];const f=ml<c.mn?'bajo':ml>c.mx?'alto':'no';const btn=document.getElementById('cir-sub');btn.disabled=true;btn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';sync('sync-cir','L','Guardando...');const {error}=await db.from('conteos_ciruelas').insert([{timestamp:ts(),cuartel:c.n,variedad:c.v,hilera:String(h),planta:String(p),podador:pod,contador:cnt,supervisor:sup,contratista:comp,metros_lineales:ml,fuera_rango:f,calidad:cirCal,observaciones:obs||''}]);btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar registro';if(error){sync('sync-cir','E','Error');toast('⚠ Error al guardar','warn');return;}sync('sync-cir','O','✓ Guardado');setTimeout(()=>sync('sync-cir','O','En línea'),2000);if(f==='bajo')toast('⚠ Guardado — BAJO rango','warn');else if(f==='alto')toast('⚠ Guardado — SOBRE rango','warn');else toast('✓ Guardado correctamente');document.getElementById('cir-hil').value='';document.getElementById('cir-pla').value='';document.getElementById('cir-obs').value='';ri.value='';ri.style.borderColor='';ri.style.background='';document.getElementById('cir-abaj').classList.remove('vis');document.getElementById('cir-aalt').classList.remove('vis');cirCal=null;document.querySelectorAll('.cbtn-cir').forEach(b=>b.classList.remove('on'));loadCir();}
 function expCirCSV(){const regs=fnCir(cirVML==='hoy'?cirVML:'acum');if(!regs.length){toast('Sin datos','warn');return;}const cab='Cuartel,Variedad,Hilera,Planta,Podador,Contador,Supervisor,Contratista,Metros_Lineales,Fuera_Rango,Calidad,Observaciones,Hora';const rows=regs.map(r=>[r.c,r.v,r.h,r.p,r.pod,r.cnt,r.sup,r.comp,r.ml,r.f||'no',r.cal,r.obs,r.ts].join(','));const blob=new Blob([[cab,...rows].join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='conteos_ciruelas.csv';a.click();toast('✓ CSV descargado');}
-function rnActNec(){const el=document.getElementById('nec-act-cnt');if(!el)return;const hoyRegs=nRegs.filter(r=>r.ts&&r.ts.includes(hoy()));if(!hoyRegs.length){el.innerHTML='<div class="act-empty"><i class="ti ti-moon" style="font-size:20px;opacity:.3;display:block;margin-bottom:6px"></i>Sin conteos hoy</div>';return;}const map={};hoyRegs.forEach(r=>{const n=r.cnt||'Sin nombre';if(!map[n])map[n]={count:0,ultimo:''};map[n].count++;if(!map[n].ultimo||r.ts>map[n].ultimo)map[n].ultimo=r.ts;});const sorted=Object.keys(map).sort((a,b)=>map[b].ultimo.localeCompare(map[a].ultimo));el.innerHTML=sorted.map(n=>{const hora=map[n].ultimo?map[n].ultimo.split(' ')[1]||map[n].ultimo:'—';return`<div class="act-card"><span class="act-name" onclick="openActDet('nec','${n.replace(/'/g,"\'")}')"><i class="ti ti-user" style="font-size:12px;opacity:.5;margin-right:5px"></i>${n}</span><div class="act-right"><div class="act-count">${map[n].count}</div><div class="act-ts">último: ${hora}</div></div></div>`;}).join('');}
-function rnActCer(){const el=document.getElementById('cer-act-cnt');if(!el)return;const hoyRegs=cRegs.filter(r=>r.ts&&r.ts.includes(hoy()));if(!hoyRegs.length){el.innerHTML='<div class="act-empty"><i class="ti ti-moon" style="font-size:20px;opacity:.3;display:block;margin-bottom:6px"></i>Sin conteos hoy</div>';return;}const map={};hoyRegs.forEach(r=>{const n=r.cnt||'Sin nombre';if(!map[n])map[n]={count:0,ultimo:''};map[n].count++;if(!map[n].ultimo||r.ts>map[n].ultimo)map[n].ultimo=r.ts;});const sorted=Object.keys(map).sort((a,b)=>map[b].ultimo.localeCompare(map[a].ultimo));el.innerHTML=sorted.map(n=>{const hora=map[n].ultimo?map[n].ultimo.split(' ')[1]||map[n].ultimo:'—';return`<div class="act-card"><span class="act-name-r" onclick="openActDet('cer','${n.replace(/'/g,"\'")}')"><i class="ti ti-user" style="font-size:12px;opacity:.5;margin-right:5px"></i>${n}</span><div class="act-right"><div class="act-count-r">${map[n].count}</div><div class="act-ts">último: ${hora}</div></div></div>`;}).join('');}
-function rnActCir(){const el=document.getElementById('cir-act-cnt');if(!el)return;const hoyRegs=cirRegs.filter(r=>r.ts&&r.ts.includes(hoy()));if(!hoyRegs.length){el.innerHTML='<div class="act-empty"><i class="ti ti-moon" style="font-size:20px;opacity:.3;display:block;margin-bottom:6px"></i>Sin conteos hoy</div>';return;}const map={};hoyRegs.forEach(r=>{const n=r.cnt||'Sin nombre';if(!map[n])map[n]={count:0,ultimo:''};map[n].count++;if(!map[n].ultimo||r.ts>map[n].ultimo)map[n].ultimo=r.ts;});const sorted=Object.keys(map).sort((a,b)=>map[b].ultimo.localeCompare(map[a].ultimo));el.innerHTML=sorted.map(n=>{const hora=map[n].ultimo?map[n].ultimo.split(' ')[1]||map[n].ultimo:'—';return`<div class="act-card"><span style="color:var(--tx);cursor:pointer;text-decoration:underline dotted;flex:1;font-size:13px;font-family:var(--mo);font-weight:500" onclick="openActDet('cir','${n.replace(/'/g,"\'")}')"><i class="ti ti-user" style="font-size:12px;opacity:.5;margin-right:5px"></i>${n}</span><div class="act-right"><div style="font-size:18px;font-family:var(--mo);font-weight:500;color:var(--po)">${map[n].count}</div><div class="act-ts">último: ${hora}</div></div></div>`;}).join('');}
-let actDetVista='hoy';let actDetEsp='',actDetNombre='';
+function rnActNec(){
+  const el=document.getElementById('nec-act-cnt');if(!el)return;
+  const hoyRegs=nRegs.filter(r=>r.ts&&r.ts.includes(hoy()));
+  const map={};
+  nRegs.forEach(r=>{const n=r.cnt||'Sin nombre';if(!map[n])map[n]={hoy:0,acum:0,ultimo:''};map[n].acum++;if(r.ts&&r.ts.includes(hoy()))map[n].hoy++;if(!map[n].ultimo||r.ts>map[n].ultimo)map[n].ultimo=r.ts;});
+  // Agregar contadoras de la lista que no tienen conteos aún
+  L.nec.con.forEach(n=>{if(!map[n])map[n]={hoy:0,acum:0,ultimo:''};});
+  const sorted=Object.keys(map).sort();
+  el.innerHTML=sorted.map(n=>{
+    const hoyN=map[n].hoy, acumN=map[n].acum;
+    const hora=map[n].ultimo?map[n].ultimo.split(' ')[1]||map[n].ultimo:'Sin conteos';
+    const badge=hoyN>0?`<span style="background:var(--vd);color:#fff;font-size:10px;font-family:var(--mo);padding:2px 8px;border-radius:10px;font-weight:600">${hoyN} hoy</span>`:`<span style="background:#f0f0ee;color:var(--tm);font-size:10px;font-family:var(--mo);padding:2px 8px;border-radius:10px">sin conteos hoy</span>`;
+    return`<div class="act-card" onclick="openActDet('nec','${n.replace(/'/g,"\'")}')"><div style="display:flex;align-items:center;gap:8px;flex:1"><i class="ti ti-user" style="font-size:14px;color:var(--vo);opacity:.7"></i><span class="act-name" style="cursor:pointer">${n}</span></div><div class="act-right">${badge}<div class="act-ts" style="margin-top:3px">acum: ${acumN} · ${hora}</div></div></div>`;
+  }).join('')||'<div class="act-empty">Sin contadoras</div>';
+}
+function rnActCer(){
+  const el=document.getElementById('cer-act-cnt');if(!el)return;
+  const map={};
+  cRegs.forEach(r=>{const n=r.cnt||'Sin nombre';if(!map[n])map[n]={hoy:0,acum:0,ultimo:''};map[n].acum++;if(r.ts&&r.ts.includes(hoy()))map[n].hoy++;if(!map[n].ultimo||r.ts>map[n].ultimo)map[n].ultimo=r.ts;});
+  L.cer.con.forEach(n=>{if(!map[n])map[n]={hoy:0,acum:0,ultimo:''};});
+  const sorted=Object.keys(map).sort();
+  el.innerHTML=sorted.map(n=>{
+    const hoyN=map[n].hoy,acumN=map[n].acum;
+    const hora=map[n].ultimo?map[n].ultimo.split(' ')[1]||map[n].ultimo:'Sin conteos';
+    const badge=hoyN>0?`<span style="background:var(--rd);color:#fff;font-size:10px;font-family:var(--mo);padding:2px 8px;border-radius:10px;font-weight:600">${hoyN} hoy</span>`:`<span style="background:#f0f0ee;color:var(--tm);font-size:10px;font-family:var(--mo);padding:2px 8px;border-radius:10px">sin conteos hoy</span>`;
+    return`<div class="act-card" onclick="openActDet('cer','${n.replace(/'/g,"\'")}')"><div style="display:flex;align-items:center;gap:8px;flex:1"><i class="ti ti-user" style="font-size:14px;color:var(--ro);opacity:.7"></i><span class="act-name" style="cursor:pointer">${n}</span></div><div class="act-right">${badge}<div class="act-ts" style="margin-top:3px">acum: ${acumN} · ${hora}</div></div></div>`;
+  }).join('')||'<div class="act-empty">Sin contadoras</div>';
+}
+function rnActCir(){
+  const el=document.getElementById('cir-act-cnt');if(!el)return;
+  const map={};
+  cirRegs.forEach(r=>{const n=r.cnt||'Sin nombre';if(!map[n])map[n]={hoy:0,acum:0,ultimo:''};map[n].acum++;if(r.ts&&r.ts.includes(hoy()))map[n].hoy++;if(!map[n].ultimo||r.ts>map[n].ultimo)map[n].ultimo=r.ts;});
+  L.cir.con.forEach(n=>{if(!map[n])map[n]={hoy:0,acum:0,ultimo:''};});
+  const sorted=Object.keys(map).sort();
+  el.innerHTML=sorted.map(n=>{
+    const hoyN=map[n].hoy,acumN=map[n].acum;
+    const hora=map[n].ultimo?map[n].ultimo.split(' ')[1]||map[n].ultimo:'Sin conteos';
+    const badge=hoyN>0?`<span style="background:var(--pd);color:#fff;font-size:10px;font-family:var(--mo);padding:2px 8px;border-radius:10px;font-weight:600">${hoyN} hoy</span>`:`<span style="background:#f0f0ee;color:var(--tm);font-size:10px;font-family:var(--mo);padding:2px 8px;border-radius:10px">sin conteos hoy</span>`;
+    return`<div class="act-card" onclick="openActDet('cir','${n.replace(/'/g,"\'")}')"><div style="display:flex;align-items:center;gap:8px;flex:1"><i class="ti ti-user" style="font-size:14px;color:var(--po);opacity:.7"></i><span class="act-name" style="cursor:pointer">${n}</span></div><div class="act-right">${badge}<div class="act-ts" style="margin-top:3px">acum: ${acumN} · ${hora}</div></div></div>`;
+  }).join('')||'<div class="act-empty">Sin contadoras</div>';
+}
 
 function openActDet(esp,nombre){
   actDetEsp=esp; actDetNombre=nombre; actDetVista='hoy';
@@ -820,17 +857,17 @@ function renderActDet(){
   <div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-bottom:8px">Último conteo: ${ultimoHora}</div>`;
 
   // Tabla compacta (máx 30 filas, más recientes primero)
-  const mostrar=regs.slice(-30).reverse();
+  const mostrar=regs.slice(-200).reverse();
   let thead='', tbody='';
   if(esp==='nec'){
-    thead='<th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Ram.</th><th>Cal.</th>';
-    tbody=mostrar.map(r=>{const hora=r.ts?r.ts.split(' ')[1]||r.ts:'—';const pc=r.f==='bajo'?'pill-bj':r.f==='alto'?'pill-al':'pill-ok';return`<tr><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="font-weight:500">${r.ram}</td><td><span class="pill ${pc}">${r.cal||'—'}</span></td></tr>`;}).join('');
+    thead='<th>Fecha</th><th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Ram.</th><th>Cal.</th>';
+    tbody=mostrar.map(r=>{const ts=r.ts||'';const fecha=ts.split(' ')[0]||'—';const hora=ts.split(' ')[1]||'—';const pc=r.f==='bajo'?'pill-bj':r.f==='alto'?'pill-al':'pill-ok';return`<tr><td style="font-size:10px;color:var(--tm)">${fecha}</td><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="font-weight:500">${r.ram}</td><td><span class="pill ${pc}">${r.cal||'—'}</span></td></tr>`;}).join('');
   }else if(esp==='cer'){
-    thead='<th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Total</th><th>Tipo</th>';
-    tbody=mostrar.map(r=>{const hora=r.ts?r.ts.split(' ')[1]||r.ts:'—';const tp=r.tipo==='pre'?'<span style="background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px;font-size:9px">PRE</span>':'<span style="background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px;font-size:9px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';return`<tr><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="${tc};font-weight:500">${r.tot}</td><td>${tp}</td></tr>`;}).join('');
+    thead='<th>Fecha</th><th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Total</th><th>Tipo</th>';
+    tbody=mostrar.map(r=>{const ts=r.ts||'';const fecha=ts.split(' ')[0]||'—';const hora=ts.split(' ')[1]||'—';const tp=r.tipo==='pre'?'<span style="background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px;font-size:9px">PRE</span>':'<span style="background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px;font-size:9px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';return`<tr><td style="font-size:10px;color:var(--tm)">${fecha}</td><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="${tc};font-weight:500">${r.tot}</td><td>${tp}</td></tr>`;}).join('');
   }else{
-    thead='<th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Metros</th><th>Cal.</th>';
-    tbody=mostrar.map(r=>{const hora=r.ts?r.ts.split(' ')[1]||r.ts:'—';const pc=r.f==='bajo'?'pill-bj':r.f==='alto'?'pill-al':'pill-ok';return`<tr><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="font-weight:500;color:var(--po)">${r.ml}</td><td><span class="pill ${pc}">${r.cal||'—'}</span></td></tr>`;}).join('');
+    thead='<th>Fecha</th><th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Metros</th><th>Cal.</th>';
+    tbody=mostrar.map(r=>{const ts=r.ts||'';const fecha=ts.split(' ')[0]||'—';const hora=ts.split(' ')[1]||'—';const pc=r.f==='bajo'?'pill-bj':r.f==='alto'?'pill-al':'pill-ok';return`<tr><td style="font-size:10px;color:var(--tm)">${fecha}</td><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="font-weight:500;color:var(--po)">${r.ml}</td><td><span class="pill ${pc}">${r.cal||'—'}</span></td></tr>`;}).join('');
   }
   if(!tbody)tbody='<tr><td colspan="6" class="empty">Sin conteos</td></tr>';
 
