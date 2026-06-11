@@ -694,38 +694,35 @@ function rnCerCal(){
   const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,pre:0,post:0,b:0,al:0,dn:0};const x=d[r.c];x.t++;if(r.tipo==='pre')x.pre++;else x.post++;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
   const rowsC=Object.keys(d).sort().map(c=>{const x=d[c];return`<tr style="cursor:pointer" onclick="openDetCer('${c}','${cerVC}')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.pre,x.t,'g')}</td><td style="text-align:center">${pct(x.post,x.t,'g')}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
 
-  const allRegsCuartel=fnCerDar('acum');
+  const allRegsCuartel=cRegs;
   const dPP={};
   allRegsCuartel.forEach(r=>{
-    if(!dPP[r.c])dPP[r.c]={preSum:0,preN:0,postSum:0,postN:0,elimSum:0,elimN:0};
+    if(!dPP[r.c])dPP[r.c]={preSum:0,preN:0,postSum:0,postN:0,elimSum:0,elimN:0,carSum:0,carN:0};
     const x=dPP[r.c];
     if(r.tipo==='pre'){x.preSum+=r.tot;x.preN++;}
     else{x.postSum+=r.tot;x.postN++;}
     if(r.cargElim>0||r.tipo==='post'){x.elimSum+=(r.cargElim||0);x.elimN++;}
+    let cars=r.cars;
+    if(typeof cars==='string'){try{cars=JSON.parse(cars);}catch(e){cars=[];}}
+    if(Array.isArray(cars)&&cars.length){
+      cars.forEach(cg=>{x.carSum+=parseInt(cg.dardos)||0;x.carN++;});
+    }
   });
   const rowsPP=Object.keys(dPP).sort().map(c=>{
     const x=dPP[c];
     const avgPre=x.preN?(x.preSum/x.preN).toFixed(1):'—';
     const avgPost=x.postN?(x.postSum/x.postN).toFixed(1):'—';
     const avgElim=x.elimN?(x.elimSum/x.elimN).toFixed(1):'—';
-    let dif='—',difColor='var(--tm)';
-    if(x.preN&&x.postN){
-      const d=parseFloat(avgPost)-parseFloat(avgPre);
-      dif=(d>=0?'+':'')+d.toFixed(1);
-      difColor=d<0?'#0E6655':'#791F1F';
-    }
+    const avgCar=x.carN?(x.carSum/x.carN).toFixed(1):'—';
     return`<tr style="cursor:pointer" onclick="openDetCer('${c}','acum')">
       <td style="color:var(--ro);font-weight:500;text-decoration:underline dotted">${c}</td>
       <td style="text-align:center">${avgPre}</td>
       <td style="text-align:center">${avgPost}</td>
-      <td style="text-align:center;color:${difColor};font-weight:600">${dif}</td>
+      <td style="text-align:center;color:var(--ro);font-weight:600">${avgCar}</td>
       <td style="text-align:center;color:#633806;font-weight:600">${avgElim}</td>
     </tr>`;
   }).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin datos suficientes</td></tr>';
 
-  // Plantas fuera de rango
-  const frRegs=regs.filter(r=>r.f==='bajo'||r.f==='alto').slice(-30).reverse();
-  const rowsFR=frRegs.length?frRegs.map(r=>{const tp=r.tipo==='pre'?'<span style="background:var(--rc);color:var(--ro);padding:2px 5px;border-radius:3px;font-size:9px">PRE</span>':'<span style="background:#E8F8F5;color:#0E6655;padding:2px 5px;border-radius:3px;font-size:9px">POST</span>';const pill=r.f==='bajo'?'<span class="pill pill-bj">↓ bajo</span>':'<span class="pill pill-al">↑ sobre</span>';return`<tr><td>${r.c}</td><td>${tp}</td><td>H${r.h}·P${r.p}</td><td style="font-weight:500">${r.tot} ${pill}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}</td></tr>`;}).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin plantas fuera de rango</td></tr>';
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${cerVC==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   <div class="filt-row" style="margin-bottom:12px">
@@ -736,11 +733,9 @@ function rnCerCal(){
   <div class="cal-dist"><div class="cstat A" style="background:#E8F8F5"><div class="cletra" style="color:#0E6655">PRE</div><div class="cpct">${pPre}% · ${pre}</div></div><div class="cstat B" style="background:var(--rc)"><div class="cletra" style="color:var(--ro)">POST</div><div class="cpct">${pPost}% · ${post}</div></div></div>
   <p class="sec-title">📊 Análisis Pre/Post Poda — Pautas</p>
   <div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-bottom:10px">Promedios acumulados por cuartel (todos los registros)</div>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Prom. Pre</th><th>Prom. Post</th><th>Diferencia</th><th>Carg. Elim.</th></tr></thead><tbody>${rowsPP}</tbody></table></div>
+  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Prom. Pre</th><th>Prom. Post</th><th>Dardos/Carg.</th><th>Carg. Elim.</th></tr></thead><tbody>${rowsPP}</tbody></table></div>
   <p class="sec-title">Por cuartel</p>
   <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Pre%</th><th>Post%</th><th>✓ Dentro%</th><th>↓ Bajo%</th><th>↑ Sobre%</th></tr></thead><tbody>${rowsC}</tbody></table></div>
-  <p class="sec-title" style="margin-top:12px">Plantas fuera de rango</p>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Tipo</th><th>Ubic.</th><th>Total</th><th>Podador</th></tr></thead><tbody>${rowsFR}</tbody></table></div>
   <button class="exp-btn exp-r" onclick="expCSV('cer','cal')"><i class="ti ti-download"></i>Exportar CSV</button>`;
 }
 
