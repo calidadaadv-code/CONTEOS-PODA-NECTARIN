@@ -684,7 +684,7 @@ function rnCerDar(){
 
 function rnCerCal(){
   const el=document.getElementById('cer-dcal');if(!el)return;
-  const regs=fnCerDar(cerVC);
+  const regs=cerVC==='hoy'?cRegs.filter(x=>x.ts&&x.ts.includes(hoy())):cRegs;
   if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-rosette"></i>'+(cerVC==='hoy'?'Sin conteos hoy.':'Sin registros.')+'</div>';return;}
   // Cerezo no tiene campo calidad — mostrar tipo pre/post como distribución
   const tot=regs.length;
@@ -725,10 +725,6 @@ function rnCerCal(){
 
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${cerVC==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
-  <div class="filt-row" style="margin-bottom:12px">
-    <button class="filt-btn${cerTipoFilt==='pre'?' on':''}" onclick="cerTipoFilt='pre';rnCerCal()">PRE PODA</button>
-    <button class="filt-btn${cerTipoFilt==='post'?' on':''}" onclick="cerTipoFilt='post';rnCerCal()">POST PODA</button>
-  </div>
   <p class="sec-title">Distribución Pre / Post Poda</p>
   <div class="cal-dist"><div class="cstat A" style="background:#E8F8F5"><div class="cletra" style="color:#0E6655">PRE</div><div class="cpct">${pPre}% · ${pre}</div></div><div class="cstat B" style="background:var(--rc)"><div class="cletra" style="color:var(--ro)">POST</div><div class="cpct">${pPost}% · ${post}</div></div></div>
   <p class="sec-title">📊 Análisis Pre/Post Poda — Pautas</p>
@@ -744,12 +740,12 @@ function viCerCal(v){cerVC=v;document.getElementById('cer-cthoy').className='tog
 
 // Modal detalle cerezo por cuartel (estilo nectarín)
 function openDetCer(c,vista){
-  const regs=fnCerDar(vista).filter(r=>r.c===c);
+  const regs=(vista==='hoy'?cRegs.filter(x=>x.ts&&x.ts.includes(hoy())):cRegs).filter(r=>r.c===c);
   const tot=regs.length,bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=regs.filter(r=>r.f==='no').length;
   const avg=tot?(regs.reduce((s,r)=>s+r.tot,0)/tot).toFixed(1):'-';
   const stats=`<div class="mstat"><div class="mstat-val" style="color:var(--ro)">${avg}</div><div class="mstat-lbl">Prom.</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${tot?Math.round(bj/tot*100):0}%</div><div class="mstat-lbl">Bajo</div></div><div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${tot?Math.round(dn/tot*100):0}%</div><div class="mstat-lbl">Dentro</div></div>`;
-  const thead='<tr><th>Tipo</th><th>H</th><th>P</th><th>Dardos</th><th>Eje</th><th>Ram.</th><th>Total</th><th>Estado</th></tr>';
-  const tbody=regs.map(r=>{const tp=r.tipo==='pre'?'<span style="font-size:9px;background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px">PRE</span>':'<span style="font-size:9px;background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';const pill=r.f==='bajo'?'<span class="pill pill-bj">↓</span>':r.f==='alto'?'<span class="pill pill-al">↑</span>':'<span class="pill pill-ok">✓</span>';return`<tr><td>${tp}</td><td>${r.h}</td><td>${r.p}</td><td>${r.td||0}</td><td>${r.deje||0}</td><td>${r.ram||0}</td><td style="${tc};font-weight:500">${r.tot}</td><td>${pill}</td></tr>`;}).join('')||'<tr><td colspan="8" class="empty">Sin conteos</td></tr>';
+  const thead='<tr><th>Tipo</th><th>H</th><th>P</th><th>Dardos</th><th>Eje</th><th>Ram.</th><th>Total</th><th>Carg.Elim.</th><th>Estado</th></tr>';
+  const tbody=regs.map(r=>{const tp=r.tipo==='pre'?'<span style="font-size:9px;background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px">PRE</span>':'<span style="font-size:9px;background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';const pill=r.f==='bajo'?'<span class="pill pill-bj">↓</span>':r.f==='alto'?'<span class="pill pill-al">↑</span>':'<span class="pill pill-ok">✓</span>';return`<tr><td>${tp}</td><td>${r.h}</td><td>${r.p}</td><td>${r.td||0}</td><td>${r.deje||0}</td><td>${r.ram||0}</td><td style="${tc};font-weight:500">${r.tot}</td><td style="color:#633806;font-weight:500">${r.cargElim||0}</td><td>${pill}</td></tr>`;}).join('')||'<tr><td colspan="9" class="empty">Sin conteos</td></tr>';
   document.getElementById('modal-hdr').className='modal-hdr modal-hdr-r';
   document.getElementById('modal-tit').textContent='Detalle '+c+(vista==='hoy'?' — Hoy':'')+' — '+regs.length+' conteos';
   document.querySelector('#modal-ov .modal-body').innerHTML=`<div class="modal-stats">${stats}</div><div class="twrap"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
@@ -900,8 +896,8 @@ function renderActDet(){
     thead='<th>Fecha</th><th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Ram.</th><th>Cal.</th><th></th>';
     tbody=mostrar.map(r=>{const ts=r.ts||'';const fecha=ts.split(' ')[0]||'—';const hora=ts.split(' ')[1]||'—';const pc=r.f==='bajo'?'pill-bj':r.f==='alto'?'pill-al':'pill-ok';const regStr=`{id:${r.id||'null'},c:'${(r.c||'').replace(/'/g,"\\'")}',h:${r.h||0},p:${r.p||0},cnt:'${(r.cnt||'').replace(/'/g,"\\'")}',ram:${r.ram||0},tot:0,ml:0}`;return`<tr><td style="font-size:10px;color:var(--tm)">${fecha}</td><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="font-weight:500">${r.ram}</td><td><span class="pill ${pc}">${r.cal||'—'}</span></td><td><button onclick="document.getElementById('modal-ov').classList.remove('open');abrirRevision('nec',${regStr})" style="background:var(--vo);color:#fff;border:none;border-radius:5px;font-size:9px;font-family:var(--mo);padding:3px 7px;cursor:pointer">Revisar</button></td></tr>`;}).join('');
   }else if(esp==='cer'){
-    thead='<th>Fecha</th><th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Total</th><th>Tipo</th><th></th>';
-    tbody=mostrar.map(r=>{const ts=r.ts||'';const fecha=ts.split(' ')[0]||'—';const hora=ts.split(' ')[1]||'—';const tp=r.tipo==='pre'?'<span style="background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px;font-size:9px">PRE</span>':'<span style="background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px;font-size:9px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';const regStr=`{id:${r.id||'null'},c:'${(r.c||'').replace(/'/g,"\\'")}',h:${r.h||0},p:${r.p||0},cnt:'${(r.cnt||'').replace(/'/g,"\\'")}',ram:0,tot:${r.tot||0},ml:0}`;return`<tr><td style="font-size:10px;color:var(--tm)">${fecha}</td><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="${tc};font-weight:500">${r.tot}</td><td>${tp}</td><td><button onclick="document.getElementById('modal-ov').classList.remove('open');abrirRevision('cer',${regStr})" style="background:var(--ro);color:#fff;border:none;border-radius:5px;font-size:9px;font-family:var(--mo);padding:3px 7px;cursor:pointer">Revisar</button></td></tr>`;}).join('');
+    thead='<th>Fecha</th><th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Total</th><th>Carg.Elim.</th><th>Tipo</th><th></th>';
+    tbody=mostrar.map(r=>{const ts=r.ts||'';const fecha=ts.split(' ')[0]||'—';const hora=ts.split(' ')[1]||'—';const tp=r.tipo==='pre'?'<span style="background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px;font-size:9px">PRE</span>':'<span style="background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px;font-size:9px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';const regStr=`{id:${r.id||'null'},c:'${(r.c||'').replace(/'/g,"\\'")}',h:${r.h||0},p:${r.p||0},cnt:'${(r.cnt||'').replace(/'/g,"\\'")}',ram:0,tot:${r.tot||0},ml:0}`;return`<tr><td style="font-size:10px;color:var(--tm)">${fecha}</td><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="${tc};font-weight:500">${r.tot}</td><td style="color:#633806;font-weight:500">${r.cargElim||0}</td><td>${tp}</td><td><button onclick="document.getElementById('modal-ov').classList.remove('open');abrirRevision('cer',${regStr})" style="background:var(--ro);color:#fff;border:none;border-radius:5px;font-size:9px;font-family:var(--mo);padding:3px 7px;cursor:pointer">Revisar</button></td></tr>`;}).join('');
   }else{
     thead='<th>Fecha</th><th>Hora</th><th>Cuartel</th><th>H</th><th>P</th><th>Metros</th><th>Cal.</th><th></th>';
     tbody=mostrar.map(r=>{const ts=r.ts||'';const fecha=ts.split(' ')[0]||'—';const hora=ts.split(' ')[1]||'—';const pc=r.f==='bajo'?'pill-bj':r.f==='alto'?'pill-al':'pill-ok';const regStr=`{id:${r.id||'null'},c:'${(r.c||'').replace(/'/g,"\\'")}',h:${r.h||0},p:${r.p||0},cnt:'${(r.cnt||'').replace(/'/g,"\\'")}',ram:0,tot:0,ml:${r.ml||0}}`;return`<tr><td style="font-size:10px;color:var(--tm)">${fecha}</td><td style="font-size:10px">${hora}</td><td>${r.c}</td><td>${r.h}</td><td>${r.p}</td><td style="font-weight:500;color:var(--po)">${r.ml}</td><td><span class="pill ${pc}">${r.cal||'—'}</span></td><td><button onclick="document.getElementById('modal-ov').classList.remove('open');abrirRevision('cir',${regStr})" style="background:var(--po);color:#fff;border:none;border-radius:5px;font-size:9px;font-family:var(--mo);padding:3px 7px;cursor:pointer">Revisar</button></td></tr>`;}).join('');
@@ -1015,8 +1011,8 @@ let cirProdCuartelP=PROD_CIR[0][0];
 // ── helpers compartidos ─────────────────────────────────────────────────
 function fmtKg(v){if(v>=1000000)return(v/1000000).toFixed(2)+' M kg';if(v>=1000)return Math.round(v/1000).toLocaleString()+' t';return Math.round(v).toLocaleString()+' kg';}
 function pctBar(pct){const p=Math.min(Math.max(pct,0),200);const bg=pct>=100?'#1D9E75':pct>=80?'#EF9F27':'#C0392B';return`<div style="background:#f0f0ee;border-radius:4px;height:8px;overflow:hidden;margin-top:4px"><div style="width:${Math.min(p,100)}%;height:100%;background:${bg};border-radius:4px"></div></div><div style="font-size:10px;font-family:var(--mo);color:${bg};margin-top:2px;font-weight:600">${pct.toFixed(1)}% de meta</div>`;}
-function kgEstBlock(avgVal, fUnit, pFruto, pHa, ha, kg25ha, kg25tot, kg26haEst, kg26totEst, cuartel, borderColor){
-  if(avgVal===null||avgVal===undefined||isNaN(avgVal))return`<div style="background:#fff;border:2px solid ${borderColor};border-radius:10px;padding:12px 14px;margin-bottom:14px"><div style="font-size:10px;font-family:var(--mo);color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;font-weight:600">📊 Estimación de Kilos — ${cuartel}</div><div style="font-size:12px;font-family:var(--mo);color:var(--tm);padding:8px 0">Sin conteos aún para este cuartel</div></div>`;
+function kgEstBlock(avgVal, fUnit, pFruto, pHa, ha, kg25ha, kg25tot, kg26haEst, kg26totEst, cuartel, borderColor, sinDataMsg){
+  if(avgVal===null||avgVal===undefined||isNaN(avgVal))return`<div style="background:#fff;border:2px solid ${borderColor};border-radius:10px;padding:12px 14px;margin-bottom:14px"><div style="font-size:10px;font-family:var(--mo);color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;font-weight:600">📊 Estimación de Kilos — ${cuartel}</div><div style="font-size:12px;font-family:var(--mo);color:var(--tm);padding:8px 0">${sinDataMsg||'Sin conteos aún para este cuartel'}</div></div>`;
   const kg26ha=Math.round(avgVal*fUnit*pFruto*pHa/1000);
   const kg26tot=Math.round(kg26ha*ha);
   const kg26estTot=Math.round(kg26haEst*ha);
@@ -1091,10 +1087,13 @@ function rnCerProd(v){
   if(!regsProd.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(cerVProd==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
   const map={};regsProd.forEach(r=>{if(!map[r.c])map[r.c]={s:0,n:0};map[r.c].s+=r.tot;map[r.c].n++;});
   const avgDar={};Object.keys(map).forEach(c=>{avgDar[c]=(map[c].s/map[c].n);});
+  const mapPost={};regsProd.filter(r=>r.tipo==='post').forEach(r=>{if(!mapPost[r.c])mapPost[r.c]={s:0,n:0};mapPost[r.c].s+=r.tot;mapPost[r.c].n++;});
+  const avgDarPost={};Object.keys(mapPost).forEach(c=>{avgDarPost[c]=(mapPost[c].s/mapPost[c].n);});
   if(!avgDar[cerProdCuartelP])cerProdCuartelP=Object.keys(avgDar)[0];
   const rd=PROD_CER.find(r=>r[0]===cerProdCuartelP)||PROD_CER[0];
   const [c,vr,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,fDar,pFruto,pHa]=rd;
   const avg=avgDar[c]||null;
+  const avgPost=avgDarPost[c]!==undefined?avgDarPost[c]:null;
   const totCq=map[c]?map[c].n:0;
   const avgTxt=avg!==null?parseFloat(avg).toFixed(1):'-';
   const dar25=rd[10]; const fDar25=rd[11];
@@ -1104,7 +1103,7 @@ function rnCerProd(v){
   const fd25=fDar25||'-';
   const fd26=fDar||'-';
   const opts=PROD_CER.filter(r=>avgDar[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cerProdCuartelP?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
-  const kg26blk=kgHa25?kgEstBlock(avg,fDar,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,'var(--rd)'):'';
+  const kg26blk=kgHa25?kgEstBlock(avgPost,fDar,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,'var(--rd)','Sin conteos POST PODA aún para este cuartel'):'';
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${cerVProd==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   ${selectorDropdown(opts,"cerProdCuartelP=this.value;rnCerProd(cerVProd)",'var(--rd)','var(--ro)')}
