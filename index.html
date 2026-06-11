@@ -685,8 +685,8 @@ function rnCerCal(){
   const pPre=Math.round(pre/tot*100),pPost=Math.round(post/tot*100);
   const dPre={};regs.filter(r=>r.tipo==='pre').forEach(r=>{if(!dPre[r.c])dPre[r.c]={t:0,b:0,al:0,dn:0};const x=dPre[r.c];x.t++;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
   const dPost={};regs.filter(r=>r.tipo==='post').forEach(r=>{if(!dPost[r.c])dPost[r.c]={t:0,b:0,al:0,dn:0};const x=dPost[r.c];x.t++;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
-  const rowsCPre=Object.keys(dPre).sort().map(c=>{const x=dPre[c];return`<tr style="cursor:pointer" onclick="openDetCer('${c}','acum')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin registros PRE PODA</td></tr>';
-  const rowsCPost=Object.keys(dPost).sort().map(c=>{const x=dPost[c];return`<tr style="cursor:pointer" onclick="openDetCer('${c}','acum')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin registros POST PODA</td></tr>';
+  const rowsCPre=Object.keys(dPre).sort().map(c=>{const x=dPre[c];return`<tr style="cursor:pointer" onclick="openDetCer('${c}','acum','pre')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin registros PRE PODA</td></tr>';
+  const rowsCPost=Object.keys(dPost).sort().map(c=>{const x=dPost[c];return`<tr style="cursor:pointer" onclick="openDetCer('${c}','acum','post')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin registros POST PODA</td></tr>';
 
   const allRegsCuartel=cRegs;
   const dPP={};
@@ -710,8 +710,8 @@ function rnCerCal(){
     const avgElim=x.elimN?(x.elimSum/x.elimN).toFixed(1):'—';
     const avgCar=x.carN?(x.carSum/x.carN).toFixed(1):'—';
     const avgNCar=x.nCarN?(x.nCarSum/x.nCarN).toFixed(1):'—';
-    return`<tr style="cursor:pointer" onclick="openDetCer('${c}','acum')">
-      <td style="color:var(--ro);font-weight:500;text-decoration:underline dotted">${c}</td>
+    return`<tr>
+      <td style="color:var(--ro);font-weight:500">${c}</td>
       <td style="text-align:center">${avgPre}</td>
       <td style="text-align:center">${avgPost}</td>
       <td style="text-align:center;color:var(--ro);font-weight:600">${avgCar}</td>
@@ -736,15 +736,16 @@ function rnCerCal(){
 function viCerDar(v){cerVD=v;document.getElementById('cer-dthoy').className='tog-btn'+(v==='hoy'?' tog-r':'');document.getElementById('cer-dtacum').className='tog-btn'+(v==='acum'?' tog-r':'');rnCerDar();}
 
 // Modal detalle cerezo por cuartel (estilo nectarín)
-function openDetCer(c,vista){
-  const regs=(vista==='hoy'?cRegs.filter(x=>x.ts&&x.ts.includes(hoy())):cRegs).filter(r=>r.c===c);
+function openDetCer(c,vista,tipo){
+  let regs=(vista==='hoy'?cRegs.filter(x=>x.ts&&x.ts.includes(hoy())):cRegs).filter(r=>r.c===c);
+  if(tipo)regs=regs.filter(r=>r.tipo===tipo);
   const tot=regs.length,bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=regs.filter(r=>r.f==='no').length;
   const avg=tot?(regs.reduce((s,r)=>s+r.tot,0)/tot).toFixed(1):'-';
   const stats=`<div class="mstat"><div class="mstat-val" style="color:var(--ro)">${avg}</div><div class="mstat-lbl">Prom.</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${tot?Math.round(bj/tot*100):0}%</div><div class="mstat-lbl">Bajo</div></div><div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${tot?Math.round(dn/tot*100):0}%</div><div class="mstat-lbl">Dentro</div></div>`;
   const thead='<tr><th>Tipo</th><th>H</th><th>P</th><th>Dardos</th><th>Eje</th><th>Ram.</th><th>Total</th><th>Carg.Elim.</th><th>Estado</th></tr>';
   const tbody=regs.map(r=>{const tp=r.tipo==='pre'?'<span style="font-size:9px;background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px">PRE</span>':'<span style="font-size:9px;background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';const pill=r.f==='bajo'?'<span class="pill pill-bj">↓</span>':r.f==='alto'?'<span class="pill pill-al">↑</span>':'<span class="pill pill-ok">✓</span>';return`<tr><td>${tp}</td><td>${r.h}</td><td>${r.p}</td><td>${r.td||0}</td><td>${r.deje||0}</td><td>${r.ram||0}</td><td style="${tc};font-weight:500">${r.tot}</td><td style="color:#633806;font-weight:500">${r.cargElim||0}</td><td>${pill}</td></tr>`;}).join('')||'<tr><td colspan="9" class="empty">Sin conteos</td></tr>';
   document.getElementById('modal-hdr').className='modal-hdr modal-hdr-r';
-  document.getElementById('modal-tit').textContent='Detalle '+c+(vista==='hoy'?' — Hoy':'')+' — '+regs.length+' conteos';
+  document.getElementById('modal-tit').textContent='Detalle '+c+(tipo?' — '+(tipo==='pre'?'Pre Poda':'Post Poda'):(vista==='hoy'?' — Hoy':''))+' — '+regs.length+' conteos';
   document.querySelector('#modal-ov .modal-body').innerHTML=`<div class="modal-stats">${stats}</div><div class="twrap"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
   document.getElementById('modal-ov').classList.add('open');
 }
