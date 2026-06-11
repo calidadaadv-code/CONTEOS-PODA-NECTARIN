@@ -955,7 +955,7 @@ function toggleDesglose(){const d=document.getElementById('cer-desglose'),ico=do
 // ═══════════════════════════════════════════════════════
 // TAB PRODUCCIÓN — datos base desde Excel estimaciones
 // ═══════════════════════════════════════════════════════
-let necVProd='acum', cerVProd='acum', cirVProd='acum';
+let necVProd='acum', cerVProd='acum', cirVProd='acum', cerProdTipo='post';
 
 // ── DATOS BASE ──────────────────────────────────────────
 // NEC: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, frutos_ram, peso_fruto_grs, plantas_ha]
@@ -1088,16 +1088,18 @@ function rnCerProd(v){
   const el=document.getElementById('cer-dprod');if(!el)return;
   const regsProd=cerVProd==='hoy'?cRegs.filter(x=>x.ts&&x.ts.includes(hoy())):cRegs;
   if(!regsProd.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(cerVProd==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
-  const map={};regsProd.forEach(r=>{if(!map[r.c])map[r.c]={s:0,n:0};map[r.c].s+=r.tot;map[r.c].n++;});
-  const avgDar={};Object.keys(map).forEach(c=>{avgDar[c]=(map[c].s/map[c].n);});
+  const mapAll={};regsProd.forEach(r=>{if(!mapAll[r.c])mapAll[r.c]={s:0,n:0};mapAll[r.c].s+=r.tot;mapAll[r.c].n++;});
+  const mapPre={};regsProd.filter(r=>r.tipo==='pre').forEach(r=>{if(!mapPre[r.c])mapPre[r.c]={s:0,n:0};mapPre[r.c].s+=r.tot;mapPre[r.c].n++;});
+  const avgDarPre={};Object.keys(mapPre).forEach(c=>{avgDarPre[c]=(mapPre[c].s/mapPre[c].n);});
   const mapPost={};regsProd.filter(r=>r.tipo==='post').forEach(r=>{if(!mapPost[r.c])mapPost[r.c]={s:0,n:0};mapPost[r.c].s+=r.tot;mapPost[r.c].n++;});
   const avgDarPost={};Object.keys(mapPost).forEach(c=>{avgDarPost[c]=(mapPost[c].s/mapPost[c].n);});
-  if(!avgDar[cerProdCuartelP])cerProdCuartelP=Object.keys(avgDar)[0];
+  const map=cerProdTipo==='pre'?mapPre:mapPost;
+  const avgDar=cerProdTipo==='pre'?avgDarPre:avgDarPost;
+  if(!mapAll[cerProdCuartelP])cerProdCuartelP=Object.keys(mapAll)[0];
   const rd=PROD_CER.find(r=>r[0]===cerProdCuartelP)||PROD_CER[0];
   const [c,vr,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,fDar,pFruto,pHa]=rd;
-  const avg=avgDar[c]||null;
-  const avgPost=avgDarPost[c]!==undefined?avgDarPost[c]:null;
-  const totCq=map[c]?map[c].n:0;
+  const avg=avgDar[c]!==undefined?avgDar[c]:null;
+  const totCq=mapAll[c]?mapAll[c].n:0;
   const avgTxt=avg!==null?parseFloat(avg).toFixed(1):'-';
   const dar25=rd[10]; const fDar25=rd[11];
   const d25txt=dar25||'-';
@@ -1105,14 +1107,18 @@ function rnCerProd(v){
   if(dar25&&avg!==null){const diffVal=(parseFloat(avg)/dar25*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
   const fd25=fDar25||'-';
   const fd26=fDar||'-';
-  const opts=PROD_CER.filter(r=>avgDar[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cerProdCuartelP?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
-  const kg26blk=kgHa25?kgEstBlock(avgPost,fDar,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,'var(--rd)','Sin conteos POST PODA aún para este cuartel'):'';
+  const opts=PROD_CER.filter(r=>mapAll[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cerProdCuartelP?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
+  const kg26blk=kgHa25?kgEstBlock(avg,fDar,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,'var(--rd)','Sin conteos '+(cerProdTipo==='pre'?'PRE':'POST')+' PODA aún para este cuartel'):'';
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${cerVProd==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   ${selectorDropdown(opts,"cerProdCuartelP=this.value;rnCerProd(cerVProd)",'var(--rd)','var(--ro)')}
+  <div class="filt-row" style="margin-bottom:12px">
+    <button class="filt-btn${cerProdTipo==='pre'?' on':''}" onclick="cerProdTipo='pre';rnCerProd(cerVProd)">PRE PODA</button>
+    <button class="filt-btn${cerProdTipo==='post'?' on':''}" onclick="cerProdTipo='post';rnCerProd(cerVProd)">POST PODA</button>
+  </div>
   <div class="stats2">
     <div class="scard"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}</div></div>
-    <div class="scard"><div class="slbl">Prom. dardos 2026</div><div class="sval" style="color:var(--ro)">${avgTxt}</div><div class="ssub">dardos+ramillas</div></div>
+    <div class="scard"><div class="slbl">Prom. dardos 2026 (${cerProdTipo==='pre'?'Pre':'Post'})</div><div class="sval" style="color:var(--ro)">${avgTxt}</div><div class="ssub">dardos+ramillas</div></div>
     <div class="scard"><div class="slbl">Dardos 2025</div><div class="sval" style="color:#555">${d25txt}</div><div class="ssub">año anterior</div></div>
     <div class="scard"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
     <div class="scard"><div class="slbl">Frutos/Dardo 2025</div><div class="sval" style="color:#555">${fd25}</div><div class="ssub">real año anterior</div></div>
