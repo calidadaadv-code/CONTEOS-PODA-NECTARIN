@@ -697,7 +697,7 @@ function rnCerCal(){
   const allRegsCuartel=cRegs;
   const dPP={};
   allRegsCuartel.forEach(r=>{
-    if(!dPP[r.c])dPP[r.c]={preSum:0,preN:0,postSum:0,postN:0,elimSum:0,elimN:0,carSum:0,carN:0};
+    if(!dPP[r.c])dPP[r.c]={preSum:0,preN:0,postSum:0,postN:0,elimSum:0,elimN:0,carSum:0,carN:0,nCarSum:0,nCarN:0};
     const x=dPP[r.c];
     if(r.tipo==='pre'){x.preSum+=r.tot;x.preN++;}
     else{x.postSum+=r.tot;x.postN++;}
@@ -706,6 +706,7 @@ function rnCerCal(){
     if(typeof cars==='string'){try{cars=JSON.parse(cars);}catch(e){cars=[];}}
     if(Array.isArray(cars)&&cars.length){
       cars.forEach(cg=>{x.carSum+=parseInt(cg.dardos)||0;x.carN++;});
+      x.nCarSum+=cars.length;x.nCarN++;
     }
   });
   const rowsPP=Object.keys(dPP).sort().map(c=>{
@@ -714,14 +715,16 @@ function rnCerCal(){
     const avgPost=x.postN?(x.postSum/x.postN).toFixed(1):'—';
     const avgElim=x.elimN?(x.elimSum/x.elimN).toFixed(1):'—';
     const avgCar=x.carN?(x.carSum/x.carN).toFixed(1):'—';
+    const avgNCar=x.nCarN?(x.nCarSum/x.nCarN).toFixed(1):'—';
     return`<tr style="cursor:pointer" onclick="openDetCer('${c}','acum')">
       <td style="color:var(--ro);font-weight:500;text-decoration:underline dotted">${c}</td>
       <td style="text-align:center">${avgPre}</td>
       <td style="text-align:center">${avgPost}</td>
       <td style="text-align:center;color:var(--ro);font-weight:600">${avgCar}</td>
+      <td style="text-align:center;color:var(--ro);font-weight:600">${avgNCar}</td>
       <td style="text-align:center;color:#633806;font-weight:600">${avgElim}</td>
     </tr>`;
-  }).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin datos suficientes</td></tr>';
+  }).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin datos suficientes</td></tr>';
 
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${cerVC==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
@@ -729,7 +732,7 @@ function rnCerCal(){
   <div class="cal-dist"><div class="cstat A" style="background:#E8F8F5"><div class="cletra" style="color:#0E6655">PRE</div><div class="cpct">${pPre}% · ${pre}</div></div><div class="cstat B" style="background:var(--rc)"><div class="cletra" style="color:var(--ro)">POST</div><div class="cpct">${pPost}% · ${post}</div></div></div>
   <p class="sec-title">📊 Análisis Pre/Post Poda — Pautas</p>
   <div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-bottom:10px">Promedios acumulados por cuartel (todos los registros)</div>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Prom. Pre</th><th>Prom. Post</th><th>Dardos/Carg.</th><th>Carg. Elim.</th></tr></thead><tbody>${rowsPP}</tbody></table></div>
+  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Prom. Pre</th><th>Prom. Post</th><th>Dardos/Carg.</th><th>Prom. Carg.</th><th>Carg. Elim.</th></tr></thead><tbody>${rowsPP}</tbody></table></div>
   <p class="sec-title">Por cuartel</p>
   <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Pre%</th><th>Post%</th><th>✓ Dentro%</th><th>↓ Bajo%</th><th>↑ Sobre%</th></tr></thead><tbody>${rowsC}</tbody></table></div>
   <button class="exp-btn exp-r" onclick="expCSV('cer','cal')"><i class="ti ti-download"></i>Exportar CSV</button>`;
