@@ -421,17 +421,9 @@
     <div id="cer-ddar"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div>
   </div>
   <div class="panel" id="cer-cal">
-    <div class="tog-row">
-      <button class="tog-btn tog-r" id="cer-cthoy" onclick="viCerCal('hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
-      <button class="tog-btn" id="cer-ctacum" onclick="viCerCal('acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
-    </div>
     <div id="cer-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div>
   </div>
   <div class="panel" id="cer-prod">
-    <div class="tog-row">
-      <button class="tog-btn tog-r" id="cer-phoy" onclick="viCerProd('hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
-      <button class="tog-btn" id="cer-pacum" onclick="viCerProd('acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
-    </div>
     <div id="cer-dprod"><div class="empty"><i class="ti ti-trending-up"></i>Cargando...</div></div>
   </div>
   <div class="panel" id="cer-cfg">
@@ -638,7 +630,7 @@ function pct(n,fn,fn2){const p=Math.round(n/fn*100);const c=fn2==='g'?(p>=70?'ba
 function entrar(e){document.getElementById('pantalla-inicio').style.display='none';document.getElementById('view-nec').style.display=e==='nec'?'block':'none';document.getElementById('view-cer').style.display=e==='cer'?'block':'none';document.getElementById('view-cir').style.display=e==='cir'?'block':'none';if(e==='nec')loadNec();else if(e==='cer')loadCer();else loadCir();if(!listasLoaded)loadListas();}
 function volver(){document.getElementById('pantalla-inicio').style.display='flex';document.getElementById('view-nec').style.display='none';document.getElementById('view-cer').style.display='none';document.getElementById('view-cir').style.display='none';}
 function tabNec(t){['ing','ram','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-nec')[i];const pan=document.getElementById('nec-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='ram'||t==='cal')loadNec();if(t==='prod')rnNecProd(necVProd);}
-function tabCer(t){['ing','dar','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cer')[i];const pan=document.getElementById('cer-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='dar'){loadCer();rnCerDar();}if(t==='cal'){loadCer();rnCerCal();}if(t==='prod')rnCerProd(cerVProd);}
+function tabCer(t){['ing','dar','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cer')[i];const pan=document.getElementById('cer-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='dar'){loadCer();rnCerDar();}if(t==='cal'){loadCer();rnCerCal();}if(t==='prod')rnCerProd();}
 function tabCir(t){['ing','ml','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cir')[i];const pan=document.getElementById('cir-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='ml'||t==='cal')loadCir();if(t==='prod')rnCirProd(cirVProd);}
 async function loadNec(){sync('sync-nec','L','Cargando...');const {data,error}=await db.from('conteos').select('*').order('id',{ascending:true}).limit(10000);if(error){sync('sync-nec','E','Sin conexión');return;}nRegs=data.map(r=>({id:r.id,c:String(r.cuartel),h:r.hilera,p:r.planta,pod:r.podador,cnt:r.contador,sup:r.supervisor,comp:r.contratista,ram:parseInt(r.ramillas)||0,f:r.fuera_rango==='no'?null:r.fuera_rango,cal:r.calidad,obs:r.observaciones||'',ts:r.timestamp}));sync('sync-nec','O','En línea · '+nRegs.length);rnRam();rnCal();}
 function fnNec(v){if(v==='hoy')return nRegs.filter(r=>r.ts&&r.ts.includes(hoy()));return nRegs;}
@@ -684,15 +676,17 @@ function rnCerDar(){
 
 function rnCerCal(){
   const el=document.getElementById('cer-dcal');if(!el)return;
-  const regs=cerVC==='hoy'?cRegs.filter(x=>x.ts&&x.ts.includes(hoy())):cRegs;
-  if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-rosette"></i>'+(cerVC==='hoy'?'Sin conteos hoy.':'Sin registros.')+'</div>';return;}
+  const regs=cRegs;
+  if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-rosette"></i>Sin registros.</div>';return;}
   // Cerezo no tiene campo calidad — mostrar tipo pre/post como distribución
   const tot=regs.length;
   const pre=regs.filter(r=>r.tipo==='pre').length;
   const post=regs.filter(r=>r.tipo==='post').length;
   const pPre=Math.round(pre/tot*100),pPost=Math.round(post/tot*100);
-  const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,pre:0,post:0,b:0,al:0,dn:0};const x=d[r.c];x.t++;if(r.tipo==='pre')x.pre++;else x.post++;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
-  const rowsC=Object.keys(d).sort().map(c=>{const x=d[c];return`<tr style="cursor:pointer" onclick="openDetCer('${c}','${cerVC}')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.pre,x.t,'g')}</td><td style="text-align:center">${pct(x.post,x.t,'g')}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
+  const dPre={};regs.filter(r=>r.tipo==='pre').forEach(r=>{if(!dPre[r.c])dPre[r.c]={t:0,b:0,al:0,dn:0};const x=dPre[r.c];x.t++;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
+  const dPost={};regs.filter(r=>r.tipo==='post').forEach(r=>{if(!dPost[r.c])dPost[r.c]={t:0,b:0,al:0,dn:0};const x=dPost[r.c];x.t++;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
+  const rowsCPre=Object.keys(dPre).sort().map(c=>{const x=dPre[c];return`<tr style="cursor:pointer" onclick="openDetCer('${c}','acum')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin registros PRE PODA</td></tr>';
+  const rowsCPost=Object.keys(dPost).sort().map(c=>{const x=dPost[c];return`<tr style="cursor:pointer" onclick="openDetCer('${c}','acum')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin registros POST PODA</td></tr>';
 
   const allRegsCuartel=cRegs;
   const dPP={};
@@ -727,19 +721,19 @@ function rnCerCal(){
   }).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin datos suficientes</td></tr>';
 
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
-  ${cerVC==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   <p class="sec-title">Distribución Pre / Post Poda</p>
   <div class="cal-dist"><div class="cstat A" style="background:#E8F8F5"><div class="cletra" style="color:#0E6655">PRE</div><div class="cpct">${pPre}% · ${pre}</div></div><div class="cstat B" style="background:var(--rc)"><div class="cletra" style="color:var(--ro)">POST</div><div class="cpct">${pPost}% · ${post}</div></div></div>
   <p class="sec-title">📊 Análisis Pre/Post Poda — Pautas</p>
   <div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-bottom:10px">Promedios acumulados por cuartel (todos los registros)</div>
   <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Prom. Pre</th><th>Prom. Post</th><th>Dardos/Carg.</th><th>Prom. Carg.</th><th>Carg. Elim.</th></tr></thead><tbody>${rowsPP}</tbody></table></div>
-  <p class="sec-title">Por cuartel</p>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Pre%</th><th>Post%</th><th>✓ Dentro%</th><th>↓ Bajo%</th><th>↑ Sobre%</th></tr></thead><tbody>${rowsC}</tbody></table></div>
+  <p class="sec-title">Por cuartel — PRE PODA</p>
+  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>✓ Dentro%</th><th>↓ Bajo%</th><th>↑ Sobre%</th></tr></thead><tbody>${rowsCPre}</tbody></table></div>
+  <p class="sec-title">Por cuartel — POST PODA</p>
+  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>✓ Dentro%</th><th>↓ Bajo%</th><th>↑ Sobre%</th></tr></thead><tbody>${rowsCPost}</tbody></table></div>
   <button class="exp-btn exp-r" onclick="expCSV('cer','cal')"><i class="ti ti-download"></i>Exportar CSV</button>`;
 }
 
 function viCerDar(v){cerVD=v;document.getElementById('cer-dthoy').className='tog-btn'+(v==='hoy'?' tog-r':'');document.getElementById('cer-dtacum').className='tog-btn'+(v==='acum'?' tog-r':'');rnCerDar();}
-function viCerCal(v){cerVC=v;document.getElementById('cer-cthoy').className='tog-btn'+(v==='hoy'?' tog-r':'');document.getElementById('cer-ctacum').className='tog-btn'+(v==='acum'?' tog-r':'');rnCerCal();}
 
 // Modal detalle cerezo por cuartel (estilo nectarín)
 function openDetCer(c,vista){
@@ -1084,10 +1078,10 @@ function rnNecProd(v){
 
 // ── CEREZO PRODUCCIÓN ───────────────────────────────────────────────────
 function viCerProd(v){cerVProd=v;document.getElementById('cer-phoy').className='tog-btn'+(v==='hoy'?' tog-r':'');document.getElementById('cer-pacum').className='tog-btn'+(v==='acum'?' tog-r':'');rnCerProd(v);}
-function rnCerProd(v){
+function rnCerProd(){
   const el=document.getElementById('cer-dprod');if(!el)return;
-  const regsProd=cerVProd==='hoy'?cRegs.filter(x=>x.ts&&x.ts.includes(hoy())):cRegs;
-  if(!regsProd.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(cerVProd==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
+  const regsProd=cRegs;
+  if(!regsProd.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>Sin registros.</div>';return;}
   const mapAll={};regsProd.forEach(r=>{if(!mapAll[r.c])mapAll[r.c]={s:0,n:0};mapAll[r.c].s+=r.tot;mapAll[r.c].n++;});
   const mapPre={};regsProd.filter(r=>r.tipo==='pre').forEach(r=>{if(!mapPre[r.c])mapPre[r.c]={s:0,n:0};mapPre[r.c].s+=r.tot;mapPre[r.c].n++;});
   const avgDarPre={};Object.keys(mapPre).forEach(c=>{avgDarPre[c]=(mapPre[c].s/mapPre[c].n);});
@@ -1110,11 +1104,10 @@ function rnCerProd(v){
   const opts=PROD_CER.filter(r=>mapAll[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cerProdCuartelP?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
   const kg26blk=kgHa25?kgEstBlock(avg,fDar,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,'var(--rd)','Sin conteos '+(cerProdTipo==='pre'?'PRE':'POST')+' PODA aún para este cuartel'):'';
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
-  ${cerVProd==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
-  ${selectorDropdown(opts,"cerProdCuartelP=this.value;rnCerProd(cerVProd)",'var(--rd)','var(--ro)')}
+  ${selectorDropdown(opts,"cerProdCuartelP=this.value;rnCerProd()",'var(--rd)','var(--ro)')}
   <div class="filt-row" style="margin-bottom:12px">
-    <button class="filt-btn${cerProdTipo==='pre'?' on':''}" onclick="cerProdTipo='pre';rnCerProd(cerVProd)">PRE PODA</button>
-    <button class="filt-btn${cerProdTipo==='post'?' on':''}" onclick="cerProdTipo='post';rnCerProd(cerVProd)">POST PODA</button>
+    <button class="filt-btn${cerProdTipo==='pre'?' on':''}" onclick="cerProdTipo='pre';rnCerProd()">PRE PODA</button>
+    <button class="filt-btn${cerProdTipo==='post'?' on':''}" onclick="cerProdTipo='post';rnCerProd()">POST PODA</button>
   </div>
   <div class="stats2">
     <div class="scard"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}</div></div>
