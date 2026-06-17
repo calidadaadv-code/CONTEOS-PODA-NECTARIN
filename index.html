@@ -666,7 +666,7 @@ function rnCerDar(){
   const tot=regs.length,avg=(regs.reduce((s,r)=>s+r.tot,0)/tot).toFixed(1);
   const fr=regs.filter(r=>r.f!=='no').length,cuarts=[...new Set(regs.map(r=>r.c))].length;
   const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,s:0,b:0,al:0,dn:0,info:CCER.find(x=>x.n===r.c)};const x=d[r.c];x.t++;x.s+=r.tot;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
-  const rows=Object.keys(d).sort().map(c=>{const x=d[c];const inf=x.info||{mn:0,mx:0,ob:0};const a=Math.round(x.s/x.t);const ac=a<inf.mn?'color:#791F1F':a>inf.mx?'color:#633806':'color:var(--ro)';return`<tr style="cursor:pointer" onclick="openDetCer('${c}','${cerVD}')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="${ac};font-weight:500">${a}</td><td style="color:var(--tm);font-size:10px">${inf.ob||'—'}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
+  const rows=Object.keys(d).sort().map(c=>{const x=d[c];const inf=x.info||{mn:0,mx:0,ob:0};const a=Math.round(x.s/x.t);const ac=a<inf.mn?'color:#791F1F':a>inf.mx?'color:#633806':'color:var(--ro)';return`<tr style="cursor:pointer" onclick="openDetCer('${c}','${cerVD}','full')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="${ac};font-weight:500">${a}</td><td style="color:var(--tm);font-size:10px">${inf.ob||'—'}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${cerVD==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   <div class="filt-row" style="margin-bottom:12px">
@@ -687,7 +687,7 @@ function rnCerCal(){
   if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-rosette"></i>'+(cerVC==='hoy'?'Sin conteos hoy.':'Sin registros.')+'</div>';return;}
   const tot=regs.length;
   const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,b:0,al:0,dn:0};const x=d[r.c];x.t++;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
-  const rowsC=Object.keys(d).sort().map(c=>{const x=d[c];return`<tr style="cursor:pointer" onclick="openDetCer('${c}','${cerVC}')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
+  const rowsC=Object.keys(d).sort().map(c=>{const x=d[c];return`<tr style="cursor:pointer" onclick="openDetCer('${c}','${cerVC}','simple')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
   // Plantas fuera de rango (ya filtradas por tipo via fnCerDar)
   const frRegs=regs.filter(r=>r.f==='bajo'||r.f==='alto').slice(-30).reverse();
   const rowsFR=frRegs.length?frRegs.map(r=>{const pill=r.f==='bajo'?'<span class="pill pill-bj">↓ bajo</span>':'<span class="pill pill-al">↑ sobre</span>';return`<tr><td>${r.c}</td><td>H${r.h}·P${r.p}</td><td style="font-weight:500">${r.tot} ${pill}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}</td></tr>`;}).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin plantas fuera de rango</td></tr>';
@@ -708,13 +708,20 @@ function viCerDar(v){cerVD=v;document.getElementById('cer-dthoy').className='tog
 function viCerCal(v){cerVC=v;document.getElementById('cer-cthoy').className='tog-btn'+(v==='hoy'?' tog-r':'');document.getElementById('cer-ctacum').className='tog-btn'+(v==='acum'?' tog-r':'');rnCerCal();}
 
 // Modal detalle cerezo por cuartel (estilo nectarín)
-function openDetCer(c,vista){
+function openDetCer(c,vista,modo){
+  modo=modo||'full';
   const regs=fnCerDar(vista).filter(r=>r.c===c && r.tipo===cerTipoFilt);
   const tot=regs.length,bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=regs.filter(r=>r.f==='no').length;
   const avg=tot?(regs.reduce((s,r)=>s+r.tot,0)/tot).toFixed(1):'-';
   const stats=`<div class="mstat"><div class="mstat-val" style="color:var(--ro)">${avg}</div><div class="mstat-lbl">Prom.</div></div><div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${tot?Math.round(bj/tot*100):0}%</div><div class="mstat-lbl">Bajo</div></div><div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${tot?Math.round(dn/tot*100):0}%</div><div class="mstat-lbl">Dentro</div></div><div class="mstat" style="background:var(--ac)"><div class="mstat-val" style="color:#633806">${tot?Math.round(al/tot*100):0}%</div><div class="mstat-lbl">Sobre</div></div>`;
-  const thead='<tr><th>Tipo</th><th>H</th><th>P</th><th>Dardos</th><th>Eje</th><th>Ram.</th><th>Total</th><th>Estado</th><th>Carg. Elim.</th></tr>';
-  const tbody=regs.map(r=>{const tp=r.tipo==='pre'?'<span style="font-size:9px;background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px">PRE</span>':'<span style="font-size:9px;background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';const pill=r.f==='bajo'?'<span class="pill pill-bj">↓</span>':r.f==='alto'?'<span class="pill pill-al">↑</span>':'<span class="pill pill-ok">✓</span>';const ce=r.cargElim||0;const ceTxt=ce>0?`<span style="color:#791F1F;font-weight:600">${ce}</span>`:'<span style="color:var(--tm)">0</span>';return`<tr><td>${tp}</td><td>${r.h}</td><td>${r.p}</td><td>${r.td||0}</td><td>${r.deje||0}</td><td>${r.ram||0}</td><td style="${tc};font-weight:500">${r.tot}</td><td>${pill}</td><td style="text-align:center">${ceTxt}</td></tr>`;}).join('')||'<tr><td colspan="9" class="empty">Sin conteos</td></tr>';
+  let thead,tbody;
+  if(modo==='simple'){
+    thead='<tr><th>H</th><th>P</th><th>Total</th><th>Estado</th><th>Observación</th></tr>';
+    tbody=regs.map(r=>{const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';const pill=r.f==='bajo'?'<span class="pill pill-bj">↓</span>':r.f==='alto'?'<span class="pill pill-al">↑</span>':'<span class="pill pill-ok">✓</span>';return`<tr><td>${r.h}</td><td>${r.p}</td><td style="${tc};font-weight:500">${r.tot}</td><td>${pill}</td><td class="otd">${r.obs||''}</td></tr>`;}).join('')||'<tr><td colspan="5" class="empty">Sin conteos</td></tr>';
+  }else{
+    thead='<tr><th>Tipo</th><th>H</th><th>P</th><th>Dardos</th><th>Eje</th><th>Ram.</th><th>Total</th><th>Estado</th><th>Carg. Elim.</th></tr>';
+    tbody=regs.map(r=>{const tp=r.tipo==='pre'?'<span style="font-size:9px;background:var(--rc);color:var(--ro);padding:1px 5px;border-radius:3px">PRE</span>':'<span style="font-size:9px;background:#E8F8F5;color:#0E6655;padding:1px 5px;border-radius:3px">POST</span>';const tc=r.f==='bajo'?'color:#791F1F':r.f==='alto'?'color:#633806':'color:var(--ro)';const pill=r.f==='bajo'?'<span class="pill pill-bj">↓</span>':r.f==='alto'?'<span class="pill pill-al">↑</span>':'<span class="pill pill-ok">✓</span>';const ce=r.cargElim||0;const ceTxt=ce>0?`<span style="color:#791F1F;font-weight:600">${ce}</span>`:'<span style="color:var(--tm)">0</span>';return`<tr><td>${tp}</td><td>${r.h}</td><td>${r.p}</td><td>${r.td||0}</td><td>${r.deje||0}</td><td>${r.ram||0}</td><td style="${tc};font-weight:500">${r.tot}</td><td>${pill}</td><td style="text-align:center">${ceTxt}</td></tr>`;}).join('')||'<tr><td colspan="9" class="empty">Sin conteos</td></tr>';
+  }
   document.getElementById('modal-hdr').className='modal-hdr modal-hdr-r';
   document.getElementById('modal-tit').textContent='Detalle '+c+(vista==='hoy'?' — Hoy':'')+' — '+regs.length+' conteos';
   document.querySelector('#modal-ov .modal-body').innerHTML=`<div class="modal-stats">${stats}</div><div class="twrap"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
