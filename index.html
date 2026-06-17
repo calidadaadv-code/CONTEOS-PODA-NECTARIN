@@ -685,28 +685,22 @@ function rnCerCal(){
   const el=document.getElementById('cer-dcal');if(!el)return;
   const regs=fnCerDar(cerVC);
   if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-rosette"></i>'+(cerVC==='hoy'?'Sin conteos hoy.':'Sin registros.')+'</div>';return;}
-  // Cerezo no tiene campo calidad — mostrar tipo pre/post como distribución
   const tot=regs.length;
-  const pre=regs.filter(r=>r.tipo==='pre').length;
-  const post=regs.filter(r=>r.tipo==='post').length;
-  const pPre=Math.round(pre/tot*100),pPost=Math.round(post/tot*100);
-  const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,pre:0,post:0,b:0,al:0,dn:0};const x=d[r.c];x.t++;if(r.tipo==='pre')x.pre++;else x.post++;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
-  const rowsC=Object.keys(d).sort().map(c=>{const x=d[c];return`<tr style="cursor:pointer" onclick="openDetCer('${c}','${cerVC}')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.pre,x.t,'g')}</td><td style="text-align:center">${pct(x.post,x.t,'g')}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
-  // Plantas fuera de rango
+  const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,b:0,al:0,dn:0};const x=d[r.c];x.t++;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
+  const rowsC=Object.keys(d).sort().map(c=>{const x=d[c];return`<tr style="cursor:pointer" onclick="openDetCer('${c}','${cerVC}')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
+  // Plantas fuera de rango (ya filtradas por tipo via fnCerDar)
   const frRegs=regs.filter(r=>r.f==='bajo'||r.f==='alto').slice(-30).reverse();
-  const rowsFR=frRegs.length?frRegs.map(r=>{const tp=r.tipo==='pre'?'<span style="background:var(--rc);color:var(--ro);padding:2px 5px;border-radius:3px;font-size:9px">PRE</span>':'<span style="background:#E8F8F5;color:#0E6655;padding:2px 5px;border-radius:3px;font-size:9px">POST</span>';const pill=r.f==='bajo'?'<span class="pill pill-bj">↓ bajo</span>':'<span class="pill pill-al">↑ sobre</span>';return`<tr><td>${r.c}</td><td>${tp}</td><td>H${r.h}·P${r.p}</td><td style="font-weight:500">${r.tot} ${pill}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}</td></tr>`;}).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin plantas fuera de rango</td></tr>';
+  const rowsFR=frRegs.length?frRegs.map(r=>{const pill=r.f==='bajo'?'<span class="pill pill-bj">↓ bajo</span>':'<span class="pill pill-al">↑ sobre</span>';return`<tr><td>${r.c}</td><td>H${r.h}·P${r.p}</td><td style="font-weight:500">${r.tot} ${pill}</td><td style="font-size:10px;color:var(--tm)">${r.pod||''}</td></tr>`;}).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin plantas fuera de rango</td></tr>';
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${cerVC==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   <div class="filt-row" style="margin-bottom:12px">
-    <button class="filt-btn${cerTipoFilt==='pre'?' on':''}" onclick="cerTipoFilt='pre';rnCerCal()">PRE PODA</button>
-    <button class="filt-btn${cerTipoFilt==='post'?' on':''}" onclick="cerTipoFilt='post';rnCerCal()">POST PODA</button>
+    <button class="filt-btn${cerTipoFilt==='pre'?' on':''}" onclick="cerTipoFilt='pre';rnCerDar();rnCerCal()">PRE PODA</button>
+    <button class="filt-btn${cerTipoFilt==='post'?' on':''}" onclick="cerTipoFilt='post';rnCerDar();rnCerCal()">POST PODA</button>
   </div>
-  <p class="sec-title">Distribución Pre / Post Poda</p>
-  <div class="cal-dist"><div class="cstat A" style="background:#E8F8F5"><div class="cletra" style="color:#0E6655">PRE</div><div class="cpct">${pPre}% · ${pre}</div></div><div class="cstat B" style="background:var(--rc)"><div class="cletra" style="color:var(--ro)">POST</div><div class="cpct">${pPost}% · ${post}</div></div></div>
-  <p class="sec-title">Por cuartel</p>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>Pre%</th><th>Post%</th><th>✓ Dentro%</th><th>↓ Bajo%</th><th>↑ Sobre%</th></tr></thead><tbody>${rowsC}</tbody></table></div>
+  <p class="sec-title">Por cuartel — ${cerTipoFilt==='pre'?'Pre Poda':'Post Poda'} (${tot} conteos)</p>
+  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Total</th><th>✓ Dentro%</th><th>↓ Bajo%</th><th>↑ Sobre%</th></tr></thead><tbody>${rowsC}</tbody></table></div>
   <p class="sec-title" style="margin-top:12px">Plantas fuera de rango</p>
-  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Tipo</th><th>Ubic.</th><th>Total</th><th>Podador</th></tr></thead><tbody>${rowsFR}</tbody></table></div>
+  <div class="twrap"><table><thead><tr><th>Cuartel</th><th>Ubic.</th><th>Total</th><th>Podador</th></tr></thead><tbody>${rowsFR}</tbody></table></div>
   <button class="exp-btn exp-r" onclick="expCSV('cer','cal')"><i class="ti ti-download"></i>Exportar CSV</button>`;
 }
 
