@@ -432,6 +432,10 @@
       <button class="tog-btn tog-r" id="cer-phoy" onclick="viCerProd('hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
       <button class="tog-btn" id="cer-pacum" onclick="viCerProd('acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
     </div>
+    <div class="tog-row" id="cer-prod-filt" style="margin-top:8px">
+      <button class="filt-btn on" id="cer-pfprep" onclick="cerTipoFilt='pre';rnCerProd(cerVProd);syncCerProdFiltBtns()">PRE PODA</button>
+      <button class="filt-btn" id="cer-pfpostp" onclick="cerTipoFilt='post';rnCerProd(cerVProd);syncCerProdFiltBtns()">POST PODA</button>
+    </div>
     <div id="cer-dprod"><div class="empty"><i class="ti ti-trending-up"></i>Cargando...</div></div>
   </div>
   <div class="panel" id="cer-cfg">
@@ -638,7 +642,7 @@ function pct(n,fn,fn2){const p=Math.round(n/fn*100);const c=fn2==='g'?(p>=70?'ba
 function entrar(e){document.getElementById('pantalla-inicio').style.display='none';document.getElementById('view-nec').style.display=e==='nec'?'block':'none';document.getElementById('view-cer').style.display=e==='cer'?'block':'none';document.getElementById('view-cir').style.display=e==='cir'?'block':'none';if(e==='nec')loadNec();else if(e==='cer')loadCer();else loadCir();if(!listasLoaded)loadListas();}
 function volver(){document.getElementById('pantalla-inicio').style.display='flex';document.getElementById('view-nec').style.display='none';document.getElementById('view-cer').style.display='none';document.getElementById('view-cir').style.display='none';}
 function tabNec(t){['ing','ram','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-nec')[i];const pan=document.getElementById('nec-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='ram'||t==='cal')loadNec();if(t==='prod')rnNecProd(necVProd);}
-function tabCer(t){['ing','dar','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cer')[i];const pan=document.getElementById('cer-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='dar'){loadCer();rnCerDar();}if(t==='cal'){loadCer();rnCerCal();}if(t==='prod')rnCerProd(cerVProd);}
+function tabCer(t){['ing','dar','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cer')[i];const pan=document.getElementById('cer-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='dar'){loadCer();rnCerDar();}if(t==='cal'){loadCer();rnCerCal();}if(t==='prod'){syncCerProdFiltBtns();rnCerProd(cerVProd);}}
 function tabCir(t){['ing','ml','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cir')[i];const pan=document.getElementById('cir-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='ml'||t==='cal')loadCir();if(t==='prod')rnCirProd(cirVProd);}
 async function loadNec(){sync('sync-nec','L','Cargando...');const {data,error}=await db.from('conteos').select('*').order('id',{ascending:true}).limit(10000);if(error){sync('sync-nec','E','Sin conexión');return;}nRegs=data.map(r=>({id:r.id,c:String(r.cuartel),h:r.hilera,p:r.planta,pod:r.podador,cnt:r.contador,sup:r.supervisor,comp:r.contratista,ram:parseInt(r.ramillas)||0,f:r.fuera_rango==='no'?null:r.fuera_rango,cal:r.calidad,obs:r.observaciones||'',ts:r.timestamp}));sync('sync-nec','O','En línea · '+nRegs.length);rnRam();rnCal();}
 function fnNec(v){if(v==='hoy')return nRegs.filter(r=>r.ts&&r.ts.includes(hoy()));return nRegs;}
@@ -1058,10 +1062,18 @@ function rnNecProd(v){
 
 // ── CEREZO PRODUCCIÓN ───────────────────────────────────────────────────
 function viCerProd(v){cerVProd=v;document.getElementById('cer-phoy').className='tog-btn'+(v==='hoy'?' tog-r':'');document.getElementById('cer-pacum').className='tog-btn'+(v==='acum'?' tog-r':'');rnCerProd(v);}
+function syncCerProdFiltBtns(){
+  const bp=document.getElementById('cer-pfprep'),bo=document.getElementById('cer-pfpostp');
+  if(!bp||!bo)return;
+  bp.className='filt-btn'+(cerTipoFilt==='pre'?' on':'');
+  bo.className='filt-btn'+(cerTipoFilt==='post'?' on':'');
+}
 function rnCerProd(v){
   const el=document.getElementById('cer-dprod');if(!el)return;
-  const regsProd=cerVProd==='hoy'?cRegs.filter(x=>x.ts&&x.ts.includes(hoy())):cRegs;
-  if(!regsProd.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(cerVProd==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
+  syncCerProdFiltBtns();
+  const base=cerVProd==='hoy'?cRegs.filter(x=>x.ts&&x.ts.includes(hoy())):cRegs;
+  const regsProd=base.filter(x=>(x.tipo||'pre')===cerTipoFilt);
+  if(!regsProd.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(cerVProd==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+' ('+(cerTipoFilt==='pre'?'PRE PODA':'POST PODA')+')</div>';return;}
   const map={};regsProd.forEach(r=>{if(!map[r.c])map[r.c]={s:0,n:0};map[r.c].s+=r.tot;map[r.c].n++;});
   const avgDar={};Object.keys(map).forEach(c=>{avgDar[c]=(map[c].s/map[c].n);});
   if(!avgDar[cerProdCuartelP])cerProdCuartelP=Object.keys(avgDar)[0];
