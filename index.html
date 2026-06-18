@@ -239,8 +239,8 @@
     .modal-close{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1}
     .modal-body{overflow-y:auto;padding:12px}
     .modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
-    .modal-stats-4{grid-template-columns:1fr 1fr 1fr 1fr}
-    .modal-stats-1{grid-template-columns:1fr}
+    .modal-stats-3{grid-template-columns:1fr 1fr 1fr}
+    .modal-stats-2{grid-template-columns:1fr 1fr}
     .mstat{background:#f9f9f7;border-radius:8px;padding:10px;text-align:center}
     .mstat-val{font-size:20px;font-family:var(--mo);font-weight:500}
     .mstat-lbl{font-size:10px;font-family:var(--mo);color:var(--tm);text-transform:uppercase}
@@ -716,9 +716,10 @@ function openDetCer(c,vista,modo){
   const regs=fnCerDar(vista).filter(r=>r.c===c && r.tipo===cerTipoFilt);
   const tot=regs.length,bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=regs.filter(r=>r.f==='no').length;
   const avg=tot?(regs.reduce((s,r)=>s+r.tot,0)/tot).toFixed(1):'-';
+  const promDar=tot?(regs.reduce((s,r)=>s+(r.td||0)+(r.deje||0),0)/tot).toFixed(1):'-';
   const promRam=tot?(regs.reduce((s,r)=>s+(r.ram||0),0)/tot).toFixed(1):'-';
-  const stats=`<div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${tot?Math.round(bj/tot*100):0}%</div><div class="mstat-lbl">Bajo</div></div><div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${tot?Math.round(dn/tot*100):0}%</div><div class="mstat-lbl">Dentro</div></div><div class="mstat" style="background:var(--ac)"><div class="mstat-val" style="color:#633806">${tot?Math.round(al/tot*100):0}%</div><div class="mstat-lbl">Sobre</div></div><div class="mstat"><div class="mstat-val" style="color:var(--ro)">${avg}</div><div class="mstat-lbl">Prom.</div></div>`;
-  const statsRam=`<div class="mstat" style="background:#f9f9f7"><div class="mstat-val" style="color:var(--ro)">${promRam}</div><div class="mstat-lbl">Prom. ramillas</div></div>`;
+  const stats=`<div class="mstat" style="background:var(--rc)"><div class="mstat-val" style="color:#791F1F">${tot?Math.round(bj/tot*100):0}%</div><div class="mstat-lbl">Bajo</div></div><div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${tot?Math.round(dn/tot*100):0}%</div><div class="mstat-lbl">Dentro</div></div><div class="mstat" style="background:var(--ac)"><div class="mstat-val" style="color:#633806">${tot?Math.round(al/tot*100):0}%</div><div class="mstat-lbl">Sobre</div></div>`;
+  const statsRam=`<div class="mstat"><div class="mstat-val" style="color:var(--ro)">${promDar}</div><div class="mstat-lbl">Prom. dardos</div></div><div class="mstat" style="background:#f9f9f7"><div class="mstat-val" style="color:var(--ro)">${promRam}</div><div class="mstat-lbl">Prom. ramillas</div></div><div class="mstat"><div class="mstat-val" style="color:var(--ro)">${avg}</div><div class="mstat-lbl">Prom. total</div></div>`;
   let thead,tbody;
   if(modo==='simple'){
     thead='<tr><th>H</th><th>P</th><th>Total</th><th>Estado</th><th>Observación</th></tr>';
@@ -729,7 +730,7 @@ function openDetCer(c,vista,modo){
   }
   document.getElementById('modal-hdr').className='modal-hdr modal-hdr-r';
   document.getElementById('modal-tit').textContent='Detalle '+c+(vista==='hoy'?' — Hoy':'')+' — '+regs.length+' conteos';
-  document.querySelector('#modal-ov .modal-body').innerHTML=`<div class="modal-stats modal-stats-4">${stats}</div><div class="modal-stats modal-stats-1">${statsRam}</div><div class="twrap"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+  document.querySelector('#modal-ov .modal-body').innerHTML=`<div class="modal-stats modal-stats-3">${stats}</div><div class="modal-stats modal-stats-3">${statsRam}</div><div class="twrap"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
   document.getElementById('modal-ov').classList.add('open');
 }
 
