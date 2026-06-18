@@ -692,7 +692,7 @@ function rnCerCal(){
   const d={};regs.forEach(r=>{if(!d[r.c])d[r.c]={t:0,b:0,al:0,dn:0};const x=d[r.c];x.t++;if(r.f==='bajo')x.b++;else if(r.f==='alto')x.al++;else x.dn++;});
   const rowsC=Object.keys(d).sort().map(c=>{const x=d[c];return`<tr style="cursor:pointer" onclick="openDetCer('${c}','${cerVC}','simple')"><td style="color:var(--ro);text-decoration:underline dotted">${c}</td><td>${x.t}</td><td style="text-align:center">${pct(x.dn,x.t,'g')}</td><td style="text-align:center">${pct(x.b,x.t,'r')}</td><td style="text-align:center">${pct(x.al,x.t,'r')}</td></tr>`;}).join('');
   // Plantas fuera de rango (ya filtradas por tipo via fnCerDar)
-  const frRegs=regs.filter(r=>r.f==='bajo'||r.f==='alto').slice(-30).reverse();
+  const frRegs=regs.filter(r=>r.f==='bajo'||r.f==='alto').slice(-30).reverse().sort((a,b)=>(parseInt(a.h)||0)-(parseInt(b.h)||0));
   const rowsFR=frRegs.length?frRegs.map(r=>{const pill=r.f==='bajo'?'<span class="pill pill-bj">↓ bajo</span>':'<span class="pill pill-al">↑ sobre</span>';return`<tr><td>${r.c}</td><td>H${r.h}·P${r.p}</td><td style="font-weight:500">${r.tot} ${pill}</td><td class="otd">${r.obs||'—'}</td></tr>`;}).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--tm);padding:12px;font-family:var(--mo);font-size:12px">Sin plantas fuera de rango</td></tr>';
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${cerVC==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
@@ -713,7 +713,7 @@ function viCerCal(v){cerVC=v;document.getElementById('cer-cthoy').className='tog
 // Modal detalle cerezo por cuartel (estilo nectarín)
 function openDetCer(c,vista,modo){
   modo=modo||'full';
-  const regs=fnCerDar(vista).filter(r=>r.c===c && r.tipo===cerTipoFilt);
+  const regs=fnCerDar(vista).filter(r=>r.c===c && r.tipo===cerTipoFilt).sort((a,b)=>(parseInt(a.h)||0)-(parseInt(b.h)||0));
   const tot=regs.length,bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=regs.filter(r=>r.f==='no').length;
   const avg=tot?(regs.reduce((s,r)=>s+r.tot,0)/tot).toFixed(1):'-';
   const promDar=tot?(regs.reduce((s,r)=>s+(r.td||0)+(r.deje||0),0)/tot).toFixed(1):'-';
@@ -1091,6 +1091,8 @@ function rnCerProd(v){
   const regsCuartel=regsProd.filter(r=>r.c===c);
   const cargElim26=regsCuartel.length?(regsCuartel.reduce((s,r)=>s+(r.cargElim||0),0)/regsCuartel.length):null;
   const cargElim26Txt=cargElim26!==null?cargElim26.toFixed(1):'-';
+  const ram26=regsCuartel.length?(regsCuartel.reduce((s,r)=>s+(r.ram||0),0)/regsCuartel.length):null;
+  const ram26Txt=ram26!==null?ram26.toFixed(1):'-';
   const opts=PROD_CER.filter(r=>avgDar[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cerProdCuartelP?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
   const kg26blk=kgHa25?kgEstBlock(avg,fDar,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,'var(--rd)'):'';
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
@@ -1101,7 +1103,8 @@ function rnCerProd(v){
     <div class="scard"><div class="slbl">Prom. dardos 2026</div><div class="sval" style="color:var(--ro)">${avgTxt}</div><div class="ssub">dardos+ramillas</div></div>
     <div class="scard"><div class="slbl">Frutos/Dardo 2025</div><div class="sval" style="color:#555">${fd25}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Frutos/Dardo 2026</div><div class="sval" style="color:var(--ro)">${fd26}</div><div class="ssub">estimación programa</div></div>
-    <div class="scard" style="grid-column:1/-1"><div class="slbl">Ramillas/Planta 2025</div><div class="sval" style="color:#555">${ram25}</div><div class="ssub">real año anterior</div></div>
+    <div class="scard"><div class="slbl">Ramillas/Planta 2025</div><div class="sval" style="color:#555">${ram25}</div><div class="ssub">real año anterior</div></div>
+    <div class="scard"><div class="slbl">Ramillas/Planta 2026</div><div class="sval" style="color:var(--ro)">${ram26Txt}</div><div class="ssub">promedio temporada actual</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2025</div><div class="sval" style="color:#555">${fxr25}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2026</div><div class="sval" style="color:var(--ro)">${fd26}</div><div class="ssub">estimación programa</div></div>
     <div class="scard"><div class="slbl">Carg. eliminados 2025</div><div class="sval" style="color:#555">${cargElim25}</div><div class="ssub">real año anterior</div></div>
