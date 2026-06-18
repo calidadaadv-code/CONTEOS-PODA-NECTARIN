@@ -428,13 +428,9 @@
     <div id="cer-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div>
   </div>
   <div class="panel" id="cer-prod">
-    <div class="tog-row">
-      <button class="tog-btn tog-r" id="cer-phoy" onclick="viCerProd('hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
-      <button class="tog-btn" id="cer-pacum" onclick="viCerProd('acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
-    </div>
-    <div class="tog-row" id="cer-prod-filt" style="margin-top:8px">
-      <button class="filt-btn on" id="cer-pfprep" onclick="cerTipoFilt='pre';rnCerProd(cerVProd);syncCerProdFiltBtns()">PRE PODA</button>
-      <button class="filt-btn" id="cer-pfpostp" onclick="cerTipoFilt='post';rnCerProd(cerVProd);syncCerProdFiltBtns()">POST PODA</button>
+    <div class="tog-row" id="cer-prod-filt">
+      <button class="filt-btn on" id="cer-pfprep" onclick="cerTipoFilt='pre';rnCerProd();syncCerProdFiltBtns()">PRE PODA</button>
+      <button class="filt-btn" id="cer-pfpostp" onclick="cerTipoFilt='post';rnCerProd();syncCerProdFiltBtns()">POST PODA</button>
     </div>
     <div id="cer-dprod"><div class="empty"><i class="ti ti-trending-up"></i>Cargando...</div></div>
   </div>
@@ -642,7 +638,7 @@ function pct(n,fn,fn2){const p=Math.round(n/fn*100);const c=fn2==='g'?(p>=70?'ba
 function entrar(e){document.getElementById('pantalla-inicio').style.display='none';document.getElementById('view-nec').style.display=e==='nec'?'block':'none';document.getElementById('view-cer').style.display=e==='cer'?'block':'none';document.getElementById('view-cir').style.display=e==='cir'?'block':'none';if(e==='nec')loadNec();else if(e==='cer')loadCer();else loadCir();if(!listasLoaded)loadListas();}
 function volver(){document.getElementById('pantalla-inicio').style.display='flex';document.getElementById('view-nec').style.display='none';document.getElementById('view-cer').style.display='none';document.getElementById('view-cir').style.display='none';}
 function tabNec(t){['ing','ram','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-nec')[i];const pan=document.getElementById('nec-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='ram'||t==='cal')loadNec();if(t==='prod')rnNecProd(necVProd);}
-function tabCer(t){['ing','dar','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cer')[i];const pan=document.getElementById('cer-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='dar'){loadCer();rnCerDar();}if(t==='cal'){loadCer();rnCerCal();}if(t==='prod'){syncCerProdFiltBtns();rnCerProd(cerVProd);}}
+function tabCer(t){['ing','dar','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cer')[i];const pan=document.getElementById('cer-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='dar'){loadCer();rnCerDar();}if(t==='cal'){loadCer();rnCerCal();}if(t==='prod'){syncCerProdFiltBtns();rnCerProd();}}
 function tabCir(t){['ing','ml','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cir')[i];const pan=document.getElementById('cir-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='ml'||t==='cal')loadCir();if(t==='prod')rnCirProd(cirVProd);}
 async function loadNec(){sync('sync-nec','L','Cargando...');const {data,error}=await db.from('conteos').select('*').order('id',{ascending:true}).limit(10000);if(error){sync('sync-nec','E','Sin conexión');return;}nRegs=data.map(r=>({id:r.id,c:String(r.cuartel),h:r.hilera,p:r.planta,pod:r.podador,cnt:r.contador,sup:r.supervisor,comp:r.contratista,ram:parseInt(r.ramillas)||0,f:r.fuera_rango==='no'?null:r.fuera_rango,cal:r.calidad,obs:r.observaciones||'',ts:r.timestamp}));sync('sync-nec','O','En línea · '+nRegs.length);rnRam();rnCal();}
 function fnNec(v){if(v==='hoy')return nRegs.filter(r=>r.ts&&r.ts.includes(hoy()));return nRegs;}
@@ -652,7 +648,7 @@ async function guardarNec(){const h=document.getElementById('nec-hil').value,p=d
 function cNec(d){nIdx=Math.max(0,Math.min(CNEC.length-1,nIdx+d));document.getElementById('nec-cval').textContent=CNEC[nIdx].n+' · '+CNEC[nIdx].v;}
 function valRam(inp){const v=parseInt(inp.value);inp.classList.remove('rbajo','ralto','rok');document.getElementById('nec-abaj').classList.remove('vis');document.getElementById('nec-aalt').classList.remove('vis');if(isNaN(v)||inp.value==='')return;if(v<RM){inp.classList.add('rbajo');document.getElementById('nec-abaj').classList.add('vis');}else if(v>RX){inp.classList.add('ralto');document.getElementById('nec-aalt').classList.add('vis');}else inp.classList.add('rok');}
 function viNec(t,v){if(t==='ram'){nVR=v;document.getElementById('nec-thoy').className='tog-btn'+(v==='hoy'?' tog-g':'');document.getElementById('nec-tacum').className='tog-btn'+(v==='acum'?' tog-g':'');rnRam();}else{nVC=v;document.getElementById('nec-choy').className='tog-btn'+(v==='hoy'?' tog-g':'');document.getElementById('nec-tacum2').className='tog-btn'+(v==='acum'?' tog-g':'');rnCal();}}
-async function loadCer(){sync('sync-cer','L','Cargando...');const {data,error}=await db.from('conteos_cerezas').select('*').order('id',{ascending:true}).limit(10000);if(error){sync('sync-cer','E','Sin conexión');return;}cRegs=data.map(r=>({id:r.id,c:r.cuartel,v:r.variedad,tipo:r.tipo_conteo,h:r.hilera,p:r.planta,pod:r.podador,cnt:r.contador,sup:r.supervisor,comp:r.contratista,cars:r.cargadores||[],cargElim:r.cargadores_eliminados||0,td:parseInt(r.total_dardos)||0,deje:parseInt(r.dardos_eje)||0,ram:parseInt(r.ramillas)||0,tot:parseInt(r.total_general)||0,f:r.fuera_rango,obs:r.observaciones||'',ts:r.timestamp}));sync('sync-cer','O','En línea · '+cRegs.length);rnCerDar();rnCerCal();}
+async function loadCer(){sync('sync-cer','L','Cargando...');const {data,error}=await db.from('conteos_cerezas').select('*').order('id',{ascending:true}).limit(10000);if(error){sync('sync-cer','E','Sin conexión');return;}cRegs=data.map(r=>({id:r.id,c:r.cuartel,v:r.variedad,tipo:r.tipo_conteo,h:r.hilera,p:r.planta,pod:r.podador,cnt:r.contador,sup:r.supervisor,comp:r.contratista,cars:r.cargadores||[],cargElim:r.cargadores_eliminados||0,td:parseInt(r.total_dardos)||0,deje:parseInt(r.dardos_eje)||0,ram:parseInt(r.ramillas)||0,tot:parseInt(r.total_general)||0,f:r.fuera_rango,obs:r.observaciones||'',ts:r.timestamp}));sync('sync-cer','O','En línea · '+cRegs.length);rnCerDar();rnCerCal();rnCerProd();}
 function cCer(d){cIdx=Math.max(0,Math.min(CCER.length-1,cIdx+d));const c=CCER[cIdx];document.getElementById('cer-cval').textContent=c.n+' · '+c.v;document.getElementById('cer-rinfo').textContent='Dardos: '+c.mn+'–'+c.ob+'–'+c.mx;calcTotal();}
 function setTipo(t){cTipo=t;document.getElementById('cer-tpre').className='tipo-btn pre'+(t==='pre'?' on':'');document.getElementById('cer-tpost').className='tipo-btn post'+(t==='post'?' on':'');}
 function addCar(){nCar++;const l=document.getElementById('car-list');const r=document.createElement('div');r.className='car-row';r.id='cr'+nCar;r.innerHTML=`<span class="car-lbl">Cargador ${nCar}</span><input class="car-inp" type="number" id="ci${nCar}" min="0" placeholder="0" oninput="calcTotal()"><button class="del-car" onclick="delCar(${nCar})"><i class="ti ti-x"></i></button>`;l.appendChild(r);}
@@ -1061,7 +1057,6 @@ function rnNecProd(v){
 }
 
 // ── CEREZO PRODUCCIÓN ───────────────────────────────────────────────────
-function viCerProd(v){cerVProd=v;document.getElementById('cer-phoy').className='tog-btn'+(v==='hoy'?' tog-r':'');document.getElementById('cer-pacum').className='tog-btn'+(v==='acum'?' tog-r':'');rnCerProd(v);}
 function syncCerProdFiltBtns(){
   const bp=document.getElementById('cer-pfprep'),bo=document.getElementById('cer-pfpostp');
   if(!bp||!bo)return;
@@ -1071,9 +1066,8 @@ function syncCerProdFiltBtns(){
 function rnCerProd(v){
   const el=document.getElementById('cer-dprod');if(!el)return;
   syncCerProdFiltBtns();
-  const base=cerVProd==='hoy'?cRegs.filter(x=>x.ts&&x.ts.includes(hoy())):cRegs;
-  const regsProd=base.filter(x=>(x.tipo||'pre')===cerTipoFilt);
-  if(!regsProd.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(cerVProd==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+' ('+(cerTipoFilt==='pre'?'PRE PODA':'POST PODA')+')</div>';return;}
+  const regsProd=cRegs.filter(x=>(x.tipo||'pre')===cerTipoFilt);
+  if(!regsProd.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>Sin registros. ('+(cerTipoFilt==='pre'?'PRE PODA':'POST PODA')+')</div>';return;}
   const map={};regsProd.forEach(r=>{if(!map[r.c])map[r.c]={s:0,n:0};map[r.c].s+=r.tot;map[r.c].n++;});
   const avgDar={};Object.keys(map).forEach(c=>{avgDar[c]=(map[c].s/map[c].n);});
   if(!avgDar[cerProdCuartelP])cerProdCuartelP=Object.keys(avgDar)[0];
@@ -1091,8 +1085,7 @@ function rnCerProd(v){
   const opts=PROD_CER.filter(r=>avgDar[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cerProdCuartelP?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
   const kg26blk=kgHa25?kgEstBlock(avg,fDar,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,'var(--rd)'):'';
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
-  ${cerVProd==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
-  ${selectorDropdown(opts,"cerProdCuartelP=this.value;rnCerProd(cerVProd)",'var(--rd)','var(--ro)')}
+  ${selectorDropdown(opts,"cerProdCuartelP=this.value;rnCerProd()",'var(--rd)','var(--ro)')}
   <div class="stats2">
     <div class="scard"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}</div></div>
     <div class="scard"><div class="slbl">Prom. dardos 2026</div><div class="sval" style="color:var(--ro)">${avgTxt}</div><div class="ssub">dardos+ramillas</div></div>
