@@ -1096,16 +1096,17 @@ function rnCerProd(v){
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${selectorDropdown(opts,"cerProdCuartelP=this.value;rnCerProd()",'var(--rd)','var(--ro)')}
   <div class="stats2">
-    <div class="scard"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}</div></div>
-    <div class="scard"><div class="slbl">Prom. dardos 2026</div><div class="sval" style="color:var(--ro)">${avgTxt}</div><div class="ssub">dardos+ramillas</div></div>
+    <div class="scard" style="grid-column:1/-1"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}</div></div>
     <div class="scard"><div class="slbl">Dardos 2025</div><div class="sval" style="color:#555">${d25txt}</div><div class="ssub">año anterior</div></div>
-    <div class="scard"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
+    <div class="scard"><div class="slbl">Prom. dardos 2026</div><div class="sval" style="color:var(--ro)">${avgTxt}</div><div class="ssub">dardos+ramillas</div></div>
     <div class="scard"><div class="slbl">Frutos/Dardo 2025</div><div class="sval" style="color:#555">${fd25}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Frutos/Dardo 2026</div><div class="sval" style="color:var(--ro)">${fd26}</div><div class="ssub">estimación programa</div></div>
-    <div class="scard"><div class="slbl">Ramillas/Planta 2025</div><div class="sval" style="color:#555">${ram25}</div><div class="ssub">real año anterior</div></div>
+    <div class="scard" style="grid-column:1/-1"><div class="slbl">Ramillas/Planta 2025</div><div class="sval" style="color:#555">${ram25}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2025</div><div class="sval" style="color:#555">${fxr25}</div><div class="ssub">real año anterior</div></div>
+    <div class="scard"><div class="slbl">Frutos/Ramilla 2026</div><div class="sval" style="color:var(--ro)">${fd26}</div><div class="ssub">estimación programa</div></div>
     <div class="scard"><div class="slbl">Carg. eliminados 2025</div><div class="sval" style="color:#555">${cargElim25}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Carg. eliminados 2026</div><div class="sval" style="color:var(--ro)">${cargElim26Txt}</div><div class="ssub">promedio temporada actual</div></div>
+    <div class="scard" style="grid-column:1/-1"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
   </div>
   ${kg26blk}`;
 }
