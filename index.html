@@ -1205,11 +1205,34 @@ function abrirRevision(esp,reg){
     document.getElementById('rev-modal-tit').textContent='Revisar Ramillas';
     infoHtml=`<strong>${reg.c}</strong> \u00b7 H${reg.h} P${reg.p}<br>Contador: ${reg.cnt||'\u2014'}<br>Ramillas originales: <strong style="color:${color}">${valorOrig}</strong>`;
   }else if(esp==='cer'){
-    valorOrig=reg.tot;labelValor='Dardos del cargador (revisión)';
+    const cars=reg.cars||[];
+    const nCar=1;
+    valorOrig=cars.length>=nCar?cars[nCar-1]:reg.tot;
+    labelValor='Dardos del cargador (revisión)';
     document.getElementById('rev-campo-cargador').style.display='block';
-    document.getElementById('rev-cargador').value='1';
+    document.getElementById('rev-cargador').value=nCar;
     document.getElementById('rev-modal-tit').textContent='Revisar Cargador';
-    infoHtml=`<strong>${reg.c}</strong> \u00b7 H${reg.h} P${reg.p}<br>Contador: ${reg.cnt||'\u2014'}<br>Total dardos originales: <strong style="color:${color}">${valorOrig}</strong><br><span style="font-size:10px;color:var(--tm)">Ingresa los dardos del cargador que revisarás</span>`;
+    infoHtml=`<strong>${reg.c}</strong> · H${reg.h} P${reg.p}<br>Contador: ${reg.cnt||'—'}<br>Cargadores disponibles: <strong>${cars.length}</strong><br>Dardos cargador #<span id="rev-car-num">${nCar}</span>: <strong id="rev-car-val" style="color:${color}">${valorOrig}</strong><br><span style="font-size:10px;color:var(--tm)">Cambia el número de cargador para ver sus dardos</span>`;
+    revActual={esp,id:reg.id||null,cuartel:reg.c,hilera:reg.h,planta:reg.p,contador:reg.cnt||'',valorOrig,cars};
+    document.getElementById('rev-modal-info').innerHTML=infoHtml;
+    document.getElementById('rev-lbl-valor').textContent=labelValor;
+    document.getElementById('rev-valor').value='';
+    document.getElementById('rev-obs').value='';
+    document.getElementById('rev-dif-box').style.display='none';
+    document.getElementById('rev-cargador').oninput=function(){
+      const n=parseInt(this.value)||1;
+      const v=revActual.cars&&revActual.cars.length>=n?revActual.cars[n-1]:null;
+      if(v!==null){
+        revActual.valorOrig=v;
+        const el1=document.getElementById('rev-car-num');
+        const el2=document.getElementById('rev-car-val');
+        if(el1)el1.textContent=n;
+        if(el2)el2.textContent=v;
+        calcRevDif();
+      }
+    };
+    document.getElementById('rev-modal-ov').classList.add('open');
+    return;
   }else{
     valorOrig=reg.ml;labelValor='Metros lineales (revisión)';
     document.getElementById('rev-campo-cargador').style.display='none';
@@ -1258,7 +1281,8 @@ async function guardarRevision(){
     supervisor:'ADMIN',
     valor_original:revActual.valorOrig,
     valor_revision:vRev,
-    observacion:obs||null,
+    observacion:(obs||null),
+    cargador_num:revActual.esp==='cer'?(parseInt(document.getElementById('rev-cargador').value)||1):null,
     timestamp_revision:new Date().toISOString()
   }]);
   btn.disabled=false;btn.innerHTML='<i class="ti ti-clipboard-check"></i>Guardar Revisión';
@@ -1282,7 +1306,7 @@ function rnRevPanel(esp,regs,color,unidad){
     const yaRev=r.id&&conteoIds.has(r.id);
     const val=esp==='nec'?r.ram:esp==='cer'?r.tot:r.ml;
     const hora=r.ts?r.ts.split(' ')[1]||r.ts:'\u2014';
-    const regStr=`{id:${r.id},c:'${r.c}',h:${r.h},p:${r.p},cnt:'${(r.cnt||'').replace(/'/g,"\\'")}',ram:${r.ram||0},tot:${r.tot||0},ml:${r.ml||0}}`;
+    const regStr=`{id:${r.id},c:'${r.c}',h:${r.h},p:${r.p},cnt:'${(r.cnt||'').replace(/'/g,"\\'")}',ram:${r.ram||0},tot:${r.tot||0},ml:${r.ml||0},cars:${JSON.stringify(r.cars||[])}}`;
     const badge=yaRev
       ?`<span style="background:#E8F8F5;color:#0E6655;font-size:9px;font-family:var(--mo);padding:2px 6px;border-radius:3px">\u2713 revisado</span>`
       :`<button onclick="abrirRevision('${esp}',${regStr})" style="background:${color};color:#fff;border:none;border-radius:5px;font-size:10px;font-family:var(--mo);padding:3px 8px;cursor:pointer"><i class="ti ti-eye-check"></i> Revisar</button>`;
@@ -1383,7 +1407,7 @@ function abrirDetRev(esp, contador){
     return`<tr>
       <td style="font-size:10px;color:var(--tm)">${fecha}</td>
       <td style="color:${color};font-weight:600">${r.cuartel||'—'}</td>
-      <td>H${r.hilera||'?'}·P${r.planta||'?'}</td>
+      <td>H${r.hilera||'?'}·P${r.planta||'?'}${r.cargador_num?`·C${r.cargador_num}`:''}</td>
       <td style="font-weight:600">${r.valor_original||0}</td>
       <td style="font-weight:600;color:${color}">${r.valor_revision||0}</td>
       <td style="text-align:center"><span style="background:${bg};color:${c};font-size:11px;font-family:var(--mo);font-weight:700;padding:2px 7px;border-radius:4px">${dif}</span></td>
