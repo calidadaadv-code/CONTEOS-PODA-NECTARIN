@@ -1419,11 +1419,6 @@ function abrirDetRev(esp, contador){
   const ok=revs.filter(r=>Math.abs((r.valor_original||0)-(r.valor_revision||0))<=10).length;
   const mal=tot-ok;
 
-  document.getElementById('modal-stats').innerHTML=`
-    <div class="mstat"><div class="mstat-val" style="color:${color}">${tot}</div><div class="mstat-lbl">Revisiones</div></div>
-    <div class="mstat" style="background:#E8F8F5"><div class="mstat-val" style="color:#0E6655">${ok}</div><div class="mstat-lbl">Dif ≤10</div></div>
-    <div class="mstat" style="background:#FFC7CE"><div class="mstat-val" style="color:#9C0006">${mal}</div><div class="mstat-lbl">Dif >10</div></div>`;
-
   const modalBody = document.querySelector('#modal-ov .modal-body');
   modalBody.innerHTML=`
     <div class="modal-stats">
