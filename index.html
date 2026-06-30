@@ -696,13 +696,16 @@ async function loadListas(){
   const {data,error}=await db.from('config_listas').select('*').order('nombre',{ascending:true});
   if(error){return;}// silencioso — falla solo en preview local, funciona en GitHub Pages
   // resetear
-  ['nec','cer','cir'].forEach(e=>['con','sup','comp'].forEach(t=>L[e][t]=[]));
+  ['nec','cer','cir','duz'].forEach(e=>['con','sup','comp'].forEach(t=>L[e][t]=[]));
   data.forEach(r=>{
     if(L[r.especie]&&L[r.especie][r.tipo])
       L[r.especie][r.tipo].push(r.nombre);
   });
   listasLoaded=true;
   rlists('nec');rlists('cer');rlists('cir');
+  // Durazno comparte listas con Nectarín
+  ['con','sup','comp'].forEach(t=>L.duz[t]=[...L.nec[t]]);
+  rlists('duz');
 }
 
 async function addLSB(e,t,nombre){
