@@ -580,6 +580,138 @@
   </div>
 </div>
 
+<!-- RALEO NEC -->
+<div class="app-view" id="view-raleo-nec">
+  <div class="hdr-nec">
+    <div class="hdr-l"><button class="back-btn" onclick="volverRaleo()">← Volver</button><div><div class="hdr-title">🍑 Nectarín — Raleo 2026</div><div class="hdr-sub">Conteo de frutos</div></div></div>
+    <div class="hdr-r"><div class="sync-bdg" id="sync-rnec"><i class="ti ti-cloud"></i><span id="sync-rnec-t">...</span></div></div>
+  </div>
+  <div class="tabs-nec" style="grid-template-columns:1fr 1fr 1fr">
+    <button class="tab-nec active" onclick="tabRaleo('nec','ing')"><i class="ti ti-edit"></i>Ingresar</button>
+    <button class="tab-nec" onclick="tabRaleo('nec','dat')"><i class="ti ti-chart-bar"></i>Datos</button>
+    <button class="tab-nec" onclick="tabRaleo('nec','cal')"><i class="ti ti-rosette"></i>Calidad</button>
+  </div>
+  <div class="panel active" id="rnec-ing">
+    <div class="csel-g" style="--co:var(--vd);--cd:var(--vo);--cc:#f0faf5"><div><div class="clbl-g" style="color:var(--vd)">Cuartel · Variedad</div><div class="cval-g" style="color:var(--vd)" id="rnec-cval">C-01</div></div><div class="cnav"><button class="nbtn-g" onclick="cRaleo('nec',-1)">‹</button><button class="nbtn-g" onclick="cRaleo('nec',1)">›</button></div></div>
+    <div class="form-body">
+      <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="rnec-hil" min="1" placeholder="01"></div>
+      <div class="fgrp"><label class="flbl">N° Planta</label><input class="finp" type="number" id="rnec-pla" min="1" placeholder="01"></div>
+      <div class="fgrp"><label class="flbl">Podador</label><input class="finp" type="text" id="rnec-pod" placeholder="Nombre"></div>
+      <div class="fgrp"><label class="flbl">Contador</label><div class="cwrap"><input class="cinp" type="text" id="rnec-cnt" placeholder="Seleccionar..." readonly onclick="openDD('rnec-cnt-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="rnec-cnt-dd"></div></div></div>
+      <div class="fgrp"><label class="flbl">Supervisor</label><div class="cwrap"><input class="cinp" type="text" id="rnec-sup" placeholder="Seleccionar..." readonly onclick="openDD('rnec-sup-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="rnec-sup-dd"></div></div></div>
+      <div class="fgrp"><label class="flbl">Contratista</label><div class="cwrap"><input class="cinp" type="text" id="rnec-con" placeholder="Seleccionar..." readonly onclick="openDD('rnec-con-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="rnec-con-dd"></div></div></div>
+    </div>
+    <div class="rbox"><div class="rtitle">N° de Ramillas</div><input class="rinp" type="number" id="rnec-ram" min="0" max="300" placeholder="0" style="color:var(--vd)"><div class="rhint">Ramillas contadas en esta planta</div></div>
+    <div class="rbox" style="margin-top:8px"><div class="rtitle">N° de Frutos por planta</div><input class="rinp" type="number" id="rnec-fru" min="0" max="1000" placeholder="0" oninput="valRaleo('nec',this)" style="color:var(--vd)"><div class="rhint" id="rnec-rhint">Ingresa el conteo de frutos</div></div>
+    <div class="rbox" style="margin-top:8px;background:#f0f0f0"><div class="rtitle" style="color:var(--tm)">Frutos / Ramilla (calculado)</div><div class="rinp" id="rnec-fxr" style="color:var(--vd);font-size:28px;padding:10px 0;text-align:center;background:transparent;border:none">—</div></div>
+    <div class="alerta bajo" id="rnec-abaj"><i class="ti ti-alert-circle"></i><span>Bajo rango mínimo</span></div>
+    <div class="alerta alto" id="rnec-aalt"><i class="ti ti-alert-triangle"></i><span>Sobre rango máximo</span></div>
+    <div class="fgrp"><div class="cbrow"><button class="cbtn A" onclick="setCalR('nec','A')">A · Óptima</button><button class="cbtn B" onclick="setCalR('nec','B')">B · Regular</button><button class="cbtn C" onclick="setCalR('nec','C')">C · Deficiente</button></div></div>
+    <div class="fgrp full"><label class="flbl">Observaciones</label><input class="finp" type="text" id="rnec-obs" placeholder="Observaciones..."></div>
+    <button class="sbtn-g" id="rnec-sub" onclick="guardarRaleo('nec')"><i class="ti ti-device-floppy"></i>Guardar registro</button>
+  </div>
+  <div class="panel" id="rnec-dat"><div id="rnec-ddat"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div></div>
+  <div class="panel" id="rnec-cal"><div id="rnec-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div></div>
+</div>
+<!-- RALEO CER -->
+<div class="app-view" id="view-raleo-cer">
+  <div class="hdr-cer">
+    <div class="hdr-l"><button class="back-btn" onclick="volverRaleo()">← Volver</button><div><div class="hdr-title">🍒 Cerezo — Raleo 2026</div><div class="hdr-sub">Conteo de frutos</div></div></div>
+    <div class="hdr-r"><div class="sync-bdg" id="sync-rcer"><i class="ti ti-cloud"></i><span id="sync-rcer-t">...</span></div></div>
+  </div>
+  <div class="tabs-cer" style="grid-template-columns:1fr 1fr 1fr">
+    <button class="tab-cer active" onclick="tabRaleo('cer','ing')"><i class="ti ti-edit"></i>Ingresar</button>
+    <button class="tab-cer" onclick="tabRaleo('cer','dat')"><i class="ti ti-chart-bar"></i>Datos</button>
+    <button class="tab-cer" onclick="tabRaleo('cer','cal')"><i class="ti ti-rosette"></i>Calidad</button>
+  </div>
+  <div class="panel active" id="rcer-ing">
+    <div class="csel-g" style="--co:var(--rd);--cd:var(--ro);--cc:#fdf0f0"><div><div class="clbl-g" style="color:var(--rd)">Cuartel · Variedad</div><div class="cval-g" style="color:var(--rd)" id="rcer-cval">C-6</div></div><div class="cnav"><button class="nbtn-g" style="background:var(--ro)" onclick="cRaleo('cer',-1)">‹</button><button class="nbtn-g" style="background:var(--ro)" onclick="cRaleo('cer',1)">›</button></div></div>
+    <div class="form-body">
+      <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="rcer-hil" min="1" placeholder="01"></div>
+      <div class="fgrp"><label class="flbl">N° Planta</label><input class="finp" type="number" id="rcer-pla" min="1" placeholder="01"></div>
+      <div class="fgrp"><label class="flbl">Podador</label><input class="finp" type="text" id="rcer-pod" placeholder="Nombre"></div>
+      <div class="fgrp"><label class="flbl">Contador</label><div class="cwrap"><input class="cinp" type="text" id="rcer-cnt" placeholder="Seleccionar..." readonly onclick="openDD('rcer-cnt-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="rcer-cnt-dd"></div></div></div>
+      <div class="fgrp"><label class="flbl">Supervisor</label><div class="cwrap"><input class="cinp" type="text" id="rcer-sup" placeholder="Seleccionar..." readonly onclick="openDD('rcer-sup-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="rcer-sup-dd"></div></div></div>
+      <div class="fgrp"><label class="flbl">Contratista</label><div class="cwrap"><input class="cinp" type="text" id="rcer-con" placeholder="Seleccionar..." readonly onclick="openDD('rcer-con-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="rcer-con-dd"></div></div></div>
+    </div>
+    <div class="rbox"><div class="rtitle">N° de Ramillas</div><input class="rinp" type="number" id="rcer-ram" min="0" max="300" placeholder="0" style="color:var(--ro)"><div class="rhint">Ramillas contadas en esta planta</div></div>
+    <div class="rbox" style="margin-top:8px"><div class="rtitle">N° de Frutos por planta</div><input class="rinp" type="number" id="rcer-fru" min="0" max="2000" placeholder="0" oninput="valRaleo('cer',this)" style="color:var(--ro)"><div class="rhint" id="rcer-rhint">Ingresa el conteo de frutos</div></div>
+    <div class="rbox" style="margin-top:8px;background:#f0f0f0"><div class="rtitle" style="color:var(--tm)">Frutos / Ramilla (calculado)</div><div class="rinp" id="rcer-fxr" style="color:var(--ro);font-size:28px;padding:10px 0;text-align:center;background:transparent;border:none">—</div></div>
+    <div class="alerta bajo" id="rcer-abaj"><i class="ti ti-alert-circle"></i><span>Bajo rango mínimo</span></div>
+    <div class="alerta alto" id="rcer-aalt"><i class="ti ti-alert-triangle"></i><span>Sobre rango máximo</span></div>
+    <div class="fgrp"><div class="cbrow"><button class="cbtn A" onclick="setCalR('cer','A')">A · Óptima</button><button class="cbtn B" onclick="setCalR('cer','B')">B · Regular</button><button class="cbtn C" onclick="setCalR('cer','C')">C · Deficiente</button></div></div>
+    <div class="fgrp full"><label class="flbl">Observaciones</label><input class="finp" type="text" id="rcer-obs" placeholder="Observaciones..."></div>
+    <button class="sbtn-r" id="rcer-sub" onclick="guardarRaleo('cer')"><i class="ti ti-device-floppy"></i>Guardar registro</button>
+  </div>
+  <div class="panel" id="rcer-dat"><div id="rcer-ddat"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div></div>
+  <div class="panel" id="rcer-cal"><div id="rcer-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div></div>
+</div>
+<!-- RALEO CIR -->
+<div class="app-view" id="view-raleo-cir">
+  <div class="hdr-cir">
+    <div class="hdr-l"><button class="back-btn" onclick="volverRaleo()">← Volver</button><div><div class="hdr-title">🟣 Ciruelo — Raleo 2026</div><div class="hdr-sub">Conteo de frutos</div></div></div>
+    <div class="hdr-r"><div class="sync-bdg" id="sync-rcir"><i class="ti ti-cloud"></i><span id="sync-rcir-t">...</span></div></div>
+  </div>
+  <div class="tabs-cir" style="grid-template-columns:1fr 1fr 1fr">
+    <button class="tab-cir active" onclick="tabRaleo('cir','ing')"><i class="ti ti-edit"></i>Ingresar</button>
+    <button class="tab-cir" onclick="tabRaleo('cir','dat')"><i class="ti ti-chart-bar"></i>Datos</button>
+    <button class="tab-cir" onclick="tabRaleo('cir','cal')"><i class="ti ti-rosette"></i>Calidad</button>
+  </div>
+  <div class="panel active" id="rcir-ing">
+    <div class="csel-g" style="--co:var(--po);--cd:var(--pd);--cc:#f5f0ff"><div><div class="clbl-g" style="color:var(--po)">Cuartel · Variedad</div><div class="cval-g" style="color:var(--po)" id="rcir-cval">C-28</div></div><div class="cnav"><button class="nbtn-g" style="background:var(--pd)" onclick="cRaleo('cir',-1)">‹</button><button class="nbtn-g" style="background:var(--pd)" onclick="cRaleo('cir',1)">›</button></div></div>
+    <div class="form-body">
+      <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="rcir-hil" min="1" placeholder="01"></div>
+      <div class="fgrp"><label class="flbl">N° Planta</label><input class="finp" type="number" id="rcir-pla" min="1" placeholder="01"></div>
+      <div class="fgrp"><label class="flbl">Podador</label><input class="finp" type="text" id="rcir-pod" placeholder="Nombre"></div>
+      <div class="fgrp"><label class="flbl">Contador</label><div class="cwrap"><input class="cinp" type="text" id="rcir-cnt" placeholder="Seleccionar..." readonly onclick="openDD('rcir-cnt-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="rcir-cnt-dd"></div></div></div>
+      <div class="fgrp"><label class="flbl">Supervisor</label><div class="cwrap"><input class="cinp" type="text" id="rcir-sup" placeholder="Seleccionar..." readonly onclick="openDD('rcir-sup-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="rcir-sup-dd"></div></div></div>
+      <div class="fgrp"><label class="flbl">Contratista</label><div class="cwrap"><input class="cinp" type="text" id="rcir-con" placeholder="Seleccionar..." readonly onclick="openDD('rcir-con-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="rcir-con-dd"></div></div></div>
+    </div>
+    <div class="rbox"><div class="rtitle">N° de Ramillas</div><input class="rinp" type="number" id="rcir-ram" min="0" max="300" placeholder="0" style="color:var(--pd)"><div class="rhint">Ramillas contadas en esta planta</div></div>
+    <div class="rbox" style="margin-top:8px"><div class="rtitle">N° de Frutos por planta</div><input class="rinp" type="number" id="rcir-fru" min="0" max="1000" placeholder="0" oninput="valRaleo('cir',this)" style="color:var(--pd)"><div class="rhint" id="rcir-rhint">Ingresa el conteo de frutos</div></div>
+    <div class="rbox" style="margin-top:8px;background:#f0f0f0"><div class="rtitle" style="color:var(--tm)">Frutos / Ramilla (calculado)</div><div class="rinp" id="rcir-fxr" style="color:var(--pd);font-size:28px;padding:10px 0;text-align:center;background:transparent;border:none">—</div></div>
+    <div class="alerta bajo" id="rcir-abaj"><i class="ti ti-alert-circle"></i><span>Bajo rango mínimo</span></div>
+    <div class="alerta alto" id="rcir-aalt"><i class="ti ti-alert-triangle"></i><span>Sobre rango máximo</span></div>
+    <div class="fgrp"><div class="cbrow"><button class="cbtn A" onclick="setCalR('cir','A')">A · Óptima</button><button class="cbtn B" onclick="setCalR('cir','B')">B · Regular</button><button class="cbtn C" onclick="setCalR('cir','C')">C · Deficiente</button></div></div>
+    <div class="fgrp full"><label class="flbl">Observaciones</label><input class="finp" type="text" id="rcir-obs" placeholder="Observaciones..."></div>
+    <button class="sbtn-p" id="rcir-sub" onclick="guardarRaleo('cir')"><i class="ti ti-device-floppy"></i>Guardar registro</button>
+  </div>
+  <div class="panel" id="rcir-dat"><div id="rcir-ddat"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div></div>
+  <div class="panel" id="rcir-cal"><div id="rcir-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div></div>
+</div>
+<!-- RALEO DUZ -->
+<div class="app-view" id="view-raleo-duz">
+  <div class="hdr-duz">
+    <div class="hdr-l"><button class="back-btn" onclick="volverRaleo()">← Volver</button><div><div class="hdr-title">🍑 Durazno — Raleo 2026</div><div class="hdr-sub">Conteo de frutos</div></div></div>
+    <div class="hdr-r"><div class="sync-bdg" id="sync-rduz"><i class="ti ti-cloud"></i><span id="sync-rduz-t">...</span></div></div>
+  </div>
+  <div class="tabs-duz" style="grid-template-columns:1fr 1fr 1fr">
+    <button class="tab-duz active" onclick="tabRaleo('duz','ing')"><i class="ti ti-edit"></i>Ingresar</button>
+    <button class="tab-duz" onclick="tabRaleo('duz','dat')"><i class="ti ti-chart-bar"></i>Datos</button>
+    <button class="tab-duz" onclick="tabRaleo('duz','cal')"><i class="ti ti-rosette"></i>Calidad</button>
+  </div>
+  <div class="panel active" id="rduz-ing">
+    <div class="csel-g" style="--co:var(--do);--cd:var(--dd);--cc:#fef5e7"><div><div class="clbl-g" style="color:var(--do)">Cuartel · Variedad</div><div class="cval-g" style="color:var(--do)" id="rduz-cval">C-27</div></div><div class="cnav"><button class="nbtn-g" style="background:var(--dd)" onclick="cRaleo('duz',-1)">‹</button><button class="nbtn-g" style="background:var(--dd)" onclick="cRaleo('duz',1)">›</button></div></div>
+    <div class="form-body">
+      <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="rduz-hil" min="1" placeholder="01"></div>
+      <div class="fgrp"><label class="flbl">N° Planta</label><input class="finp" type="number" id="rduz-pla" min="1" placeholder="01"></div>
+      <div class="fgrp"><label class="flbl">Podador</label><input class="finp" type="text" id="rduz-pod" placeholder="Nombre"></div>
+      <div class="fgrp"><label class="flbl">Contador</label><div class="cwrap"><input class="cinp" type="text" id="rduz-cnt" placeholder="Seleccionar..." readonly onclick="openDD('rduz-cnt-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="rduz-cnt-dd"></div></div></div>
+      <div class="fgrp"><label class="flbl">Supervisor</label><div class="cwrap"><input class="cinp" type="text" id="rduz-sup" placeholder="Seleccionar..." readonly onclick="openDD('rduz-sup-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="rduz-sup-dd"></div></div></div>
+      <div class="fgrp"><label class="flbl">Contratista</label><div class="cwrap"><input class="cinp" type="text" id="rduz-con" placeholder="Seleccionar..." readonly onclick="openDD('rduz-con-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="rduz-con-dd"></div></div></div>
+    </div>
+    <div class="rbox"><div class="rtitle">N° de Ramillas</div><input class="rinp" type="number" id="rduz-ram" min="0" max="300" placeholder="0" style="color:var(--dd)"><div class="rhint">Ramillas contadas en esta planta</div></div>
+    <div class="rbox" style="margin-top:8px"><div class="rtitle">N° de Frutos por planta</div><input class="rinp" type="number" id="rduz-fru" min="0" max="500" placeholder="0" oninput="valRaleo('duz',this)" style="color:var(--dd)"><div class="rhint" id="rduz-rhint">Rango: 41 – 45 – 50 frutos</div></div>
+    <div class="rbox" style="margin-top:8px;background:#f0f0f0"><div class="rtitle" style="color:var(--tm)">Frutos / Ramilla (calculado)</div><div class="rinp" id="rduz-fxr" style="color:var(--dd);font-size:28px;padding:10px 0;text-align:center;background:transparent;border:none">—</div></div>
+    <div class="alerta bajo" id="rduz-abaj"><i class="ti ti-alert-circle"></i><span>Bajo rango mínimo</span></div>
+    <div class="alerta alto" id="rduz-aalt"><i class="ti ti-alert-triangle"></i><span>Sobre rango máximo</span></div>
+    <div class="fgrp"><div class="cbrow"><button class="cbtn A" onclick="setCalR('duz','A')">A · Óptima</button><button class="cbtn B" onclick="setCalR('duz','B')">B · Regular</button><button class="cbtn C" onclick="setCalR('duz','C')">C · Deficiente</button></div></div>
+    <div class="fgrp full"><label class="flbl">Observaciones</label><input class="finp" type="text" id="rduz-obs" placeholder="Observaciones..."></div>
+    <button class="sbtn-d" id="rduz-sub" onclick="guardarRaleo('duz')"><i class="ti ti-device-floppy"></i>Guardar registro</button>
+  </div>
+  <div class="panel" id="rduz-dat"><div id="rduz-ddat"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div></div>
+  <div class="panel" id="rduz-cal"><div id="rduz-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div></div>
+</div>
 <!-- MODAL -->
 <div class="app-view" id="view-duz">
   <div class="hdr-duz">
@@ -688,7 +820,8 @@ const L={
   nec:{con:[],sup:[],comp:[]},
   cer:{con:[],sup:[],comp:[]},
   cir:{con:[],sup:[],comp:[]},
-  duz:{con:[],sup:[],comp:[]}
+  duz:{con:[],sup:[],comp:[]},
+  rnec:{con:[],sup:[],comp:[]},rcer:{con:[],sup:[],comp:[]},rcir:{con:[],sup:[],comp:[]},rduz:{con:[],sup:[],comp:[]}
 };
 let listasLoaded=false;
 
@@ -703,9 +836,10 @@ async function loadListas(){
   });
   listasLoaded=true;
   rlists('nec');rlists('cer');rlists('cir');
-  // Durazno comparte listas con Nectarín
   ['con','sup','comp'].forEach(t=>L.duz[t]=[...L.nec[t]]);
   rlists('duz');
+  // Raleo: mismas listas que poda
+  ['rnec','rcer','rcir','rduz'].forEach(re=>{['con','sup','comp'].forEach(t=>L[re][t]=[...L.nec[t]]);rlists(re);});
 }
 
 async function addLSB(e,t,nombre){
@@ -724,11 +858,39 @@ function ts(){const d=new Date();return d.getDate()+'/'+(d.getMonth()+1<10?'0':'
 function toast(m,t){const el=document.getElementById('toast');el.textContent=m;el.className='toast show '+(t||'ok');setTimeout(()=>el.classList.remove('show'),2500);}
 function sync(id,tipo,txt){const b=document.getElementById(id);if(!b)return;if(tipo==='L'){b.innerHTML='<i class="ti ti-refresh spin"></i><span>'+txt+'</span>';b.style.background='rgba(255,255,255,.15)';}else if(tipo==='E'){b.innerHTML='<i class="ti ti-cloud-off"></i><span>'+txt+'</span>';b.style.background='rgba(226,75,74,.3)';}else{b.innerHTML='<i class="ti ti-cloud-check"></i><span>'+txt+'</span>';b.style.background='rgba(255,255,255,.15)';}}
 function pct(n,fn,fn2){const p=Math.round(n/fn*100);const c=fn2==='g'?(p>=70?'background:#E1F5EE;color:#085041;font-weight:600':(p>15?'background:#FAEEDA;color:#633806;font-weight:600':'color:var(--tm)')):(p>15?'background:#FADBD8;color:#791F1F;font-weight:600':'color:var(--tm)');return`<span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mo);${c}">${p}%</span>`;}
-function entrar(e){document.getElementById('pantalla-inicio').style.display='none';document.getElementById('view-nec').style.display=e==='nec'?'block':'none';document.getElementById('view-cer').style.display=e==='cer'?'block':'none';document.getElementById('view-cir').style.display=e==='cir'?'block':'none';document.getElementById('view-duz').style.display=e==='duz'?'block':'none';if(e==='nec')loadNec();else if(e==='cer')loadCer();else if(e==='cir')loadCir();else if(e==='duz')loadDuz();if(!listasLoaded)loadListas();}
+function mostrarModo(m){document.getElementById('pantalla-inicio').style.display='none';document.getElementById('pantalla-poda').style.display=m==='poda'?'block':'none';document.getElementById('pantalla-raleo').style.display=m==='raleo'?'block':'none';}
+function volverInicio(){document.getElementById('pantalla-inicio').style.display='flex';document.getElementById('pantalla-poda').style.display='none';document.getElementById('pantalla-raleo').style.display='none';}
+function entrarRaleo(e){document.getElementById('pantalla-raleo').style.display='none';document.getElementById('view-raleo-'+e).style.display='block';if(!listasLoaded)loadListas();loadRaleo(e);}
+function volverRaleo(){['nec','cer','cir','duz'].forEach(e=>{const v=document.getElementById('view-raleo-'+e);if(v)v.style.display='none';});document.getElementById('pantalla-raleo').style.display='block';}
+function entrar(e){document.getElementById('pantalla-inicio').style.display='none';document.getElementById('pantalla-poda').style.display='none';document.getElementById('view-nec').style.display=e==='nec'?'block':'none';document.getElementById('view-cer').style.display=e==='cer'?'block':'none';document.getElementById('view-cir').style.display=e==='cir'?'block':'none';document.getElementById('view-duz').style.display=e==='duz'?'block':'none';if(e==='nec')loadNec();else if(e==='cer')loadCer();else if(e==='cir')loadCir();else if(e==='duz')loadDuz();if(!listasLoaded)loadListas();}
 function volver(){document.getElementById('pantalla-inicio').style.display='flex';document.getElementById('view-nec').style.display='none';document.getElementById('view-cer').style.display='none';document.getElementById('view-cir').style.display='none';document.getElementById('view-duz').style.display='none';}
 function tabNec(t){['ing','ram','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-nec')[i];const pan=document.getElementById('nec-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='ram'||t==='cal')loadNec();if(t==='prod')rnNecProd(necVProd);}
 function tabCer(t){['ing','dar','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-cer')[i];const pan=document.getElementById('cer-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='dar'){loadCer();rnCerDar();}if(t==='cal'){loadCer();rnCerCal();}if(t==='prod'){syncCerProdFiltBtns();rnCerProd();}}
-// ── DURAZNO ──────────────────────────────────────────────────────────────
+// ── RALEO ────────────────────────────────────────────────────────────────
+const RALEO_NEC={
+  'C-01':{mn:139,ob:154,mx:171},'C-02':{mn:120,ob:134,mx:148},'C-03':{mn:177,ob:197,mx:219},
+  'C-04':{mn:177,ob:197,mx:219},'C-05':{mn:177,ob:197,mx:219},'C-08':{mn:139,ob:154,mx:171},
+  'C-09':{mn:120,ob:134,mx:148},'C-13':{mn:139,ob:154,mx:171},'C-30':{mn:139,ob:154,mx:171},
+  'C-31':{mn:148,ob:164,mx:182},'C-32':{mn:177,ob:197,mx:219},'C-7B':{mn:96,ob:107,mx:119},
+};
+const RALEO_CER={};CCER.forEach(c=>RALEO_CER[c.n]={mn:0,ob:0,mx:0});
+const RALEO_CIR={'C-28':{mn:237,ob:263,mx:292},'C-7A':{mn:198,ob:220,mx:244}};
+const RALEO_DUZ={'C-27':{mn:41,ob:45,mx:50}};
+let rnecRaleo=0,rcerRaleo=0,rcirRaleo=0,rduzRaleo=0;
+let rnecCalRaleo=null,rcerCalRaleo=null,rcirCalRaleo=null,rduzCalRaleo=null;
+let rnecVR='hoy',rcerVR='hoy',rcirVR='hoy',rduzVR='hoy';
+let rNecRegs=[],rCerRegs=[],rCirRegs=[],rDuzRegs=[];
+// ── RALEO FUNCIONES ──────────────────────────────────────────────────────
+function tabRaleo(e,t){const tabs=['ing','dat','cal'];tabs.forEach((x,i)=>{const tab=document.querySelectorAll(`#view-raleo-${e} .tab-${e}`)[i];const pan=document.getElementById(`r${e}-${x}`);if(x===t){tab&&tab.classList.add('active');pan&&pan.classList.add('active');}else{tab&&tab.classList.remove('active');pan&&pan.classList.remove('active');}});if(t==='dat'||t==='cal')loadRaleo(e);}
+function cRaleo(e,d){const arr=e==='nec'?CNEC:e==='cer'?CCER:e==='cir'?CCIR:CDUZ;if(!arr.length)return;const cur=window[`r${e}Raleo`]||0;const nxt=Math.max(0,Math.min(arr.length-1,cur+d));window[`r${e}Raleo`]=nxt;const c=arr[nxt];const rang=e==='nec'?RALEO_NEC[c.n]:e==='cer'?RALEO_CER[c.n]:e==='cir'?RALEO_CIR[c.n]:RALEO_DUZ[c.n];document.getElementById(`r${e}-cval`).textContent=c.n+(c.v?' · '+c.v:'');const rhint=document.getElementById(`r${e}-rhint`);if(rhint&&rang&&rang.ob)rhint.textContent=`Rango: ${rang.mn} – ${rang.ob} – ${rang.mx} frutos`;}
+function valRaleo(e,inp){const v=parseInt(inp.value);const ram=parseInt(document.getElementById(`r${e}-ram`).value)||0;const fxrEl=document.getElementById(`r${e}-fxr`);if(fxrEl)fxrEl.textContent=(v&&ram)?`${(v/ram).toFixed(1)} fr/ram`:'—';const ba=document.getElementById(`r${e}-abaj`),al=document.getElementById(`r${e}-aalt`);ba.classList.remove('vis');al.classList.remove('vis');inp.classList.remove('rbajo','ralto','rok');if(isNaN(v)||v===0)return;const arr=e==='nec'?CNEC:e==='cer'?CCER:e==='cir'?CCIR:CDUZ;const idx=window[`r${e}Raleo`]||0;const c=arr[idx];const rang=e==='nec'?RALEO_NEC[c.n]:e==='cer'?RALEO_CER[c.n]:e==='cir'?RALEO_CIR[c.n]:RALEO_DUZ[c.n];if(rang&&rang.mn&&rang.mx){if(v<rang.mn){inp.classList.add('rbajo');ba.classList.add('vis');}else if(v>rang.mx){inp.classList.add('ralto');al.classList.add('vis');}else inp.classList.add('rok');}else inp.classList.add('rok');}
+function setCalR(e,v){window[`r${e}CalRaleo`]=v;document.querySelectorAll(`#view-raleo-${e} .cbtn`).forEach(b=>b.classList.remove('on'));document.querySelector(`#view-raleo-${e} .cbtn.${v}`).classList.add('on');}
+async function loadRaleo(e){const tbl=e==='cer'?'conteos_raleo_cer':'conteos_raleo';sync(`sync-r${e}`,'L','Cargando...');const {data,error}=await db.from(tbl).select('*').order('id',{ascending:true}).limit(10000);if(error){sync(`sync-r${e}`,'E','Sin conexión');return;}const regsKey=`r${e.charAt(0).toUpperCase()+e.slice(1)}Regs`;window[regsKey]=data.filter(r=>r.especie===e).map(r=>({id:r.id,c:String(r.cuartel),h:r.hilera,p:r.planta,pod:r.podador,cnt:r.contador,ram:parseInt(r.ramillas)||0,fru:parseInt(r.frutos)||0,fxr:parseFloat(r.frutos_x_ramilla)||0,f:r.fuera_rango==='no'?null:r.fuera_rango,cal:r.calidad,obs:r.observaciones||'',ts:r.timestamp}));sync(`sync-r${e}`,'O','En línea · '+window[regsKey].length);rnRaleodat(e);rnRaleoCal(e);}
+async function guardarRaleo(e){const arr=e==='nec'?CNEC:e==='cer'?CCER:e==='cir'?CCIR:CDUZ;const idx=window[`r${e}Raleo`]||0;const c=arr[idx];const h=document.getElementById(`r${e}-hil`).value,p=document.getElementById(`r${e}-pla`).value;const pod=document.getElementById(`r${e}-pod`).value,cnt=document.getElementById(`r${e}-cnt`).value;const sup=document.getElementById(`r${e}-sup`).value,comp=document.getElementById(`r${e}-con`).value;const obs=document.getElementById(`r${e}-obs`).value;const ram=parseInt(document.getElementById(`r${e}-ram`).value)||0;const fruEl=document.getElementById(`r${e}-fru`);const fru=parseInt(fruEl.value)||0;const cal=window[`r${e}CalRaleo`];if(!h||!p||!pod||!cnt||!fru||!cal){toast('⚠ Completa todos los campos','warn');return;}const rang=e==='nec'?RALEO_NEC[c.n]:e==='cer'?RALEO_CER[c.n]:e==='cir'?RALEO_CIR[c.n]:RALEO_DUZ[c.n];const f=rang&&rang.mn&&rang.mx?(fru<rang.mn?'bajo':fru>rang.mx?'alto':'no'):'no';const fxr=ram?(fru/ram):0;const btn=document.getElementById(`r${e}-sub`);btn.disabled=true;btn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';sync(`sync-r${e}`,'L','Guardando...');const tbl=e==='cer'?'conteos_raleo_cer':'conteos_raleo';const {error}=await db.from(tbl).insert([{timestamp:ts(),especie:e,cuartel:c.n,hilera:parseInt(h),planta:parseInt(p),podador:pod,contador:cnt,supervisor:sup,contratista:comp,ramillas:ram,frutos:fru,frutos_x_ramilla:parseFloat(fxr.toFixed(2)),fuera_rango:f,calidad:cal,observaciones:obs||''}]);btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar registro';if(error){sync(`sync-r${e}`,'E','Error');toast('⚠ Error al guardar','warn');return;}sync(`sync-r${e}`,'O','✓ Guardado');setTimeout(()=>sync(`sync-r${e}`,'O','En línea'),2000);if(f==='bajo')toast('⚠ Guardado — BAJO rango','warn');else if(f==='alto')toast('⚠ Guardado — SOBRE rango','warn');else toast('✓ Guardado correctamente');['hil','pla','obs'].forEach(x=>document.getElementById(`r${e}-${x}`).value='');fruEl.value='';document.getElementById(`r${e}-ram`).value='';const fxrEl=document.getElementById(`r${e}-fxr`);if(fxrEl)fxrEl.textContent='—';fruEl.classList.remove('rbajo','ralto','rok');document.getElementById(`r${e}-abaj`).classList.remove('vis');document.getElementById(`r${e}-aalt`).classList.remove('vis');window[`r${e}CalRaleo`]=null;document.querySelectorAll(`#view-raleo-${e} .cbtn`).forEach(b=>b.classList.remove('on'));loadRaleo(e);}
+function rnRaleodat(e){const el=document.getElementById(`r${e}-ddat`);if(!el)return;const regsKey=`r${e.charAt(0).toUpperCase()+e.slice(1)}Regs`;const regs=window[regsKey]||[];const col=e==='nec'?'var(--vd)':e==='cer'?'var(--ro)':e==='cir'?'var(--pd)':'var(--dd)';if(!regs.length){el.innerHTML=`<div class="empty"><i class="ti ti-leaf"></i>Sin registros aún</div>`;return;}const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sf:0,sr:0,n:0};map[r.c].sf+=r.fru;map[r.c].sr+=r.ram;map[r.c].n++;});const rows=Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([c,{sf,sr,n}])=>{const avgF=(sf/n).toFixed(1);const avgR=sr?(sf/sr).toFixed(2):'-';return`<tr><td style="color:${col};font-weight:600">${c}</td><td style="text-align:center">${n}</td><td style="text-align:center;font-weight:700;color:${col}">${avgF}</td><td style="text-align:center;color:var(--tm)">${avgR}</td></tr>`;}).join('');el.innerHTML=`<div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>Prom. Frutos</th><th>Fr/Ram</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
+function rnRaleoCal(e){const el=document.getElementById(`r${e}-dcal`);if(!el)return;const regsKey=`r${e.charAt(0).toUpperCase()+e.slice(1)}Regs`;const regs=window[regsKey]||[];const col=e==='nec'?'var(--vd)':e==='cer'?'var(--ro)':e==='cir'?'var(--pd)':'var(--dd)';if(!regs.length){el.innerHTML=`<div class="empty"><i class="ti ti-rosette"></i>Sin registros aún</div>`;return;}const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={tot:0,bj:0,dn:0,al:0};map[r.c].tot++;if(r.f==='bajo')map[r.c].bj++;else if(r.f==='alto')map[r.c].al++;else map[r.c].dn++;});const rows=Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([c,m])=>{const pBj=Math.round(m.bj/m.tot*100),pDn=Math.round(m.dn/m.tot*100),pAl=Math.round(m.al/m.tot*100);return`<tr><td style="color:${col};font-weight:600">${c}</td><td>${m.tot}</td><td style="color:#9C0006">${pBj}%</td><td style="color:#0E6655">${pDn}%</td><td style="color:#633806">${pAl}%</td></tr>`;}).join('');el.innerHTML=`<div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>Bajo</th><th>Dentro</th><th>Sobre</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
+function initRaleoIdx(){['nec','cer','cir','duz'].forEach(e=>{window[`r${e}Raleo`]=0;window[`r${e}CalRaleo`]=null;window[`r${e.charAt(0).toUpperCase()+e.slice(1)}Regs`]=[];const arr=e==='nec'?CNEC:e==='cer'?CCER:e==='cir'?CCIR:CDUZ;if(arr.length){const c=arr[0];const rang=e==='nec'?RALEO_NEC[c.n]:e==='cer'?RALEO_CER[c.n]:e==='cir'?RALEO_CIR[c.n]:RALEO_DUZ[c.n];const cv=document.getElementById(`r${e}-cval`);if(cv)cv.textContent=c.n+(c.v?' · '+c.v:'');const rh=document.getElementById(`r${e}-rhint`);if(rh&&rang&&rang.ob)rh.textContent=`Rango: ${rang.mn} – ${rang.ob} – ${rang.mx} frutos`;}});}
+
 function tabDuz(t){['ing','ram','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-duz')[i];const pan=document.getElementById('duz-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='ram'||t==='cal')loadDuz();if(t==='prod'){loadDuz().then(()=>rnDuzProd());}}
 async function loadDuz(){sync('sync-duz','L','Cargando...');const {data,error}=await db.from('conteos').select('*').order('id',{ascending:true}).limit(10000);if(error){sync('sync-duz','E','Sin conexión');return;}duzRegs=data.filter(r=>r.especie==='duz').map(r=>({id:r.id,c:String(r.cuartel),h:r.hilera,p:r.planta,pod:r.podador,cnt:r.contador,sup:r.supervisor,comp:r.contratista,ram:parseInt(r.ramillas)||0,f:r.fuera_rango==='no'?null:r.fuera_rango,cal:r.calidad,obs:r.observaciones||'',ts:r.timestamp}));sync('sync-duz','O','En línea · '+duzRegs.length);rnRamDuz();rnCalDuz();}
 function cDuz(d){if(!CDUZ.length)return;duzIdx=Math.max(0,Math.min(CDUZ.length-1,duzIdx+d));document.getElementById('duz-cval').textContent=CDUZ[duzIdx].n+(CDUZ[duzIdx].v?' · '+CDUZ[duzIdx].v:'');}
@@ -892,8 +1054,8 @@ function closeAdm(e){if(e==='nec'){nAdm=false;document.getElementById('nec-lock'
 function toggleAdm(e){if(e==='nec'){if(nAdm)closeAdm('nec');else tabNec('cfg');}else if(e==='cer'){if(cAdm)closeAdm('cer');else tabCer('cfg');}else if(e==='duz'){if(duzAdm)closeAdm('duz');else tabDuz('cfg');}else{if(cirAdm)closeAdm('cir');else tabCir('cfg');}}
 function tvPass(e){const i=document.getElementById(e+'-pass'),ic=document.getElementById(e+'-eye');if(i.type==='password'){i.type='text';ic.className='ti ti-eye-off';}else{i.type='password';ic.className='ti ti-eye';}}
 function chgPass(e){const n=document.getElementById(e+'-pn').value.trim(),c=document.getElementById(e+'-pc').value.trim();if(!n||n.length<4){toast('Mínimo 4 caracteres','warn');return;}if(n!==c){toast('No coinciden','warn');return;}if(e==='nec')nPass=n;else if(e==='cer')cPass=n;else if(e==='duz')duzPass=n;else cirPass=n;document.getElementById(e+'-pn').value='';document.getElementById(e+'-pc').value='';toast('✓ Contraseña actualizada');}
-function rlists(e){const fldMap={nec:{con:'nec-cnt',sup:'nec-sup',comp:'nec-con'},cer:{con:'cer-cnt',sup:'cer-sup',comp:'cer-con'},cir:{con:'cir-cnt',sup:'cir-sup',comp:'cir-con'},duz:{con:'duz-cnt',sup:'duz-sup',comp:'duz-con'}};const saved={};['con','sup','comp'].forEach(t=>{const inp=document.getElementById(fldMap[e][t]);if(inp)saved[t]=inp.value;});['con','sup','comp'].forEach(t=>{const ul=document.getElementById(e+'-l'+t);if(!ul)return;ul.innerHTML=L[e][t].map((n,i)=>`<div class="cfg-item"><span class="cfg-name">${n}</span><button class="cfg-del" onclick="delL('${e}','${t}',${i})"><i class="ti ti-x"></i></button></div>`).join('');rdd(e,t);});['con','sup','comp'].forEach(t=>{const inp=document.getElementById(fldMap[e][t]);if(inp&&saved[t])inp.value=saved[t];});}
-function rdd(e,t){const ddMap={nec:{con:'nec-cnt-dd',sup:'nec-sup-dd',comp:'nec-con-dd'},cer:{con:'cer-cnt-dd',sup:'cer-sup-dd',comp:'cer-con-dd'},cir:{con:'cir-cnt-dd',sup:'cir-sup-dd',comp:'cir-con-dd'},duz:{con:'duz-cnt-dd',sup:'duz-sup-dd',comp:'duz-con-dd'}};const dd=document.getElementById(ddMap[e][t]);if(!dd)return;const fld=e==='nec'?{con:'nec-cnt',sup:'nec-sup',comp:'nec-con'}:e==='cer'?{con:'cer-cnt',sup:'cer-sup',comp:'cer-con'}:e==='duz'?{con:'duz-cnt',sup:'duz-sup',comp:'duz-con'}:{con:'cir-cnt',sup:'cir-sup',comp:'cir-con'};dd.innerHTML=L[e][t].map(n=>`<div class="copt" onclick="selDD('${fld[t]}','${ddMap[e][t]}','${n.replace(/'/g,"\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="copt nuevo" onclick="clrDD('${fld[t]}','${ddMap[e][t]}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;}
+function rlists(e){const fldMap={nec:{con:'nec-cnt',sup:'nec-sup',comp:'nec-con'},cer:{con:'cer-cnt',sup:'cer-sup',comp:'cer-con'},cir:{con:'cir-cnt',sup:'cir-sup',comp:'cir-con'},duz:{con:'duz-cnt',sup:'duz-sup',comp:'duz-con'},rnec:{con:'rnec-cnt',sup:'rnec-sup',comp:'rnec-con'},rcer:{con:'rcer-cnt',sup:'rcer-sup',comp:'rcer-con'},rcir:{con:'rcir-cnt',sup:'rcir-sup',comp:'rcir-con'},rduz:{con:'rduz-cnt',sup:'rduz-sup',comp:'rduz-con'}};const saved={};['con','sup','comp'].forEach(t=>{const inp=document.getElementById(fldMap[e][t]);if(inp)saved[t]=inp.value;});['con','sup','comp'].forEach(t=>{const ul=document.getElementById(e+'-l'+t);if(!ul)return;ul.innerHTML=L[e][t].map((n,i)=>`<div class="cfg-item"><span class="cfg-name">${n}</span><button class="cfg-del" onclick="delL('${e}','${t}',${i})"><i class="ti ti-x"></i></button></div>`).join('');rdd(e,t);});['con','sup','comp'].forEach(t=>{const inp=document.getElementById(fldMap[e][t]);if(inp&&saved[t])inp.value=saved[t];});}
+function rdd(e,t){const ddMap={nec:{con:'nec-cnt-dd',sup:'nec-sup-dd',comp:'nec-con-dd'},cer:{con:'cer-cnt-dd',sup:'cer-sup-dd',comp:'cer-con-dd'},cir:{con:'cir-cnt-dd',sup:'cir-sup-dd',comp:'cir-con-dd'},duz:{con:'duz-cnt-dd',sup:'duz-sup-dd',comp:'duz-con-dd'},'rnec':{con:'rnec-cnt-dd',sup:'rnec-sup-dd',comp:'rnec-con-dd'},'rcer':{con:'rcer-cnt-dd',sup:'rcer-sup-dd',comp:'rcer-con-dd'},'rcir':{con:'rcir-cnt-dd',sup:'rcir-sup-dd',comp:'rcir-con-dd'},'rduz':{con:'rduz-cnt-dd',sup:'rduz-sup-dd',comp:'rduz-con-dd'}};const dd=document.getElementById(ddMap[e][t]);if(!dd)return;const fld=e==='nec'?{con:'nec-cnt',sup:'nec-sup',comp:'nec-con'}:e==='cer'?{con:'cer-cnt',sup:'cer-sup',comp:'cer-con'}:e==='duz'?{con:'duz-cnt',sup:'duz-sup',comp:'duz-con'}:{con:'cir-cnt',sup:'cir-sup',comp:'cir-con'};dd.innerHTML=L[e][t].map(n=>`<div class="copt" onclick="selDD('${fld[t]}','${ddMap[e][t]}','${n.replace(/'/g,"\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="copt nuevo" onclick="clrDD('${fld[t]}','${ddMap[e][t]}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;}
 async function addL(e,t){
   const inp=document.getElementById(e+'-a'+t);
   const v=inp.value.trim().toUpperCase();
@@ -1346,7 +1508,7 @@ function rnCirProd(v){
   ${kg26blk}`;
 }
 
-loadListas();loadRevisiones();resetCar();loadRevisiones();
+loadListas();loadRevisiones();resetCar();loadRevisiones();initRaleoIdx();
 
 // ── AUTO-REFRESH cada 5 minutos ─────────────────────────────────────
 // Refresca los datos de la especie activa sin interrumpir al usuario
