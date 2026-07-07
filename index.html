@@ -1438,8 +1438,9 @@ function rnCerProd(v){
   syncCerProdFiltBtns();
   const regsProd=cRegs.filter(x=>(x.tipo||'pre')===cerTipoFilt);
   if(!regsProd.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>Sin registros. ('+(cerTipoFilt==='pre'?'PRE PODA':'POST PODA')+')</div>';return;}
-  const map={};regsProd.forEach(r=>{if(!map[r.c])map[r.c]={s:0,n:0};map[r.c].s+=r.tot;map[r.c].n++;});
-  const avgDar={};Object.keys(map).forEach(c=>{avgDar[c]=(map[c].s/map[c].n);});
+  const fRamCer=6;
+  const map={};regsProd.forEach(r=>{if(!map[r.c])map[r.c]={s:0,n:0,sFrutos:0};map[r.c].s+=r.tot;map[r.c].n++;map[r.c].sFrutos+=((r.td+r.deje)*fDar)+(r.ram*fRamCer);});
+  const avgDar={};const avgFrutos={};Object.keys(map).forEach(c=>{avgDar[c]=(map[c].s/map[c].n);avgFrutos[c]=(map[c].sFrutos/map[c].n);});
   if(!avgDar[cerProdCuartelP])cerProdCuartelP=Object.keys(avgDar)[0];
   const rd=PROD_CER.find(r=>r[0]===cerProdCuartelP)||PROD_CER[0];
   const [c,vr,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,fDar,pFruto,pHa]=rd;
@@ -1459,7 +1460,8 @@ function rnCerProd(v){
   const ram26=regsCuartel.length?(regsCuartel.reduce((s,r)=>s+(r.ram||0),0)/regsCuartel.length):null;
   const ram26Txt=ram26!==null?ram26.toFixed(1):'-';
   const opts=PROD_CER.filter(r=>avgDar[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cerProdCuartelP?' selected':''}>${r[0]} · ${r[1]}</option>`).join('');
-  const kg26blk=kgHa25?kgEstBlock(avg,fDar,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,'var(--rd)'):'';
+  const avgFrutosCuartel=avgFrutos[c]||null;
+  const kg26blk=kgHa25&&avgFrutosCuartel?kgEstBlock(avgFrutosCuartel,1,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,'var(--rd)'):'';
   el.innerHTML=`<button class="ref-btn ref-r" onclick="loadCer()"><i class="ti ti-refresh"></i>Actualizar</button>
   ${selectorDropdown(opts,"cerProdCuartelP=this.value;rnCerProd()",'var(--rd)','var(--ro)')}
   <div class="stats2">
@@ -1472,7 +1474,7 @@ function rnCerProd(v){
     <div class="scard"><div class="slbl">Ramillas/Planta 2025</div><div class="sval" style="color:#555">${ram25}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Ramillas/Planta 2026</div><div class="sval" style="color:var(--ro)">${ram26Txt}</div><div class="ssub">promedio temporada actual</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2025</div><div class="sval" style="color:#555">${fxr25}</div><div class="ssub">real año anterior</div></div>
-    <div class="scard"><div class="slbl">Frutos/Ramilla 2026</div><div class="sval" style="color:var(--ro)">${fd26}</div><div class="ssub">estimación programa</div></div>
+    <div class="scard"><div class="slbl">Frutos/Ramilla 2026</div><div class="sval" style="color:var(--ro)">${fRamCer}</div><div class="ssub">estimación programa</div></div>
     <div class="scard"><div class="slbl">Carg. eliminados 2025</div><div class="sval" style="color:#555">${cargElim25}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Carg. eliminados 2026</div><div class="sval" style="color:var(--ro)">${cargElim26Txt}</div><div class="ssub">promedio temporada actual</div></div>
     <div class="scard"><div class="slbl">Calibre 2025</div><div class="sval" style="color:#555">${pFruto25}</div><div class="ssub">peso fruto (grs) real</div></div>
