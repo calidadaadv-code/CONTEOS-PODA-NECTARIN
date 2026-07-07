@@ -1439,7 +1439,7 @@ function rnCerProd(v){
   const regsProd=cRegs.filter(x=>(x.tipo||'pre')===cerTipoFilt);
   if(!regsProd.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>Sin registros. ('+(cerTipoFilt==='pre'?'PRE PODA':'POST PODA')+')</div>';return;}
   const fRamCer=6;
-  const map={};regsProd.forEach(r=>{if(!map[r.c])map[r.c]={s:0,n:0,sFrutos:0};map[r.c].s+=r.tot;map[r.c].n++;map[r.c].sFrutos+=((r.td+r.deje)*fDar)+(r.ram*fRamCer);});
+  const map={};regsProd.forEach(r=>{if(!map[r.c])map[r.c]={s:0,n:0,sFrutos:0};map[r.c].s+=r.tot;map[r.c].n++;const rdR=PROD_CER.find(x=>x[0]===r.c);const fDarR=rdR?rdR[7]:5;map[r.c].sFrutos+=((r.td+r.deje)*fDarR)+(r.ram*fRamCer);});
   const avgDar={};const avgFrutos={};Object.keys(map).forEach(c=>{avgDar[c]=(map[c].s/map[c].n);avgFrutos[c]=(map[c].sFrutos/map[c].n);});
   if(!avgDar[cerProdCuartelP])cerProdCuartelP=Object.keys(avgDar)[0];
   const rd=PROD_CER.find(r=>r[0]===cerProdCuartelP)||PROD_CER[0];
