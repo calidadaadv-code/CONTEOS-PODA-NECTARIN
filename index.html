@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v4.7.0 -->
+  <!-- v4.8.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -60,6 +60,12 @@
     #pantalla-inicio .ini-ft{color:rgba(255,255,255,.5)}
     #pantalla-inicio .ini-logo-card{background:#fff;border-radius:22px;padding:14px 18px;box-shadow:0 16px 32px rgba(0,0,0,.3);display:inline-block;margin-top:16px}
     #pantalla-inicio .ini-logo-card img{margin:0!important;max-width:170px!important}
+    #pantalla-poda,#pantalla-raleo{background:linear-gradient(165deg,#0E5B4A 0%,#0A4438 45%,#062E26 100%);background-image:radial-gradient(circle,rgba(255,255,255,.09) 1.5px,transparent 1.5px),linear-gradient(165deg,#0E5B4A 0%,#0A4438 45%,#062E26 100%);background-size:46px 46px,100% 100%;min-height:100vh}
+    #pantalla-poda .ini-title,#pantalla-raleo .ini-title{color:#fff}
+    #pantalla-poda .ini-sub,#pantalla-raleo .ini-sub{color:rgba(255,255,255,.65)}
+    #pantalla-poda .ini-back-btn,#pantalla-raleo .ini-back-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35);color:#fff}
+    #pantalla-poda .ini-back-btn:hover,#pantalla-raleo .ini-back-btn:hover{background:rgba(255,255,255,.22)}
+    #pantalla-poda .ini-ft,#pantalla-raleo .ini-ft{color:rgba(255,255,255,.5)}
     .app-view{display:none}
     .hdr-nec{background:var(--vo);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
     .hdr-duz{background:var(--dd);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
@@ -362,7 +368,7 @@
     </div>
   </div>
   <div style="padding:0 16px 20px">
-    <button onclick="expTodos()" style="width:100%;padding:12px;background:transparent;border:1.5px solid #555;border-radius:10px;font-size:13px;font-weight:500;font-family:var(--mo);cursor:pointer;color:#555;display:flex;align-items:center;justify-content:center;gap:8px">
+    <button onclick="expTodos()" style="width:100%;padding:12px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.35);border-radius:10px;font-size:13px;font-weight:500;font-family:var(--mo);cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px">
       <i class="ti ti-download"></i> Exportar CSV — Nectarín + Cerezo + Ciruelo
     </button>
   </div>
