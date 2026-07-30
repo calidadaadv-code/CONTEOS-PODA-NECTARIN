@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v5.0.1 -->
+  <!-- v5.0.2 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1086,7 +1086,7 @@ function startRaleoQrScan(e){
         raleoQrScanner=null;
         const nombre=(decodedText||'').trim();
         const lista=(L.nec&&L.nec.con)||[];
-        const norm=s=>(s||'').normalize('NFC').trim().replace(/\s+/g,' ').toUpperCase();const match=lista.find(n=>norm(n)===norm(nombre));
+        const norm=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ').toUpperCase();const match=lista.find(n=>norm(n)===norm(nombre));
         if(match){
           localStorage.setItem('raleoIngContador',match);
           checkRaleoIngLock();
