@@ -5,12 +5,13 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v4.16.0 -->
+  <!-- v5.0.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -690,6 +691,13 @@
     <button class="tab-nec" data-t="cfg" onclick="tabRaleo('nec','cfg')"><i class="ti ti-settings"></i>Listas<span id="lock-rnec-t" style="font-size:9px;margin-left:1px">🔒</span></button>
   </div>
   <div class="panel active" id="rnec-ing">
+    <div id="rnec-ing-lock" class="lock-scr" style="display:none">
+      <i class="ti ti-qrcode lock-ico"></i><div class="lock-title">Acceso Restringido</div><div class="lock-sub">Escanea tu código QR de contador para ingresar conteos</div>
+      <div id="qr-reader-nec" style="width:240px;max-width:80vw;margin:14px auto"></div>
+      <div id="rnec-ing-qrstatus" style="font-size:12px;font-family:var(--mo);color:var(--tm);text-align:center;margin-bottom:10px;min-height:16px"></div>
+      <button class="lock-btn-g" onclick="startRaleoQrScan('nec')"><i class="ti ti-camera"></i> Escanear código QR</button>
+    </div>
+    <div id="rnec-ing-body" style="display:none">
     <div class="csel-g" style="--co:var(--vd);--cd:var(--vo);--cc:#f0faf5"><div><div class="clbl-g" style="color:var(--vd)">Cuartel · Variedad</div><div class="cval-g" style="color:var(--vd)" id="rnec-cval">C-01</div></div><div class="cnav"><button class="nbtn-g" onclick="cRaleo('nec',-1)">‹</button><button class="nbtn-g" onclick="cRaleo('nec',1)">›</button></div></div>
     <div class="form-body">
       <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="rnec-hil" min="1" placeholder="01"></div>
@@ -707,6 +715,8 @@
     <div class="fgrp"><div class="cbrow"><button class="cbtn A" onclick="setCalR('nec','A')">A · Óptima</button><button class="cbtn B" onclick="setCalR('nec','B')">B · Regular</button><button class="cbtn C" onclick="setCalR('nec','C')">C · Deficiente</button></div></div>
     <div class="fgrp full"><label class="flbl">Observaciones</label><input class="finp" type="text" id="rnec-obs" placeholder="Observaciones..."></div>
     <button class="sbtn-g" id="rnec-sub" onclick="guardarRaleo('nec')"><i class="ti ti-device-floppy"></i>Guardar registro</button>
+    <div style="text-align:center;padding:10px 0 2px"><a href="javascript:void(0)" onclick="logoutRaleoIng()" style="font-size:11px;font-family:var(--mo);color:var(--tm);text-decoration:underline">Cambiar de contador</a></div>
+    </div>
   </div>
   <div class="panel" id="rnec-dat"><div id="rnec-ddat"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div></div>
   <div class="panel" id="rnec-cal"><div id="rnec-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div></div>
@@ -745,6 +755,13 @@
     <button class="tab-cer" data-t="cfg" onclick="tabRaleo('cer','cfg')"><i class="ti ti-settings"></i>Listas<span id="lock-rcer-t" style="font-size:9px;margin-left:1px">🔒</span></button>
   </div>
   <div class="panel active" id="rcer-ing">
+    <div id="rcer-ing-lock" class="lock-scr" style="display:none">
+      <i class="ti ti-qrcode lock-ico"></i><div class="lock-title">Acceso Restringido</div><div class="lock-sub">Escanea tu código QR de contador para ingresar conteos</div>
+      <div id="qr-reader-cer" style="width:240px;max-width:80vw;margin:14px auto"></div>
+      <div id="rcer-ing-qrstatus" style="font-size:12px;font-family:var(--mo);color:var(--tm);text-align:center;margin-bottom:10px;min-height:16px"></div>
+      <button class="lock-btn-g" onclick="startRaleoQrScan('cer')"><i class="ti ti-camera"></i> Escanear código QR</button>
+    </div>
+    <div id="rcer-ing-body" style="display:none">
     <div class="csel-g" style="--co:var(--rd);--cd:var(--ro);--cc:#fdf0f0"><div><div class="clbl-g" style="color:var(--rd)">Cuartel · Variedad</div><div class="cval-g" style="color:var(--rd)" id="rcer-cval">C-6</div></div><div class="cnav"><button class="nbtn-g" style="background:var(--ro)" onclick="cRaleo('cer',-1)">‹</button><button class="nbtn-g" style="background:var(--ro)" onclick="cRaleo('cer',1)">›</button></div></div>
     <div class="form-body">
       <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="rcer-hil" min="1" placeholder="01"></div>
@@ -779,6 +796,8 @@
     <div class="fgrp"><div class="cbrow"><button class="cbtn A" onclick="setCalR('cer','A')">A · Óptima</button><button class="cbtn B" onclick="setCalR('cer','B')">B · Regular</button><button class="cbtn C" onclick="setCalR('cer','C')">C · Deficiente</button></div></div>
     <div class="fgrp full"><label class="flbl">Observaciones</label><input class="finp" type="text" id="rcer-obs" placeholder="Observaciones..."></div>
     <button class="sbtn-r" id="rcer-sub" onclick="guardarRaleoCer()"><i class="ti ti-device-floppy"></i>Guardar registro</button>
+    <div style="text-align:center;padding:10px 0 2px"><a href="javascript:void(0)" onclick="logoutRaleoIng()" style="font-size:11px;font-family:var(--mo);color:var(--tm);text-decoration:underline">Cambiar de contador</a></div>
+    </div>
   </div>
   <div class="panel" id="rcer-dat"><div id="rcer-ddat"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div></div>
   <div class="panel" id="rcer-cal"><div id="rcer-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div></div>
@@ -811,6 +830,13 @@
     <button class="tab-cir" data-t="cfg" onclick="tabRaleo('cir','cfg')"><i class="ti ti-settings"></i>Listas<span id="lock-rcir-t" style="font-size:9px;margin-left:1px">🔒</span></button>
   </div>
   <div class="panel active" id="rcir-ing">
+    <div id="rcir-ing-lock" class="lock-scr" style="display:none">
+      <i class="ti ti-qrcode lock-ico"></i><div class="lock-title">Acceso Restringido</div><div class="lock-sub">Escanea tu código QR de contador para ingresar conteos</div>
+      <div id="qr-reader-cir" style="width:240px;max-width:80vw;margin:14px auto"></div>
+      <div id="rcir-ing-qrstatus" style="font-size:12px;font-family:var(--mo);color:var(--tm);text-align:center;margin-bottom:10px;min-height:16px"></div>
+      <button class="lock-btn-g" onclick="startRaleoQrScan('cir')"><i class="ti ti-camera"></i> Escanear código QR</button>
+    </div>
+    <div id="rcir-ing-body" style="display:none">
     <div class="csel-g" style="--co:var(--po);--cd:var(--pd);--cc:#f5f0ff"><div><div class="clbl-g" style="color:var(--po)">Cuartel · Variedad</div><div class="cval-g" style="color:var(--po)" id="rcir-cval">C-28</div></div><div class="cnav"><button class="nbtn-g" style="background:var(--pd)" onclick="cRaleo('cir',-1)">‹</button><button class="nbtn-g" style="background:var(--pd)" onclick="cRaleo('cir',1)">›</button></div></div>
     <div class="form-body">
       <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="rcir-hil" min="1" placeholder="01"></div>
@@ -828,6 +854,8 @@
     <div class="fgrp"><div class="cbrow"><button class="cbtn A" onclick="setCalR('cir','A')">A · Óptima</button><button class="cbtn B" onclick="setCalR('cir','B')">B · Regular</button><button class="cbtn C" onclick="setCalR('cir','C')">C · Deficiente</button></div></div>
     <div class="fgrp full"><label class="flbl">Observaciones</label><input class="finp" type="text" id="rcir-obs" placeholder="Observaciones..."></div>
     <button class="sbtn-p" id="rcir-sub" onclick="guardarRaleo('cir')"><i class="ti ti-device-floppy"></i>Guardar registro</button>
+    <div style="text-align:center;padding:10px 0 2px"><a href="javascript:void(0)" onclick="logoutRaleoIng()" style="font-size:11px;font-family:var(--mo);color:var(--tm);text-decoration:underline">Cambiar de contador</a></div>
+    </div>
   </div>
   <div class="panel" id="rcir-dat"><div id="rcir-ddat"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div></div>
   <div class="panel" id="rcir-cal"><div id="rcir-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div></div>
@@ -867,6 +895,13 @@
     <button class="tab-duz" data-t="cfg" onclick="tabRaleo('duz','cfg')"><i class="ti ti-settings"></i>Listas<span id="lock-rduz-t" style="font-size:9px;margin-left:1px">🔒</span></button>
   </div>
   <div class="panel active" id="rduz-ing">
+    <div id="rduz-ing-lock" class="lock-scr" style="display:none">
+      <i class="ti ti-qrcode lock-ico"></i><div class="lock-title">Acceso Restringido</div><div class="lock-sub">Escanea tu código QR de contador para ingresar conteos</div>
+      <div id="qr-reader-duz" style="width:240px;max-width:80vw;margin:14px auto"></div>
+      <div id="rduz-ing-qrstatus" style="font-size:12px;font-family:var(--mo);color:var(--tm);text-align:center;margin-bottom:10px;min-height:16px"></div>
+      <button class="lock-btn-g" onclick="startRaleoQrScan('duz')"><i class="ti ti-camera"></i> Escanear código QR</button>
+    </div>
+    <div id="rduz-ing-body" style="display:none">
     <div class="csel-g" style="--co:var(--do);--cd:var(--dd);--cc:#fef5e7"><div><div class="clbl-g" style="color:var(--do)">Cuartel · Variedad</div><div class="cval-g" style="color:var(--do)" id="rduz-cval">C-27</div></div><div class="cnav"><button class="nbtn-g" style="background:var(--dd)" onclick="cRaleo('duz',-1)">‹</button><button class="nbtn-g" style="background:var(--dd)" onclick="cRaleo('duz',1)">›</button></div></div>
     <div class="form-body">
       <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="rduz-hil" min="1" placeholder="01"></div>
@@ -884,6 +919,8 @@
     <div class="fgrp"><div class="cbrow"><button class="cbtn A" onclick="setCalR('duz','A')">A · Óptima</button><button class="cbtn B" onclick="setCalR('duz','B')">B · Regular</button><button class="cbtn C" onclick="setCalR('duz','C')">C · Deficiente</button></div></div>
     <div class="fgrp full"><label class="flbl">Observaciones</label><input class="finp" type="text" id="rduz-obs" placeholder="Observaciones..."></div>
     <button class="sbtn-d" id="rduz-sub" onclick="guardarRaleo('duz')"><i class="ti ti-device-floppy"></i>Guardar registro</button>
+    <div style="text-align:center;padding:10px 0 2px"><a href="javascript:void(0)" onclick="logoutRaleoIng()" style="font-size:11px;font-family:var(--mo);color:var(--tm);text-decoration:underline">Cambiar de contador</a></div>
+    </div>
   </div>
   <div class="panel" id="rduz-dat"><div id="rduz-ddat"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div></div>
   <div class="panel" id="rduz-cal"><div id="rduz-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div></div>
@@ -1023,6 +1060,47 @@ const L={
 let listasLoaded=false;
 
 let raleoAdm={rnec:false,rcer:false,rcir:false,rduz:false};
+// ── ACCESO POR QR A "INGRESAR" EN RALEO ──
+let raleoQrScanner=null;
+function checkRaleoIngLock(){
+  const nombre=localStorage.getItem('raleoIngContador');
+  ['nec','cer','cir','duz'].forEach(e=>{
+    const lock=document.getElementById(`r${e}-ing-lock`),body=document.getElementById(`r${e}-ing-body`);
+    if(!lock||!body)return;
+    if(nombre){lock.style.display='none';body.style.display='block';const cnt=document.getElementById(`r${e}-cnt`);if(cnt&&!cnt.value)cnt.value=nombre;}
+    else{lock.style.display='flex';body.style.display='none';}
+  });
+}
+function startRaleoQrScan(e){
+  const readerId=`qr-reader-${e}`;
+  const statusEl=document.getElementById(`r${e}-ing-qrstatus`);
+  if(typeof Html5Qrcode==='undefined'){statusEl.textContent='No se pudo cargar el lector de QR (revisa tu conexión).';return;}
+  if(raleoQrScanner){try{raleoQrScanner.stop().catch(()=>{});}catch(err){}}
+  raleoQrScanner=new Html5Qrcode(readerId);
+  statusEl.textContent='Apunta la cámara al código QR...';
+  raleoQrScanner.start(
+    {facingMode:"environment"},
+    {fps:10,qrbox:220},
+    (decodedText)=>{
+      raleoQrScanner.stop().then(()=>{
+        raleoQrScanner=null;
+        const nombre=(decodedText||'').trim();
+        const lista=(L.nec&&L.nec.con)||[];
+        const match=lista.find(n=>n.trim().toUpperCase()===nombre.toUpperCase());
+        if(match){
+          localStorage.setItem('raleoIngContador',match);
+          checkRaleoIngLock();
+          toast('✓ Bienvenido/a '+match);
+        }else{
+          statusEl.textContent='QR no reconocido — no coincide con la lista de contadores.';
+        }
+      }).catch(()=>{raleoQrScanner=null;});
+    },
+    ()=>{}
+  ).catch(err=>{statusEl.textContent='No se pudo acceder a la cámara.';});
+}
+function stopRaleoQrScan(){if(raleoQrScanner){try{raleoQrScanner.stop().catch(()=>{});}catch(err){}raleoQrScanner=null;}}
+function logoutRaleoIng(){localStorage.removeItem('raleoIngContador');checkRaleoIngLock();toast('Sesión de contador cerrada');}
 function rlistsRaleoAdm(e){['con','sup','comp'].forEach(t=>{const ul=document.getElementById(e+'-l'+t);if(ul)ul.innerHTML=L.nec[t].map((n,i)=>`<div class="cfg-item"><span class="cfg-name">${n}</span><button class="cfg-del" onclick="delLShared('${t}',${i})"><i class="ti ti-x"></i></button></div>`).join('');});}
 function syncDerivedLists(t){L.duz[t]=[...L.nec[t]];['rnec','rcer','rcir','rduz'].forEach(re=>L[re][t]=[...L.nec[t]]);rlists('duz');['rnec','rcer','rcir','rduz'].forEach(re=>{rlists(re);rlistsRaleoAdm(re);});}
 async function addLShared(e,t){const inp=document.getElementById(e+'-a'+t);const v=inp.value.trim().toUpperCase();if(!v)return;if(L.nec[t].includes(v)){toast('Ya existe','warn');return;}const ok=await addLSB('nec',t,v);if(!ok)return;L.nec[t].push(v);inp.value='';syncDerivedLists(t);rlists('nec');toast('✓ Guardado: '+v);}
@@ -1063,7 +1141,7 @@ function sync(id,tipo,txt){const b=document.getElementById(id);if(!b)return;if(t
 function pct(n,fn,fn2){const p=Math.round(n/fn*100);const c=fn2==='g'?(p>=70?'background:#E1F5EE;color:#085041;font-weight:600':(p>15?'background:#FAEEDA;color:#633806;font-weight:600':'color:var(--tm)')):(p>15?'background:#FADBD8;color:#791F1F;font-weight:600':'color:var(--tm)');return`<span style="padding:3px 7px;border-radius:5px;font-size:11px;font-family:var(--mo);${c}">${p}%</span>`;}
 function comenzarConteos(){document.getElementById('pantalla-portada').style.display='none';const pi=document.getElementById('pantalla-inicio');if(pi)pi.style.display='flex';}
 function mostrarModo(m){document.getElementById('pantalla-inicio').style.display='none';document.getElementById('pantalla-poda').style.display=m==='poda'?'block':'none';document.getElementById('pantalla-raleo').style.display=m==='raleo'?'block':'none';const pc=document.getElementById('pantalla-cosecha');if(pc)pc.style.display=m==='cosecha'?'block':'none';}
-function volverInicio(){const pi=document.getElementById('pantalla-inicio');const pp=document.getElementById('pantalla-poda');const pr=document.getElementById('pantalla-raleo');const pc=document.getElementById('pantalla-cosecha');if(pi)pi.style.display='flex';if(pp)pp.style.display='none';if(pr)pr.style.display='none';if(pc)pc.style.display='none';}
+function volverInicio(){stopRaleoQrScan();const pi=document.getElementById('pantalla-inicio');const pp=document.getElementById('pantalla-poda');const pr=document.getElementById('pantalla-raleo');const pc=document.getElementById('pantalla-cosecha');if(pi)pi.style.display='flex';if(pp)pp.style.display='none';if(pr)pr.style.display='none';if(pc)pc.style.display='none';}
 function entrarRaleo(e){document.getElementById('pantalla-raleo').style.display='none';document.getElementById('view-raleo-'+e).style.display='block';if(!listasLoaded)loadListas();loadRaleo(e);}
 function volverRaleo(){['nec','cer','cir','duz'].forEach(e=>{const v=document.getElementById('view-raleo-'+e);if(v)v.style.display='none';});document.getElementById('pantalla-raleo').style.display='block';}
 function entrar(e){const ids=['pantalla-inicio','pantalla-poda','pantalla-raleo','view-nec','view-cer','view-cir','view-duz'];ids.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});const vEl=document.getElementById('view-'+e);if(vEl)vEl.style.display='block';const piEl=document.getElementById('pantalla-inicio');if(piEl)piEl.style.display='none';if(e==='nec')loadNec();else if(e==='cer')loadCer();else if(e==='cir')loadCir();else if(e==='duz')loadDuz();if(!listasLoaded)loadListas();}
@@ -1085,7 +1163,7 @@ let rnecCalRaleo=null,rcerCalRaleo=null,rcirCalRaleo=null,rduzCalRaleo=null;
 let rnecVR='hoy',rcerVR='hoy',rcirVR='hoy',rduzVR='hoy';
 let rNecRegs=[],rCerRegs=[],rCirRegs=[],rDuzRegs=[];
 // ── RALEO FUNCIONES ──────────────────────────────────────────────────────
-function tabRaleo(e,t){const tabs=e==='cer'?['ing','dat','cal','cfg']:['ing','dat','cal','prod','cfg'];tabs.forEach((x,i)=>{const tab=document.querySelectorAll(`#view-raleo-${e} .tab-${e}`)[i];const pan=document.getElementById(`r${e}-${x}`);if(x===t){tab&&tab.classList.add('active');pan&&pan.classList.add('active');}else{tab&&tab.classList.remove('active');pan&&pan.classList.remove('active');}});if(t==='dat'||t==='cal')loadRaleo(e);if(t==='prod')loadRaleo(e).then(()=>rnRaleoProd(e));}
+function tabRaleo(e,t){if(t!=='ing')stopRaleoQrScan();const tabs=e==='cer'?['ing','dat','cal','cfg']:['ing','dat','cal','prod','cfg'];tabs.forEach((x,i)=>{const tab=document.querySelectorAll(`#view-raleo-${e} .tab-${e}`)[i];const pan=document.getElementById(`r${e}-${x}`);if(x===t){tab&&tab.classList.add('active');pan&&pan.classList.add('active');}else{tab&&tab.classList.remove('active');pan&&pan.classList.remove('active');}});if(t==='dat'||t==='cal')loadRaleo(e);if(t==='prod')loadRaleo(e).then(()=>rnRaleoProd(e));}
 function cRaleo(e,d){const arr=e==='nec'?CNEC:e==='cer'?CCER:e==='cir'?CCIR:CDUZ;if(!arr.length)return;const cur=window[`r${e}Raleo`]||0;const nxt=Math.max(0,Math.min(arr.length-1,cur+d));window[`r${e}Raleo`]=nxt;const c=arr[nxt];document.getElementById(`r${e}-cval`).textContent=c.n+(c.v?' · '+c.v:'');const rhint=document.getElementById(`r${e}-rhint`);if(e==='cer'){if(rhint)rhint.textContent='3 yemas florales + 1 vegetativa · meta 80% (mín. 75%)';}else{const rang=e==='nec'?RALEO_NEC[c.n]:e==='cir'?RALEO_CIR[c.n]:RALEO_DUZ[c.n];if(rhint&&rang&&rang.ob)rhint.textContent=`Rango: ${rang.mn} – ${rang.ob} – ${rang.mx} frutos`;}}
 function valRaleoCer(){const ids=[['rcer-c1-tot','rcer-c1-cum'],['rcer-c2-tot','rcer-c2-cum'],['rcer-c3-tot','rcer-c3-cum']];const fxrEl=document.getElementById('rcer-fxr');const ba=document.getElementById('rcer-abaj'),al=document.getElementById('rcer-aalt');ba.classList.remove('vis');al.classList.remove('vis');let sumTot=0,sumCum=0,algunaVacia=false,todasVacias=true;ids.forEach(([tId,cId])=>{const tRaw=document.getElementById(tId).value,cRaw=document.getElementById(cId).value;if(tRaw!==''||cRaw!=='')todasVacias=false;if(tRaw===''||cRaw===''){algunaVacia=true;}else{sumTot+=parseInt(tRaw)||0;sumCum+=parseInt(cRaw)||0;}});if(todasVacias||algunaVacia){fxrEl.textContent='—';fxrEl.style.color='var(--ro)';return;}const pct=sumTot?(sumCum/sumTot*100):0;fxrEl.textContent=pct.toFixed(1)+'%';if(pct<75){fxrEl.style.color='#9C0006';ba.classList.add('vis');}else if(pct<80){fxrEl.style.color='#633806';al.classList.add('vis');}else{fxrEl.style.color='#0E6655';}}
 async function guardarRaleoCer(){const arr=CCER;const idx=window['rcerRaleo']||0;const c=arr[idx];const h=document.getElementById('rcer-hil').value,p=document.getElementById('rcer-pla').value;const pod=document.getElementById('rcer-pod').value,cnt=document.getElementById('rcer-cnt').value;const sup=document.getElementById('rcer-sup').value,comp=document.getElementById('rcer-con').value;const obsUsr=document.getElementById('rcer-obs').value;const cal=window['rcerCalRaleo'];const ids=[['rcer-c1-tot','rcer-c1-cum'],['rcer-c2-tot','rcer-c2-cum'],['rcer-c3-tot','rcer-c3-cum']];const vals=ids.map(([tId,cId])=>({tot:document.getElementById(tId).value,cum:document.getElementById(cId).value}));const faltaConteo=vals.some(v=>v.tot===''||v.cum==='');if(!h||!p||!pod||!cnt||faltaConteo||!cal){toast('⚠ Completa los 3 conteos y todos los campos','warn');return;}const nums=vals.map(v=>({tot:parseInt(v.tot)||0,cum:parseInt(v.cum)||0}));const sumTot=nums.reduce((s,v)=>s+v.tot,0);const sumCum=nums.reduce((s,v)=>s+v.cum,0);const pct=sumTot?(sumCum/sumTot*100):0;const f=pct<75?'bajo':pct<80?'alto':'no';const detalle=`C1: ${nums[0].cum}/${nums[0].tot} · C2: ${nums[1].cum}/${nums[1].tot} · C3: ${nums[2].cum}/${nums[2].tot}`;const obsFinal=obsUsr?`${detalle} — ${obsUsr}`:detalle;const btn=document.getElementById('rcer-sub');btn.disabled=true;btn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';sync('sync-rcer','L','Guardando...');const {error}=await db.from('conteos_raleo_cer').insert([{timestamp:ts(),especie:'cer',cuartel:c.n,hilera:parseInt(h),planta:parseInt(p),podador:pod,contador:cnt,supervisor:sup,contratista:comp,ramillas:sumTot,frutos:sumCum,frutos_x_ramilla:parseFloat(pct.toFixed(2)),fuera_rango:f,calidad:cal,observaciones:obsFinal}]);btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar registro';if(error){console.error('Error guardarRaleoCer',error);sync('sync-rcer','E','Error');toast('⚠ Error: '+(error.message||error.hint||error.code||'al guardar'),'warn');return;}sync('sync-rcer','O','✓ Guardado');setTimeout(()=>sync('sync-rcer','O','En línea'),2000);if(f==='bajo')toast('⚠ Guardado — Bajo mínimo ('+pct.toFixed(1)+'%)','warn');else if(f==='alto')toast('⚠ Guardado — Bajo objetivo ('+pct.toFixed(1)+'%)','warn');else toast('✓ Guardado — Cumplimiento '+pct.toFixed(1)+'%');['hil','pla','obs'].forEach(x=>document.getElementById(`rcer-${x}`).value='');ids.flat().forEach(id=>document.getElementById(id).value='');const fxrEl=document.getElementById('rcer-fxr');fxrEl.textContent='—';fxrEl.style.color='var(--ro)';document.getElementById('rcer-abaj').classList.remove('vis');document.getElementById('rcer-aalt').classList.remove('vis');window['rcerCalRaleo']=null;document.querySelectorAll('#view-raleo-cer .cbtn').forEach(b=>b.classList.remove('on'));loadRaleo('cer');}
@@ -1793,7 +1871,7 @@ function rnRaleoProd(e){
   ${esNuevo?'<div style="text-align:center;font-size:11px;font-family:var(--mo);color:var(--tm);margin-top:-6px;margin-bottom:12px">*Cuartel sin dato 2025 — comparado contra la meta 2026</div>':''}`;
 }
 
-loadListas();loadRevisiones();resetCar();loadRevisiones();initRaleoIdx();
+loadListas().then(()=>checkRaleoIngLock());loadRevisiones();resetCar();loadRevisiones();initRaleoIdx();
 
 // ── AUTO-REFRESH cada 5 minutos ─────────────────────────────────────
 // Refresca los datos de la especie activa sin interrumpir al usuario
