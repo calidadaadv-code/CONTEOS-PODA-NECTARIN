@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v5.0.2 -->
+  <!-- v5.1.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1063,7 +1063,7 @@ let raleoAdm={rnec:false,rcer:false,rcir:false,rduz:false};
 // ── ACCESO POR QR A "INGRESAR" EN RALEO ──
 let raleoQrScanner=null;
 function checkRaleoIngLock(){
-  const nombre=localStorage.getItem('raleoIngContador');
+  const nombre=sessionStorage.getItem('raleoIngContador');
   ['nec','cer','cir','duz'].forEach(e=>{
     const lock=document.getElementById(`r${e}-ing-lock`),body=document.getElementById(`r${e}-ing-body`);
     if(!lock||!body)return;
@@ -1088,7 +1088,7 @@ function startRaleoQrScan(e){
         const lista=(L.nec&&L.nec.con)||[];
         const norm=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ').toUpperCase();const match=lista.find(n=>norm(n)===norm(nombre));
         if(match){
-          localStorage.setItem('raleoIngContador',match);
+          sessionStorage.setItem('raleoIngContador',match);
           checkRaleoIngLock();
           toast('✓ Bienvenido/a '+match);
         }else{
@@ -1100,7 +1100,7 @@ function startRaleoQrScan(e){
   ).catch(err=>{statusEl.textContent='No se pudo acceder a la cámara.';});
 }
 function stopRaleoQrScan(){if(raleoQrScanner){try{raleoQrScanner.stop().catch(()=>{});}catch(err){}raleoQrScanner=null;}}
-function logoutRaleoIng(){localStorage.removeItem('raleoIngContador');checkRaleoIngLock();toast('Sesión de contador cerrada');}
+function logoutRaleoIng(){sessionStorage.removeItem('raleoIngContador');checkRaleoIngLock();toast('Sesión de contador cerrada');}
 function rlistsRaleoAdm(e){['con','sup','comp'].forEach(t=>{const ul=document.getElementById(e+'-l'+t);if(ul)ul.innerHTML=L.nec[t].map((n,i)=>`<div class="cfg-item"><span class="cfg-name">${n}</span><button class="cfg-del" onclick="delLShared('${t}',${i})"><i class="ti ti-x"></i></button></div>`).join('');});}
 function syncDerivedLists(t){L.duz[t]=[...L.nec[t]];['rnec','rcer','rcir','rduz'].forEach(re=>L[re][t]=[...L.nec[t]]);rlists('duz');['rnec','rcer','rcir','rduz'].forEach(re=>{rlists(re);rlistsRaleoAdm(re);});}
 async function addLShared(e,t){const inp=document.getElementById(e+'-a'+t);const v=inp.value.trim().toUpperCase();if(!v)return;if(L.nec[t].includes(v)){toast('Ya existe','warn');return;}const ok=await addLSB('nec',t,v);if(!ok)return;L.nec[t].push(v);inp.value='';syncDerivedLists(t);rlists('nec');toast('✓ Guardado: '+v);}
