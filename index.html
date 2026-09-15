@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.4.0 -->
+  <!-- v6.6.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1177,13 +1177,13 @@ const RALEO_NEC={
 const RALEO_CER={};CCER.forEach(c=>RALEO_CER[c.n]={mn:0,ob:0,mx:0});
 const RALEO_CIR={'C-28':{mn:237,ob:263,mx:292},'C-7A':{mn:198,ob:220,mx:244}};
 const RALEO_DUZ={'C-27':{mn:41,ob:45,mx:50}};
-// Histórico 2025 (planilla "Resultados 2025-2026"): calibre obtenido y frutos/planta reales
+// Histórico 2025 (planilla "Resultados 2025-2026"): calibre obtenido, peso fruto grs y frutos/planta reales
 const RALEO_HIST_NEC={
-  'C-32':{cal:43,fru:148},'C-03':{cal:48,fru:170},'C-04':{cal:44,fru:159},'C-05':{cal:45,fru:163},
-  'C-02':{cal:53,fru:130},'C-09':{cal:50,fru:104},'C-13':{cal:49,fru:113},'C-30':{cal:52,fru:119},
-  'C-7B':{cal:47,fru:98},'C-01':{cal:45,fru:122},'C-08':{cal:49,fru:174},'C-31':{cal:49,fru:104},
+  'C-32':{cal:43,peso:186,fru:148},'C-03':{cal:48,peso:167,fru:170},'C-04':{cal:44,peso:182,fru:159},'C-05':{cal:45,peso:178,fru:163},
+  'C-02':{cal:53,peso:151,fru:130},'C-09':{cal:50,peso:160,fru:104},'C-13':{cal:49,peso:163,fru:113},'C-30':{cal:52,peso:154,fru:119},
+  'C-7B':{cal:47,peso:170,fru:98},'C-01':{cal:45,peso:178,fru:122},'C-08':{cal:49,peso:163,fru:174},'C-31':{cal:49,peso:163,fru:104},
 };
-const RALEO_HIST_CIR={'C-28':{cal:76,fru:199},'C-7A':{cal:63,fru:216}};
+const RALEO_HIST_CIR={'C-28':{cal:76,peso:92,fru:199},'C-7A':{cal:63,peso:111,fru:216}};
 const RALEO_HIST_DUZ={};
 // Estimación 2026-2027 pre-poda: calibre esperado (número de calibre, no gramos)
 const RALEO_CAL_ESP_NEC={
@@ -1909,13 +1909,16 @@ function rnRaleoProd(e){
   ${selectorDropdown(opts,`raleoProdCuartel.${e}=this.value;rnRaleoProd('${e}')`,st.border,st.text)}
   <div class="stats2">
     <div class="scard" style="grid-column:1/-1"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}${vr?' · '+vr:''}</div></div>
-    <div class="scard" style="grid-column:1/-1"><div class="slbl">Prom. Frutos/planta 2026</div><div class="sval" style="color:${st.text}">${avgTxt}</div><div class="ssub">conteo real de Raleo · ${v==='hoy'?'hoy':'acumulado'}</div></div>
-    <div class="scard" style="grid-column:1/-1"><div class="slbl">Frutos Ideal (Objetivo)</div><div class="sval" style="color:#3730A3">${fIdeal??'—'}</div><div class="ssub">${rangObj?`rango ${rangObj.mn}–${rangObj.mx} frutos`:'sin rango definido'}</div></div>
+    <div class="scard"><div class="slbl">Prom. Frutos/planta 2026</div><div class="sval" style="color:${st.text}">${avgTxt}</div><div class="ssub">conteo real · ${v==='hoy'?'hoy':'acumulado'}</div></div>
+    <div class="scard"><div class="slbl">Frutos Ideal (Objetivo)</div><div class="sval" style="color:#3730A3">${fIdeal??'—'}</div><div class="ssub">${rangObj?`rango ${rangObj.mn}–${rangObj.mx}`:'sin rango definido'}</div></div>
+    ${(avg!==null&&fIdeal)?(()=>{const diffPct=(avg/fIdeal*100-100);const dCol=diffPct>=0?'#0E6655':'#791F1F';const dIco=diffPct>=0?'↑':'↓';return`<div class="scard" style="grid-column:1/-1;background:${diffPct>=0?'#E8F8F5':'var(--rc)'}"><div class="slbl">Diferencia vs Ideal</div><div class="sval" style="color:${dCol}">${dIco} ${Math.abs(diffPct).toFixed(1)}%</div><div class="ssub">${avgTxt} real vs ${fIdeal} ideal</div></div>`;})():''}
     <div class="scard"><div class="slbl">Frutos/planta 2025</div><div class="sval" style="color:#555">${hist?hist.fru:'—'}</div><div class="ssub">real año anterior</div></div>
+    ${(()=>{if(avg===null||!hist)return`<div class="scard"><div class="slbl">Dif. vs 2025</div><div class="sval" style="color:var(--tm)">—</div><div class="ssub">sin datos suficientes</div></div>`;const dP=(avg/hist.fru*100-100);const dC=dP>=0?'#0E6655':'#791F1F';const dI=dP>=0?'↑':'↓';return`<div class="scard"><div class="slbl">Dif. vs 2025</div><div class="sval" style="color:${dC}">${dI} ${Math.abs(dP).toFixed(1)}%</div><div class="ssub">${avgTxt} este año</div></div>`;})()}
     <div class="scard"><div class="slbl">Calibre obtenido 2025</div><div class="sval" style="color:#555">${hist?hist.cal:'—'}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Calibre esperado 2026</div><div class="sval" style="color:#3730A3">${calEsp??'—'}</div><div class="ssub">meta temporada actual</div></div>
-    <div class="scard"><div class="slbl">Peso fruto esperado</div><div class="sval" style="color:#555">${pFruto} grs</div><div class="ssub">peso fruto estimado</div></div>
-    <div class="scard"><div class="slbl">Plantas/ha</div><div class="sval" style="color:#555">${pHa}</div><div class="ssub">densidad · ${ha} ha</div></div>
+    <div class="scard"><div class="slbl">Peso fruto 2025</div><div class="sval" style="color:#555">${hist?hist.peso:'—'}${hist?' grs':''}</div><div class="ssub">real año anterior</div></div>
+    <div class="scard"><div class="slbl">Peso fruto esperado 2026</div><div class="sval" style="color:#3730A3">${pFruto} grs</div><div class="ssub">peso fruto estimado</div></div>
+    <div class="scard" style="grid-column:1/-1"><div class="slbl">Plantas/ha</div><div class="sval" style="color:#555">${pHa}</div><div class="ssub">densidad · ${ha} ha</div></div>
   </div>
   ${kg26blk}
   ${esNuevo?'<div style="text-align:center;font-size:11px;font-family:var(--mo);color:var(--tm);margin-top:-6px;margin-bottom:12px">*Cuartel sin dato 2025 — comparado contra la meta 2026</div>':''}`;
