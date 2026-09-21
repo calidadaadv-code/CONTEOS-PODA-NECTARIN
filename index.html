@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -1252,11 +1253,13 @@ const CC_CRITERIOS={
 const CC_TARGETS=[{pfx:'rnec',esp:'nec',mod:'raleo'},{pfx:'rcer',esp:'cer',mod:'raleo'},{pfx:'rcir',esp:'cir',mod:'raleo'},{pfx:'rduz',esp:'duz',mod:'raleo'}];
 const CC_TOG={rnec:'tog-g',rcer:'tog-r',rcir:'tog-p',rduz:'tog-d'};
 let ccState={};
+let ccPhotos={};
 function ccScorePct(avg){if(!avg)return null;return Math.round(((avg-1)/4)*100);}
 function ccCuartelArr(esp){return esp==='nec'?CNEC:esp==='cer'?CCER:esp==='cir'?CCIR:CDUZ;}
 function ccToggle(pfx,mode){const cw=document.getElementById(`${pfx}-ing-conteos`),qw=document.getElementById(`${pfx}-ing-cc`);const bC=document.getElementById(`${pfx}-selconteos`),bQ=document.getElementById(`${pfx}-selcc`);if(!cw||!qw)return;const cls='tog-btn '+(CC_TOG[pfx]||'tog-g');if(mode==='cc'){cw.style.display='none';qw.style.display='block';if(bC)bC.className='tog-btn';if(bQ)bQ.className=cls;}else{cw.style.display='block';qw.style.display='none';if(bQ)bQ.className='tog-btn';if(bC)bC.className=cls;}}
 function ccInit(pfx,esp,mod){
   ccState[pfx]={hileras:[],hc:0};
+  ccPhotos[pfx]=[];
   const el=document.getElementById(`${pfx}-ing-cc`);if(!el)return;
   const arr=ccCuartelArr(esp);
   el.innerHTML=`<div class="form-body">
@@ -1279,7 +1282,31 @@ function ccInit(pfx,esp,mod){
     <div style="font-size:11px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">RESULTADOS — CUMPLIMIENTO PAUTA (%)</div>
     <div class="twrap"><table id="${pfx}-cc-tabla"><thead id="${pfx}-cc-thead"></thead><tbody id="${pfx}-cc-tbody"></tbody></table></div>
   </div>
-  <button class="sbtn-g" style="margin-top:16px" onclick="guardarCC('${pfx}','${esp}','${mod}')"><i class="ti ti-device-floppy"></i>Guardar control de calidad</button>`;
+  <hr class="divider" style="margin:18px 0">
+  <div style="font-size:11px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">RENDIMIENTOS ESPERADOS</div>
+  <div class="form-body">
+    <div class="fgrp"><label class="flbl">N° trabajadores</label><input class="finp" type="number" id="${pfx}-cc-ntrab" min="0" placeholder="0" oninput="ccCalcResumen('${pfx}')"></div>
+    <div class="fgrp"><label class="flbl">Plantas totales</label><input class="finp" type="number" id="${pfx}-cc-rendtot" min="0" placeholder="0" oninput="ccCalcResumen('${pfx}')"></div>
+    <div class="fgrp full"><label class="flbl">Costo por planta ($)</label><input class="finp" type="number" id="${pfx}-cc-costopl" min="0" placeholder="0" oninput="ccCalcResumen('${pfx}')"></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+    <div style="background:#f7f7f5;border-radius:10px;padding:10px 12px"><div style="font-size:11px;color:var(--tm)">Plantas / trabajador</div><div style="font-size:18px;font-weight:700" id="${pfx}-cc-rcprom">—</div></div>
+    <div style="background:#f7f7f5;border-radius:10px;padding:10px 12px"><div style="font-size:11px;color:var(--tm)">Costo total jornada</div><div style="font-size:18px;font-weight:700" id="${pfx}-cc-rccostot">—</div></div>
+    <div style="grid-column:span 2;background:#eaf3de;border-radius:10px;padding:10px 12px"><div style="font-size:11px;color:#3b6d11">Valor día promedio por trabajador</div><div style="font-size:18px;font-weight:700;color:#27500a" id="${pfx}-cc-rccostrab">—</div></div>
+  </div>
+  <hr class="divider" style="margin:18px 0">
+  <div style="font-size:11px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">OBSERVACIONES</div>
+  <div class="fgrp full"><label class="flbl">Aspectos bien ejecutados</label><textarea class="finp" style="min-height:64px;resize:vertical" id="${pfx}-cc-obsok" placeholder="Ej: Ángulo de corte correcto..."></textarea></div>
+  <div class="fgrp full" style="margin-top:10px"><label class="flbl">Aspectos a corregir</label><textarea class="finp" style="min-height:64px;resize:vertical" id="${pfx}-cc-obsfix" placeholder="Ej: Falta eliminar ramas cruzadas..."></textarea></div>
+  <div class="fgrp full" style="margin-top:10px"><label class="flbl">Comentarios adicionales</label><textarea class="finp" style="min-height:64px;resize:vertical" id="${pfx}-cc-obsextra" placeholder="Condiciones climáticas, incidentes..."></textarea></div>
+  <hr class="divider" style="margin:18px 0">
+  <div style="font-size:11px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:8px">FOTOGRAFÍAS DE EVIDENCIA</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="${pfx}-cc-photosgrid">
+    <div style="aspect-ratio:1;border:1px dashed var(--gb2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;font-size:11px;color:var(--tm);cursor:pointer" onclick="document.getElementById('${pfx}-cc-photoinput').click()"><i class="ti ti-plus" style="font-size:20px"></i><span>Agregar foto</span></div>
+  </div>
+  <input type="file" id="${pfx}-cc-photoinput" accept="image/*" multiple style="display:none" onchange="ccAddPhotos('${pfx}',event)">
+  <button class="sbtn-g" style="margin-top:16px" onclick="guardarCC('${pfx}','${esp}','${mod}')"><i class="ti ti-device-floppy"></i>Guardar control de calidad</button>
+  <button class="sbtn-g" style="margin-top:10px;background:var(--vo)" onclick="ccGeneratePDF('${pfx}','${esp}','${mod}')"><i class="ti ti-file-download"></i>Generar reporte PDF</button>`;
   ccRenderThead(pfx,mod);
   ccAddHilera(pfx);
   ccDD(pfx);
@@ -1316,6 +1343,12 @@ async function guardarCC(pfx,esp,mod){
   const nram=document.getElementById(`${pfx}-cc-nram`).value;
   const conteo=document.getElementById(`${pfx}-cc-conteo`).value;
   const contram=document.getElementById(`${pfx}-cc-contram`).value;
+  const ntrab=document.getElementById(`${pfx}-cc-ntrab`).value;
+  const rendtot=document.getElementById(`${pfx}-cc-rendtot`).value;
+  const costopl=document.getElementById(`${pfx}-cc-costopl`).value;
+  const obsok=document.getElementById(`${pfx}-cc-obsok`).value;
+  const obsfix=document.getElementById(`${pfx}-cc-obsfix`).value;
+  const obsextra=document.getElementById(`${pfx}-cc-obsextra`).value;
   if(!sup||!cnt){toast('⚠ Completa Supervisor y Contador','warn');return;}
   const hileraConDatos=(st.hileras||[]).filter(h=>(h.hilera!==''&&h.hilera!=null)||(h.plantas!==''&&h.plantas!=null)||h.scores.some(s=>s>0));
   if(!hileraConDatos.length){toast('⚠ Ingresa al menos una hilera con la pauta','warn');return;}
@@ -1323,7 +1356,7 @@ async function guardarCC(pfx,esp,mod){
   let sumPct=0,cntPct=0;
   hileraConDatos.forEach(h=>{CRIT.forEach((c,ci)=>{const sc=h.scores[ci]||0;if(sc>0){sumPct+=ccScorePct(sc);cntPct++;}});});
   const pctFinal=cntPct?Math.round(sumPct/cntPct):null;
-  const rec={timestamp:ts(),modulo:mod,especie:esp,cuartel:cua,hilera:hil||null,planta:pla||null,supervisor:sup,contador:cnt,contratista:con||null,n_ramilla:nram||null,conteo:conteo?parseFloat(conteo):null,contramuestra:contram?parseFloat(contram):null,pauta:hileraConDatos,pct_pauta:pctFinal};
+  const rec={timestamp:ts(),modulo:mod,especie:esp,cuartel:cua,hilera:hil||null,planta:pla||null,supervisor:sup,contador:cnt,contratista:con||null,n_ramilla:nram||null,conteo:conteo?parseFloat(conteo):null,contramuestra:contram?parseFloat(contram):null,pauta:hileraConDatos,pct_pauta:pctFinal,n_trabajadores:ntrab?parseInt(ntrab):null,plantas_totales:rendtot?parseInt(rendtot):null,costo_planta:costopl?parseFloat(costopl):null,obs_ok:obsok||null,obs_fix:obsfix||null,obs_extra:obsextra||null};
   const {error}=await db.from('control_calidad').insert([rec]);
   if(error){toast('⚠ '+(error.message||error.hint||error.code||'Error al guardar'),'warn');return;}
   toast('✓ Control de calidad guardado');
