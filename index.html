@@ -1414,6 +1414,60 @@ function ccRenderPhotos(pfx){const grid=document.getElementById(`${pfx}-cc-photo
 function ccSetPhotoTag(pfx,i,tag){const p=ccPhotos[pfx][i];p.tag=(p.tag===tag)?null:tag;ccRenderPhotos(pfx);}
 function ccRemovePhoto(pfx,i){ccPhotos[pfx].splice(i,1);ccRenderPhotos(pfx);}
 function ccDD(pfx){const dd={cnt:`${pfx}-cc-cnt-dd`,sup:`${pfx}-cc-sup-dd`,con:`${pfx}-cc-con-dd`};const fld={cnt:`${pfx}-cc-cnt`,sup:`${pfx}-cc-sup`,con:`${pfx}-cc-con`};const Lkey={cnt:'con',sup:'sup',con:'comp'};['cnt','sup','con'].forEach(t=>{const ddEl=document.getElementById(dd[t]);if(!ddEl)return;const arr=(L[pfx]&&L[pfx][Lkey[t]])||[];ddEl.innerHTML=arr.map(n=>`<div class="copt" onclick="selDD('${fld[t]}','${dd[t]}','${n.replace(/'/g,"\\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="copt nuevo" onclick="clrDD('${fld[t]}','${dd[t]}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;});}
+// ══════ CEREZO — RALEO DE YEMAS / CONTEO DE FRUTOS (toggle propio, sin Control de Calidad) ══════
+function cerModoToggle(mode){const cw=document.getElementById('rcer-ing-conteos'),fw=document.getElementById('rcer-ing-frutos');const bC=document.getElementById('rcer-selconteos'),bF=document.getElementById('rcer-selfrutos');if(!cw||!fw)return;if(mode==='frutos'){cw.style.display='none';fw.style.display='block';if(bC)bC.className='tog-btn';if(bF)bF.className='tog-btn tog-r';}else{cw.style.display='block';fw.style.display='none';if(bF)bF.className='tog-btn';if(bC)bC.className='tog-btn tog-r';}}
+function frInit(pfx,esp,mod){
+  const el=document.getElementById(`${pfx}-ing-frutos`);if(!el)return;
+  const arr=ccCuartelArr(esp);
+  const PARTES=[['baja','Parte Baja'],['media','Parte Media'],['alta','Parte Alta']];
+  el.innerHTML=`<div class="form-body">
+    <div class="fgrp"><label class="flbl">Cuartel · Variedad</label><select class="finp" id="${pfx}-fr-cua">${arr.map(c=>`<option value="${c.n}">${c.n}${c.v?' · '+c.v:''}</option>`).join('')}</select></div>
+    <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="${pfx}-fr-hil" min="1" placeholder="01"></div>
+    <div class="fgrp"><label class="flbl">N° Planta</label><input class="finp" type="number" id="${pfx}-fr-pla" min="1" placeholder="01"></div>
+    <div class="fgrp"><label class="flbl">Podador</label><input class="finp" type="text" id="${pfx}-fr-pod" placeholder="Nombre"></div>
+    <div class="fgrp"><label class="flbl">Contador</label><div class="cwrap"><input class="cinp" type="text" id="${pfx}-fr-cnt" placeholder="Seleccionar..." readonly onclick="openDD('${pfx}-fr-cnt-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="${pfx}-fr-cnt-dd"></div></div></div>
+    <div class="fgrp"><label class="flbl">Supervisor</label><div class="cwrap"><input class="cinp" type="text" id="${pfx}-fr-sup" placeholder="Seleccionar..." readonly onclick="openDD('${pfx}-fr-sup-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="${pfx}-fr-sup-dd"></div></div></div>
+    <div class="fgrp"><label class="flbl">Contratista</label><div class="cwrap"><input class="cinp" type="text" id="${pfx}-fr-con" placeholder="Seleccionar..." readonly onclick="openDD('${pfx}-fr-con-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="${pfx}-fr-con-dd"></div></div></div>
+  </div>
+  <hr class="divider" style="margin:18px 0">
+  <div style="font-size:11px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">CONTEO DE FRUTOS — 3 CARGADORES</div>
+  <p style="font-size:11px;color:var(--tm);margin-bottom:12px">Ingresa N° de dardos y N° de frutos contados en cada parte de la planta.</p>
+  ${PARTES.map(([pt,lbl])=>`<div class="rbox" style="margin-top:8px"><div class="rtitle">${lbl}</div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <div style="flex:1"><div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-bottom:4px">N° DE DARDOS</div><input class="rinp" type="number" id="${pfx}-fr-${pt}-d" min="0" placeholder="0" style="color:var(--ro);font-size:22px"></div>
+        <div style="flex:1"><div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-bottom:4px">N° DE FRUTOS</div><input class="rinp" type="number" id="${pfx}-fr-${pt}-f" min="0" placeholder="0" style="color:var(--ro);font-size:22px"></div>
+      </div>
+    </div>`).join('')}
+  <div class="fgrp full" style="margin-top:10px"><label class="flbl">Observaciones</label><input class="finp" type="text" id="${pfx}-fr-obs" placeholder="Observaciones..."></div>
+  <button class="sbtn-r" style="margin-top:16px" onclick="guardarFrutosCer('${pfx}','${esp}')"><i class="ti ti-device-floppy"></i>Guardar registro</button>`;
+  frDD(pfx);
+}
+function frDD(pfx){const dd={cnt:`${pfx}-fr-cnt-dd`,sup:`${pfx}-fr-sup-dd`,con:`${pfx}-fr-con-dd`};const fld={cnt:`${pfx}-fr-cnt`,sup:`${pfx}-fr-sup`,con:`${pfx}-fr-con`};const Lkey={cnt:'con',sup:'sup',con:'comp'};['cnt','sup','con'].forEach(t=>{const ddEl=document.getElementById(dd[t]);if(!ddEl)return;const arr=(L[pfx]&&L[pfx][Lkey[t]])||[];ddEl.innerHTML=arr.map(n=>`<div class="copt" onclick="selDD('${fld[t]}','${dd[t]}','${n.replace(/'/g,"\\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="copt nuevo" onclick="clrDD('${fld[t]}','${dd[t]}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;});}
+async function guardarFrutosCer(pfx,esp){
+  const cua=document.getElementById(`${pfx}-fr-cua`).value;
+  const h=document.getElementById(`${pfx}-fr-hil`).value,p=document.getElementById(`${pfx}-fr-pla`).value;
+  const pod=document.getElementById(`${pfx}-fr-pod`).value,cnt=document.getElementById(`${pfx}-fr-cnt`).value;
+  const sup=document.getElementById(`${pfx}-fr-sup`).value,con=document.getElementById(`${pfx}-fr-con`).value;
+  const obs=document.getElementById(`${pfx}-fr-obs`).value;
+  const partes=['baja','media','alta'];
+  const vals=partes.map(pt=>({d:document.getElementById(`${pfx}-fr-${pt}-d`).value,f:document.getElementById(`${pfx}-fr-${pt}-f`).value}));
+  const faltaParte=vals.some(v=>v.d===''||v.f==='');
+  if(!h||!p||!pod||!cnt||!sup||!con||faltaParte){toast('⚠ Completa todos los campos','warn');return;}
+  const nums=vals.map(v=>({d:parseInt(v.d)||0,f:parseInt(v.f)||0}));
+  const saveBtn=document.querySelector(`#${pfx}-ing-frutos .sbtn-r`);
+  if(saveBtn){saveBtn.disabled=true;saveBtn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';}
+  sync(`sync-${pfx}`,'L','Guardando...');
+  const rec={timestamp:ts(),especie:esp,cuartel:cua,hilera:parseInt(h),planta:parseInt(p),podador:pod,contador:cnt,supervisor:sup,contratista:con,
+    dardos_baja:nums[0].d,frutos_baja:nums[0].f,dardos_media:nums[1].d,frutos_media:nums[1].f,dardos_alta:nums[2].d,frutos_alta:nums[2].f,
+    observaciones:obs||null};
+  const {error}=await db.from('conteos_frutos_cer').insert([rec]);
+  if(saveBtn){saveBtn.disabled=false;saveBtn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar registro';}
+  if(error){console.error('Error guardarFrutosCer',error);sync(`sync-${pfx}`,'E','Error');toast('⚠ Error: '+(error.message||error.hint||error.code||'al guardar'),'warn');return;}
+  sync(`sync-${pfx}`,'O','✓ Guardado');setTimeout(()=>sync(`sync-${pfx}`,'O','En línea'),2000);
+  toast('✓ Conteo de frutos guardado');
+  ['hil','pla','obs'].forEach(x=>document.getElementById(`${pfx}-fr-${x}`).value='');
+  partes.forEach(pt=>{document.getElementById(`${pfx}-fr-${pt}-d`).value='';document.getElementById(`${pfx}-fr-${pt}-f`).value='';});
+}
 function initRaleoIdx(){['nec','cer','cir','duz'].forEach(e=>{window[`r${e}Raleo`]=0;window[`r${e}CalRaleo`]=null;window[`r${e.charAt(0).toUpperCase()+e.slice(1)}Regs`]=[];const arr=e==='nec'?CNEC:e==='cer'?CCER:e==='cir'?CCIR:CDUZ;if(arr.length){const c=arr[0];const cv=document.getElementById(`r${e}-cval`);if(cv)cv.textContent=c.n+(c.v?' · '+c.v:'');const rh=document.getElementById(`r${e}-rhint`);if(e==='cer'){if(rh)rh.textContent='3 yemas florales + 1 vegetativa · meta 80% (mín. 75%)';}else{const rang=e==='nec'?RALEO_NEC[c.n]:e==='cir'?RALEO_CIR[c.n]:RALEO_DUZ[c.n];if(rh&&rang&&rang.ob)rh.textContent=`Rango: ${rang.mn} – ${rang.ob} – ${rang.mx} frutos`;}}});}
 
 function tabDuz(t){['ing','ram','cal','prod','cfg'].forEach((x,i)=>{const tab=document.querySelectorAll('.tab-duz')[i];const pan=document.getElementById('duz-'+x);if(x===t){tab.classList.add('active');pan.classList.add('active');}else{tab.classList.remove('active');pan.classList.remove('active');}});if(t==='ram'||t==='cal')loadDuz();if(t==='prod'){loadDuz().then(()=>rnDuzProd());}}
@@ -1588,7 +1642,7 @@ function closeAdm(e){if(['rnec','rcer','rcir','rduz'].includes(e)){raleoAdm[e]=f
 function toggleAdm(e){if(e==='nec'){if(nAdm)closeAdm('nec');else tabNec('cfg');}else if(e==='cer'){if(cAdm)closeAdm('cer');else tabCer('cfg');}else if(e==='duz'){if(duzAdm)closeAdm('duz');else tabDuz('cfg');}else{if(cirAdm)closeAdm('cir');else tabCir('cfg');}}
 function tvPass(e){const i=document.getElementById(e+'-pass'),ic=document.getElementById(e+'-eye');if(i.type==='password'){i.type='text';ic.className='ti ti-eye-off';}else{i.type='password';ic.className='ti ti-eye';}}
 function chgPass(e){const n=document.getElementById(e+'-pn').value.trim(),c=document.getElementById(e+'-pc').value.trim();if(!n||n.length<4){toast('Mínimo 4 caracteres','warn');return;}if(n!==c){toast('No coinciden','warn');return;}if(e==='nec')nPass=n;else if(e==='cer')cPass=n;else if(e==='duz')duzPass=n;else cirPass=n;document.getElementById(e+'-pn').value='';document.getElementById(e+'-pc').value='';toast('✓ Contraseña actualizada');}
-function rlists(e){const fldMap={nec:{con:'nec-cnt',sup:'nec-sup',comp:'nec-con'},cer:{con:'cer-cnt',sup:'cer-sup',comp:'cer-con'},cir:{con:'cir-cnt',sup:'cir-sup',comp:'cir-con'},duz:{con:'duz-cnt',sup:'duz-sup',comp:'duz-con'},rnec:{con:'rnec-cnt',sup:'rnec-sup',comp:'rnec-con'},rcer:{con:'rcer-cnt',sup:'rcer-sup',comp:'rcer-con'},rcir:{con:'rcir-cnt',sup:'rcir-sup',comp:'rcir-con'},rduz:{con:'rduz-cnt',sup:'rduz-sup',comp:'rduz-con'}};const saved={};['con','sup','comp'].forEach(t=>{const inp=document.getElementById(fldMap[e][t]);if(inp)saved[t]=inp.value;});['con','sup','comp'].forEach(t=>{const ul=document.getElementById(e+'-l'+t);if(ul)ul.innerHTML=L[e][t].map((n,i)=>`<div class="cfg-item"><span class="cfg-name">${n}</span><button class="cfg-del" onclick="delL('${e}','${t}',${i})"><i class="ti ti-x"></i></button></div>`).join('');rdd(e,t);});['con','sup','comp'].forEach(t=>{const inp=document.getElementById(fldMap[e][t]);if(inp&&saved[t])inp.value=saved[t];});if(typeof ccDD==='function'&&CC_TARGETS.some(x=>x.pfx===e))ccDD(e);}
+function rlists(e){const fldMap={nec:{con:'nec-cnt',sup:'nec-sup',comp:'nec-con'},cer:{con:'cer-cnt',sup:'cer-sup',comp:'cer-con'},cir:{con:'cir-cnt',sup:'cir-sup',comp:'cir-con'},duz:{con:'duz-cnt',sup:'duz-sup',comp:'duz-con'},rnec:{con:'rnec-cnt',sup:'rnec-sup',comp:'rnec-con'},rcer:{con:'rcer-cnt',sup:'rcer-sup',comp:'rcer-con'},rcir:{con:'rcir-cnt',sup:'rcir-sup',comp:'rcir-con'},rduz:{con:'rduz-cnt',sup:'rduz-sup',comp:'rduz-con'}};const saved={};['con','sup','comp'].forEach(t=>{const inp=document.getElementById(fldMap[e][t]);if(inp)saved[t]=inp.value;});['con','sup','comp'].forEach(t=>{const ul=document.getElementById(e+'-l'+t);if(ul)ul.innerHTML=L[e][t].map((n,i)=>`<div class="cfg-item"><span class="cfg-name">${n}</span><button class="cfg-del" onclick="delL('${e}','${t}',${i})"><i class="ti ti-x"></i></button></div>`).join('');rdd(e,t);});['con','sup','comp'].forEach(t=>{const inp=document.getElementById(fldMap[e][t]);if(inp&&saved[t])inp.value=saved[t];});if(typeof ccDD==='function'&&CC_TARGETS.some(x=>x.pfx===e))ccDD(e);if(typeof frDD==='function'&&FR_TARGETS.some(x=>x.pfx===e))frDD(e);}
 function rdd(e,t){const fldMap={nec:{con:'nec-cnt',sup:'nec-sup',comp:'nec-con'},cer:{con:'cer-cnt',sup:'cer-sup',comp:'cer-con'},cir:{con:'cir-cnt',sup:'cir-sup',comp:'cir-con'},duz:{con:'duz-cnt',sup:'duz-sup',comp:'duz-con'},rnec:{con:'rnec-cnt',sup:'rnec-sup',comp:'rnec-con'},rcer:{con:'rcer-cnt',sup:'rcer-sup',comp:'rcer-con'},rcir:{con:'rcir-cnt',sup:'rcir-sup',comp:'rcir-con'},rduz:{con:'rduz-cnt',sup:'rduz-sup',comp:'rduz-con'}};const ddMap={nec:{con:'nec-cnt-dd',sup:'nec-sup-dd',comp:'nec-con-dd'},cer:{con:'cer-cnt-dd',sup:'cer-sup-dd',comp:'cer-con-dd'},cir:{con:'cir-cnt-dd',sup:'cir-sup-dd',comp:'cir-con-dd'},duz:{con:'duz-cnt-dd',sup:'duz-sup-dd',comp:'duz-con-dd'},rnec:{con:'rnec-cnt-dd',sup:'rnec-sup-dd',comp:'rnec-con-dd'},rcer:{con:'rcer-cnt-dd',sup:'rcer-sup-dd',comp:'rcer-con-dd'},rcir:{con:'rcir-cnt-dd',sup:'rcir-sup-dd',comp:'rcir-con-dd'},rduz:{con:'rduz-cnt-dd',sup:'rduz-sup-dd',comp:'rduz-con-dd'}};const dd=document.getElementById(ddMap[e][t]);if(!dd)return;const fld=fldMap[e];dd.innerHTML=L[e][t].map(n=>`<div class="copt" onclick="selDD('${fld[t]}','${ddMap[e][t]}','${n.replace(/'/g,"\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="copt nuevo" onclick="clrDD('${fld[t]}','${ddMap[e][t]}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;}
 async function addL(e,t){
   const inp=document.getElementById(e+'-a'+t);
@@ -2185,7 +2239,7 @@ function rnRaleoProd(e){
   ${esNuevo?'<div style="text-align:center;font-size:11px;font-family:var(--mo);color:var(--tm);margin-top:-6px;margin-bottom:12px">*Cuartel sin dato 2025 — comparado contra la meta 2026</div>':''}`;
 }
 
-Promise.all([loadListas(),loadContadorPins()]).then(()=>checkRaleoIngLock());loadRevisiones();resetCar();loadRevisiones();initRaleoIdx();CC_TARGETS.forEach(t=>ccInit(t.pfx,t.esp,t.mod));
+Promise.all([loadListas(),loadContadorPins()]).then(()=>checkRaleoIngLock());loadRevisiones();resetCar();loadRevisiones();initRaleoIdx();CC_TARGETS.forEach(t=>ccInit(t.pfx,t.esp,t.mod));FR_TARGETS.forEach(t=>frInit(t.pfx,t.esp,t.mod));
 
 // ── AUTO-REFRESH cada 5 minutos ─────────────────────────────────────
 // Refresca los datos de la especie activa sin interrumpir al usuario
