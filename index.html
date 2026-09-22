@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.34.0 -->
+  <!-- v6.34.1 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1424,10 +1424,8 @@ function frInit(pfx,esp,mod){
     <div class="fgrp"><label class="flbl">Cuartel · Variedad</label><select class="finp" id="${pfx}-fr-cua">${arr.map(c=>`<option value="${c.n}">${c.n}${c.v?' · '+c.v:''}</option>`).join('')}</select></div>
     <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="${pfx}-fr-hil" min="1" placeholder="01"></div>
     <div class="fgrp"><label class="flbl">N° Planta</label><input class="finp" type="number" id="${pfx}-fr-pla" min="1" placeholder="01"></div>
-    <div class="fgrp"><label class="flbl">Podador</label><input class="finp" type="text" id="${pfx}-fr-pod" placeholder="Nombre"></div>
     <div class="fgrp"><label class="flbl">Contador</label><div class="cwrap"><input class="cinp" type="text" id="${pfx}-fr-cnt" placeholder="Seleccionar..." readonly onclick="openDD('${pfx}-fr-cnt-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="${pfx}-fr-cnt-dd"></div></div></div>
     <div class="fgrp"><label class="flbl">Supervisor</label><div class="cwrap"><input class="cinp" type="text" id="${pfx}-fr-sup" placeholder="Seleccionar..." readonly onclick="openDD('${pfx}-fr-sup-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="${pfx}-fr-sup-dd"></div></div></div>
-    <div class="fgrp"><label class="flbl">Contratista</label><div class="cwrap"><input class="cinp" type="text" id="${pfx}-fr-con" placeholder="Seleccionar..." readonly onclick="openDD('${pfx}-fr-con-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="${pfx}-fr-con-dd"></div></div></div>
   </div>
   <hr class="divider" style="margin:18px 0">
   <div style="font-size:11px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">CONTEO DE FRUTOS — 3 CARGADORES</div>
@@ -1446,18 +1444,18 @@ function frDD(pfx){const dd={cnt:`${pfx}-fr-cnt-dd`,sup:`${pfx}-fr-sup-dd`,con:`
 async function guardarFrutosCer(pfx,esp){
   const cua=document.getElementById(`${pfx}-fr-cua`).value;
   const h=document.getElementById(`${pfx}-fr-hil`).value,p=document.getElementById(`${pfx}-fr-pla`).value;
-  const pod=document.getElementById(`${pfx}-fr-pod`).value,cnt=document.getElementById(`${pfx}-fr-cnt`).value;
-  const sup=document.getElementById(`${pfx}-fr-sup`).value,con=document.getElementById(`${pfx}-fr-con`).value;
+  const cnt=document.getElementById(`${pfx}-fr-cnt`).value;
+  const sup=document.getElementById(`${pfx}-fr-sup`).value;
   const obs=document.getElementById(`${pfx}-fr-obs`).value;
   const partes=['baja','media','alta'];
   const vals=partes.map(pt=>({d:document.getElementById(`${pfx}-fr-${pt}-d`).value,f:document.getElementById(`${pfx}-fr-${pt}-f`).value}));
   const faltaParte=vals.some(v=>v.d===''||v.f==='');
-  if(!h||!p||!pod||!cnt||!sup||!con||faltaParte){toast('⚠ Completa todos los campos','warn');return;}
+  if(!h||!p||!cnt||!sup||faltaParte){toast('⚠ Completa todos los campos','warn');return;}
   const nums=vals.map(v=>({d:parseInt(v.d)||0,f:parseInt(v.f)||0}));
   const saveBtn=document.querySelector(`#${pfx}-ing-frutos .sbtn-r`);
   if(saveBtn){saveBtn.disabled=true;saveBtn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';}
   sync(`sync-${pfx}`,'L','Guardando...');
-  const rec={timestamp:ts(),especie:esp,cuartel:cua,hilera:parseInt(h),planta:parseInt(p),podador:pod,contador:cnt,supervisor:sup,contratista:con,
+  const rec={timestamp:ts(),especie:esp,cuartel:cua,hilera:parseInt(h),planta:parseInt(p),podador:null,contador:cnt,supervisor:sup,contratista:null,
     dardos_baja:nums[0].d,frutos_baja:nums[0].f,dardos_media:nums[1].d,frutos_media:nums[1].f,dardos_alta:nums[2].d,frutos_alta:nums[2].f,
     observaciones:obs||null};
   const {error}=await db.from('conteos_frutos_cer').insert([rec]);
