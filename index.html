@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.21.0 -->
+  <!-- v6.22.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1259,12 +1259,19 @@ function ccBarRow(label,pct,rango,last){const color=ccBarColor(pct,rango);const 
       <span style="font-size:13px;font-weight:700;color:${color};min-width:38px;text-align:right;flex-shrink:0">${pct!==null&&pct!==undefined?pct+'%':'—'}</span>
     </div>
   </div>`;}
-function ccInformeHTML(r){const CRIT=CC_CRITERIOS.raleo;const pctCol2=p=>(p===null||p===undefined||isNaN(p))?'var(--tm)':p<70?'#9C0006':p<85?'#633806':'#0E6655';const pautaRows=(r.pauta||[]).map(h=>{const bars=CRIT.map((c,ci)=>{const sc=h.scores?h.scores[ci]:0;const pct=sc>0?ccScorePct(sc):null;return ccBarRow(`<b>${ci+1}.</b> ${c.label}`,pct,c.rango,ci===CRIT.length-1);}).join('');return`<div style="background:#fafaf8;border-radius:8px;padding:10px;margin-top:8px"><div style="font-size:11px;font-weight:700;color:var(--tx);margin-bottom:8px">Hilera ${h.hilera||'—'} · ${h.plantas||'—'} plantas</div>${bars}</div>`;}).join('');const fotosHtml=(r.fotos||[]).length?`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px">${r.fotos.map(p=>`<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;border:2px solid ${p.tag==='ok'?'#639922':p.tag==='fix'?'#e24b4a':'var(--gb2)'}"><img src="${p.url}" style="width:100%;height:100%;object-fit:cover"></div>`).join('')}</div>`:'';const tsParts=(r.ts||'').split(' ');return`<div style="background:#fff;border:1px solid var(--gb2);border-radius:10px;padding:10px;margin-bottom:8px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+function ccInformeHTML(r){const CRIT=CC_CRITERIOS.raleo;const pctCol2=p=>(p===null||p===undefined||isNaN(p))?'var(--tm)':p<70?'#9C0006':p<85?'#633806':'#0E6655';const compParts=(r.comp||'').split(' - ');const compNombre=compParts[0]||r.comp||'—';const compRazon=compParts.length>1?compParts.slice(1).join(' - '):'—';const infoLine=(lbl,val)=>`<div style="font-size:11px;color:var(--tx);margin-bottom:3px"><b>${lbl}:</b> ${val||'—'}</div>`;const pautaRows=(r.pauta||[]).map(h=>{const critRows=CRIT.map((c,ci)=>{const sc=h.scores?h.scores[ci]:0;const pct=sc>0?ccScorePct(sc):null;const pcol=pctCol2(pct);return`<tr><td style="padding:5px 4px;font-size:11px;color:var(--tx);border-bottom:1px solid var(--gb2)">${ci+1}. ${c.label}</td><td style="padding:5px 4px;font-size:12px;font-weight:700;text-align:right;white-space:nowrap;color:${pcol};border-bottom:1px solid var(--gb2)">${pct!==null?pct+'%':'—'}</td></tr>`;}).join('');return`<div style="background:#fafaf8;border-radius:8px;padding:10px;margin-top:8px">
+      ${infoLine('N° Hilera revisada',h.hilera)}
+      ${infoLine('N° de plantas revisadas',h.plantas)}
+      <table style="width:100%;border-collapse:collapse;margin-top:6px">${critRows}</table>
+    </div>`;}).join('');const fotosHtml=(r.fotos||[]).length?`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px">${r.fotos.map(p=>`<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;border:2px solid ${p.tag==='ok'?'#639922':p.tag==='fix'?'#e24b4a':'var(--gb2)'}"><img src="${p.url}" style="width:100%;height:100%;object-fit:cover"></div>`).join('')}</div>`:'';const tsParts=(r.ts||'').split(' ');return`<div style="background:#fff;border:1px solid var(--gb2);border-radius:10px;padding:10px;margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <span style="font-size:11px;font-weight:700;color:var(--tx)">${fmtF(tsParts[0])} ${tsParts[1]||''}</span>
       <span style="font-size:11px;font-weight:700;color:${pctCol2(r.pct)}">${r.pct!==null&&r.pct!==undefined?r.pct+'%':'—'}</span>
     </div>
-    <div style="font-size:10px;color:var(--tm);font-family:var(--mo);margin-bottom:8px">Sup: ${r.sup||'—'} · Contador: ${r.cnt||'—'} · Contratista: ${r.comp||'—'}${r.h?' · Hilera '+r.h:''}${r.p?' · Planta '+r.p:''}</div>
+    ${infoLine('Supervisor',r.sup)}
+    ${infoLine('Contador',r.cnt)}
+    ${infoLine('Contratista',compNombre)}
+    ${infoLine('Razón Social',compRazon)}
     ${pautaRows}
     ${r.obsOk?`<div style="font-size:11px;color:var(--tx);margin-top:8px"><b>Bien ejecutado:</b> ${r.obsOk}</div>`:''}
     ${r.obsFix?`<div style="font-size:11px;color:var(--tx);margin-top:6px"><b>A corregir:</b> ${r.obsFix}</div>`:''}
