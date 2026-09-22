@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.35.1 -->
+  <!-- v6.38.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -810,8 +810,27 @@
     <div id="rcer-ing-frutos" style="display:none"></div>
     </div>
   </div>
-  <div class="panel" id="rcer-dat"><div class="tog-row"><button class="tog-btn tog-r" id="rcer-dhoy" onclick="viRaleoDat('cer','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button><button class="tog-btn" id="rcer-dacum" onclick="viRaleoDat('cer','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button></div><div id="rcer-ddat"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div></div>
-  <div class="panel" id="rcer-cal"><div class="tog-row"><button class="tog-btn tog-r" id="rcer-choy" onclick="viRaleoCalV('cer','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button><button class="tog-btn" id="rcer-cacum" onclick="viRaleoCalV('cer','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button></div><div id="rcer-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div></div>
+  <div class="panel" id="rcer-dat">
+    <div class="tog-row" style="margin-bottom:10px"><button class="tog-btn tog-r" id="rcer-dat-modo-yemas" onclick="cerDatModoToggle('yemas')"><i class="ti ti-clipboard-list" style="font-size:14px;margin-right:4px"></i>Raleo de Yemas</button><button class="tog-btn" id="rcer-dat-modo-frutos" onclick="cerDatModoToggle('frutos')"><i class="ti ti-apple" style="font-size:14px;margin-right:4px"></i>Conteo de Frutos</button></div>
+    <div id="rcer-dat-yemas">
+      <div class="tog-row"><button class="tog-btn tog-r" id="rcer-dhoy" onclick="viRaleoDat('cer','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button><button class="tog-btn" id="rcer-dacum" onclick="viRaleoDat('cer','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button></div>
+      <div id="rcer-ddat"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div>
+    </div>
+    <div id="rcer-dat-frutos" style="display:none">
+      <div class="tog-row"><button class="tog-btn tog-r" id="rcer-fdhoy" onclick="viFrutosDat('hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button><button class="tog-btn" id="rcer-fdacum" onclick="viFrutosDat('acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button></div>
+      <div id="rcer-fddat"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div>
+    </div>
+  </div>
+  <div class="panel" id="rcer-cal">
+    <div class="tog-row" style="margin-bottom:10px"><button class="tog-btn tog-r" id="rcer-cal-modo-yemas" onclick="cerCalModoToggle('yemas')"><i class="ti ti-clipboard-list" style="font-size:14px;margin-right:4px"></i>Raleo de Yemas</button><button class="tog-btn" id="rcer-cal-modo-frutos" onclick="cerCalModoToggle('frutos')"><i class="ti ti-apple" style="font-size:14px;margin-right:4px"></i>Conteo de Frutos</button></div>
+    <div id="rcer-cal-yemas">
+      <div class="tog-row"><button class="tog-btn tog-r" id="rcer-choy" onclick="viRaleoCalV('cer','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button><button class="tog-btn" id="rcer-cacum" onclick="viRaleoCalV('cer','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button></div>
+      <div id="rcer-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div>
+    </div>
+    <div id="rcer-cal-frutos" style="display:none">
+      <div class="empty"><i class="ti ti-info-circle"></i>No aplica en esta labor</div>
+    </div>
+  </div>
   <div class="panel" id="rcer-prod">
     <div class="tog-row">
       <button class="tog-btn tog-r" id="rcer-phoy" onclick="viRaleoProd('cer','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
@@ -1239,7 +1258,7 @@ let rnecVR='hoy',rcerVR='hoy',rcirVR='hoy',rduzVR='hoy';
 let rNecRegs=[],rCerRegs=[],rCirRegs=[],rDuzRegs=[];
 let rCerFrutosRegs=[];
 // ── RALEO FUNCIONES ──────────────────────────────────────────────────────
-function tabRaleo(e,t){const tabs=['ing','dat','cal','prod','cfg'];tabs.forEach((x,i)=>{const tab=document.querySelectorAll(`#view-raleo-${e} .tab-${e}`)[i];const pan=document.getElementById(`r${e}-${x}`);if(x===t){tab&&tab.classList.add('active');pan&&pan.classList.add('active');}else{tab&&tab.classList.remove('active');pan&&pan.classList.remove('active');}});if(t==='dat')loadRaleo(e);if(t==='cal'){loadRaleo(e);loadCCReg(e);}if(t==='prod'){if(e==='cer')loadFrutosCer().then(()=>rnRaleoProd('cer'));else loadRaleo(e).then(()=>rnRaleoProd(e));}}
+function tabRaleo(e,t){const tabs=['ing','dat','cal','prod','cfg'];tabs.forEach((x,i)=>{const tab=document.querySelectorAll(`#view-raleo-${e} .tab-${e}`)[i];const pan=document.getElementById(`r${e}-${x}`);if(x===t){tab&&tab.classList.add('active');pan&&pan.classList.add('active');}else{tab&&tab.classList.remove('active');pan&&pan.classList.remove('active');}});if(t==='dat'){loadRaleo(e);if(e==='cer')loadFrutosCer().then(()=>rnFrutosDat());}if(t==='cal'){loadRaleo(e);loadCCReg(e);}if(t==='prod'){if(e==='cer')loadFrutosCer().then(()=>rnRaleoProd('cer'));else loadRaleo(e).then(()=>rnRaleoProd(e));}}
 async function loadFrutosCer(){
   const {data,error}=await db.from('conteos_frutos_cer').select('*').order('id',{ascending:true}).limit(10000);
   if(error){rCerFrutosRegs=rCerFrutosRegs||[];return;}
@@ -1437,6 +1456,32 @@ function ccRemovePhoto(pfx,i){ccPhotos[pfx].splice(i,1);ccRenderPhotos(pfx);}
 function ccDD(pfx){const dd={cnt:`${pfx}-cc-cnt-dd`,sup:`${pfx}-cc-sup-dd`,con:`${pfx}-cc-con-dd`};const fld={cnt:`${pfx}-cc-cnt`,sup:`${pfx}-cc-sup`,con:`${pfx}-cc-con`};const Lkey={cnt:'con',sup:'sup',con:'comp'};['cnt','sup','con'].forEach(t=>{const ddEl=document.getElementById(dd[t]);if(!ddEl)return;const arr=(L[pfx]&&L[pfx][Lkey[t]])||[];ddEl.innerHTML=arr.map(n=>`<div class="copt" onclick="selDD('${fld[t]}','${dd[t]}','${n.replace(/'/g,"\\'")}')"><i class="ti ti-user" style="font-size:12px;margin-right:6px;opacity:.4"></i>${n}</div>`).join('')+`<div class="copt nuevo" onclick="clrDD('${fld[t]}','${dd[t]}')"><i class="ti ti-pencil" style="font-size:12px;margin-right:4px"></i>Escribir manualmente...</div>`;});}
 // ══════ CEREZO — RALEO DE YEMAS / CONTEO DE FRUTOS (toggle propio, sin Control de Calidad) ══════
 function cerModoToggle(mode){const cw=document.getElementById('rcer-ing-conteos'),fw=document.getElementById('rcer-ing-frutos');const bC=document.getElementById('rcer-selconteos'),bF=document.getElementById('rcer-selfrutos');if(!cw||!fw)return;if(mode==='frutos'){cw.style.display='none';fw.style.display='block';if(bC)bC.className='tog-btn';if(bF)bF.className='tog-btn tog-r';}else{cw.style.display='block';fw.style.display='none';if(bF)bF.className='tog-btn';if(bC)bC.className='tog-btn tog-r';}}
+function cerDatModoToggle(mode){const wY=document.getElementById('rcer-dat-yemas'),wF=document.getElementById('rcer-dat-frutos');const bY=document.getElementById('rcer-dat-modo-yemas'),bF=document.getElementById('rcer-dat-modo-frutos');if(!wY||!wF)return;if(mode==='frutos'){wY.style.display='none';wF.style.display='block';if(bY)bY.className='tog-btn';if(bF)bF.className='tog-btn tog-r';rnFrutosDat();}else{wY.style.display='block';wF.style.display='none';if(bF)bF.className='tog-btn';if(bY)bY.className='tog-btn tog-r';}}
+function cerCalModoToggle(mode){const wY=document.getElementById('rcer-cal-yemas'),wF=document.getElementById('rcer-cal-frutos');const bY=document.getElementById('rcer-cal-modo-yemas'),bF=document.getElementById('rcer-cal-modo-frutos');if(!wY||!wF)return;if(mode==='frutos'){wY.style.display='none';wF.style.display='block';if(bY)bY.className='tog-btn';if(bF)bF.className='tog-btn tog-r';}else{wY.style.display='block';wF.style.display='none';if(bF)bF.className='tog-btn';if(bY)bY.className='tog-btn tog-r';}}
+let frutosDatV='acum';
+let frutosDatExpand=null;
+function viFrutosDat(v){frutosDatV=v;const bH=document.getElementById('rcer-fdhoy'),bA=document.getElementById('rcer-fdacum');if(bH)bH.className='tog-btn'+(v==='hoy'?' tog-r':'');if(bA)bA.className='tog-btn'+(v==='acum'?' tog-r':'');rnFrutosDat();}
+function toggleFrutosDat(c){frutosDatExpand=(frutosDatExpand===c)?null:c;rnFrutosDat();}
+function rnFrutosDat(){
+  const el=document.getElementById('rcer-fddat');if(!el)return;
+  const allRegs=rCerFrutosRegs||[];
+  const regs=frutosDatV==='hoy'?allRegs.filter(r=>r.ts&&r.ts.includes(hoy())):allRegs;
+  if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-leaf"></i>'+(frutosDatV==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros aún')+'</div>';return;}
+  const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0,list:[]};const m=map[r.c];m.sDar+=r.dar;m.sFrDar+=r.frdar;m.sRam+=r.ram;m.sFrRam+=r.frram;m.n++;m.list.push(r);});
+  const rows=Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([c,m])=>{
+    const fxd=m.sDar?(m.sFrDar/m.sDar).toFixed(2):'-';
+    const fxr=m.sRam?(m.sFrRam/m.sRam).toFixed(2):'-';
+    const exp=frutosDatExpand===c;
+    const detRows=[...m.list].sort((a,b)=>(b.ts||'').localeCompare(a.ts||'')).map(r=>{
+      const rfxd=r.dar?(r.frdar/r.dar).toFixed(2):'-';
+      const rfxr=r.ram?(r.frram/r.ram).toFixed(2):'-';
+      return`<tr style="border-bottom:1px solid var(--gb2)"><td style="padding:6px 4px;font-weight:600">${r.cnt||'—'}</td><td style="padding:6px 4px;color:var(--tm)">${r.sup||'—'}</td><td style="padding:6px 4px;text-align:center">${r.dar}/${r.frdar}</td><td style="padding:6px 4px;text-align:center;font-weight:700">${rfxd}</td><td style="padding:6px 4px;text-align:center">${r.ram}/${r.frram}</td><td style="padding:6px 4px;text-align:center;font-weight:700">${rfxr}</td></tr>`;
+    }).join('');
+    const det=exp?`<tr><td colspan="4" style="background:#f7f7f5;padding:12px 8px;white-space:normal;width:1px"><table style="width:100%;border-collapse:collapse;font-family:var(--mo);font-size:11px"><thead><tr style="border-bottom:1px solid var(--gb2)"><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">CONTADOR</th><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">SUPERVISOR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">DAR/FR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/DAR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">RAM/FR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/RAM</th></tr></thead><tbody>${detRows}</tbody></table></td></tr>`:'';
+    return`<tr style="cursor:pointer" onclick="toggleFrutosDat('${c}')"><td style="color:var(--ro);font-weight:600">${exp?'▾':'▸'} ${c}</td><td style="text-align:center">${m.n}</td><td style="text-align:center;font-weight:700;color:var(--ro)">${fxd}</td><td style="text-align:center;font-weight:700;color:var(--ro)">${fxr}</td></tr>${det}`;
+  }).join('');
+  el.innerHTML=`<div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>Fr/Dardo</th><th>Fr/Ramilla</th></tr></thead><tbody>${rows}</tbody></table></div><div style="text-align:center;font-size:10px;color:var(--tm);font-family:var(--mo);margin-top:8px">Toca un cuartel para ver el detalle por conteo</div>`;
+}
 function frInit(pfx,esp,mod){
   const el=document.getElementById(`${pfx}-ing-frutos`);if(!el)return;
   const arr=ccCuartelArr(esp);
@@ -2207,11 +2252,12 @@ function viRaleoProd(e,v){
   rnRaleoProd(e);
 }
 function rnRaleoProd(e){
+  if(e==='cer'){rnRaleoProdCer();return;}
   const el=document.getElementById(`r${e}-dprod`);if(!el)return;
-  const prodTbl=e==='nec'?PROD_NEC:e==='cer'?PROD_CER:e==='cir'?PROD_CIR:PROD_DUZ;
+  const prodTbl=e==='nec'?PROD_NEC:e==='cir'?PROD_CIR:PROD_DUZ;
   const fld=RALEO_PROD_FIELDS[e];
   const st=RALEO_PROD_STYLE[e];
-  const allRegs=e==='cer'?(rCerFrutosRegs||[]):(window[`r${e.charAt(0).toUpperCase()+e.slice(1)}Regs`]||[]);
+  const allRegs=window[`r${e.charAt(0).toUpperCase()+e.slice(1)}Regs`]||[];
   const v=raleoVProd[e];
   const regs=v==='hoy'?allRegs.filter(r=>r.ts&&r.ts.includes(hoy())):allRegs;
   if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(v==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
@@ -2256,6 +2302,52 @@ function rnRaleoProd(e){
   </div>
   ${kg26blk}
   ${esNuevo?'<div style="text-align:center;font-size:11px;font-family:var(--mo);color:var(--tm);margin-top:-6px;margin-bottom:12px">*Cuartel sin dato 2025 — comparado contra la meta 2026</div>':''}`;
+}
+// ── CEREZO PRODUCCIÓN (RALEO) — usa Frutos/Dardo y Frutos/Ramilla reales del "Conteo de Frutos" ──
+function rnRaleoProdCer(){
+  const el=document.getElementById('rcer-dprod');if(!el)return;
+  const st=RALEO_PROD_STYLE.cer;
+  const v=raleoVProd.cer;
+  const allRegs=rCerFrutosRegs||[];
+  const regs=v==='hoy'?allRegs.filter(r=>r.ts&&r.ts.includes(hoy())):allRegs;
+  if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(v==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
+  const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0};const m=map[r.c];m.sDar+=r.dar;m.sFrDar+=r.frdar;m.sRam+=r.ram;m.sFrRam+=r.frram;m.n++;});
+  const stats={};Object.keys(map).forEach(c=>{const m=map[c];stats[c]={avgDar:m.n?m.sDar/m.n:null,avgRam:m.n?m.sRam/m.n:null,fxd:m.sDar?m.sFrDar/m.sDar:null,fxr:m.sRam?m.sFrRam/m.sRam:null,n:m.n};});
+  if(!raleoProdCuartel.cer||stats[raleoProdCuartel.cer]===undefined)raleoProdCuartel.cer=Object.keys(stats)[0];
+  const cSel=raleoProdCuartel.cer;
+  const rd=PROD_CER.find(r=>r[0]===cSel)||PROD_CER[0];
+  const c=rd[0],vr=rd[1],ha=rd[2],kgHa25=rd[3],kgTot25=rd[4],kgHaMeta=rd[5],kgTotMeta=rd[6],pFruto=rd[8],pHa=rd[9],dar25=rd[10],fDar25=rd[11],ram25=rd[15],fxr25=rd[16],cargElim25=rd[17],pFruto25=rd[18];
+  const s=stats[c]||{avgDar:null,avgRam:null,fxd:null,fxr:null,n:0};
+  const totCq=s.n;
+  const avgDarTxt=s.avgDar!==null?s.avgDar.toFixed(1):'-';
+  const avgRamTxt=s.avgRam!==null?s.avgRam.toFixed(1):'-';
+  let pctDif='-',pctColor='inherit',pctIcon='';
+  if(dar25&&s.avgDar!==null){const diffVal=(s.avgDar/dar25*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
+  const opts=PROD_CER.filter(r=>stats[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cSel?' selected':''}>${r[0]}${r[1]?' · '+r[1]:''}</option>`).join('');
+  const noDatoBlk=(titulo)=>`<div style="background:#fff;border:2px solid ${st.border};border-radius:10px;padding:12px 14px;margin-bottom:14px"><div style="font-size:10px;font-family:var(--mo);color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;font-weight:600">📊 ${titulo}</div><div style="font-size:12px;font-family:var(--mo);color:var(--tm);padding:8px 0">Sin conteos de este tipo para este cuartel</div></div>`;
+  const kgDarBlk=(s.fxd!==null&&dar25)?kgEstBlock(dar25,s.fxd,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,`${c} — vía Dardo`,st.border):noDatoBlk(`Estimación de Kilos (vía Dardo) — ${c}`);
+  const kgRamBlk=(s.fxr!==null&&ram25)?kgEstBlock(ram25,s.fxr,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,`${c} — vía Ramilla`,st.border):noDatoBlk(`Estimación de Kilos (vía Ramilla) — ${c}`);
+  el.innerHTML=`<button class="ref-btn ${st.refCls}" onclick="loadFrutosCer().then(()=>rnRaleoProdCer())"><i class="ti ti-refresh"></i>Actualizar</button>
+  ${v==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
+  ${selectorDropdown(opts,`raleoProdCuartel.cer=this.value;rnRaleoProdCer()`,st.border,st.text)}
+  <div class="stats2">
+    <div class="scard" style="grid-column:1/-1"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}${vr?' · '+vr:''}</div></div>
+    <div class="scard"><div class="slbl">Dardos 2025</div><div class="sval" style="color:#555">${dar25??'—'}</div><div class="ssub">año anterior</div></div>
+    <div class="scard"><div class="slbl">Prom. dardos 2026</div><div class="sval" style="color:${st.text}">${avgDarTxt}</div><div class="ssub">promedio real · ${v==='hoy'?'hoy':'acumulado'}</div></div>
+    <div class="scard" style="grid-column:1/-1"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
+    <div class="scard"><div class="slbl">Frutos/Dardo 2025</div><div class="sval" style="color:#555">${fDar25??'—'}</div><div class="ssub">real año anterior</div></div>
+    <div class="scard"><div class="slbl">Frutos/Dardo 2026</div><div class="sval" style="color:${st.text}">${s.fxd!==null?s.fxd.toFixed(1):'-'}</div><div class="ssub">real · ${v==='hoy'?'hoy':'acumulado'}</div></div>
+    <div class="scard"><div class="slbl">Ramillas/Planta 2025</div><div class="sval" style="color:#555">${ram25??'—'}</div><div class="ssub">real año anterior</div></div>
+    <div class="scard"><div class="slbl">Ramillas/Planta 2026</div><div class="sval" style="color:${st.text}">${avgRamTxt}</div><div class="ssub">promedio real · ${v==='hoy'?'hoy':'acumulado'}</div></div>
+    <div class="scard"><div class="slbl">Frutos/Ramilla 2025</div><div class="sval" style="color:#555">${fxr25??'—'}</div><div class="ssub">real año anterior</div></div>
+    <div class="scard"><div class="slbl">Frutos/Ramilla 2026</div><div class="sval" style="color:${st.text}">${s.fxr!==null?s.fxr.toFixed(1):'-'}</div><div class="ssub">real · ${v==='hoy'?'hoy':'acumulado'}</div></div>
+    <div class="scard"><div class="slbl">Carg. eliminados 2025</div><div class="sval" style="color:#555">${cargElim25??'—'}</div><div class="ssub">real año anterior</div></div>
+    <div class="scard"><div class="slbl">Carg. eliminados 2026</div><div class="sval" style="color:var(--tm)">—</div><div class="ssub">no se registra en Raleo</div></div>
+    <div class="scard"><div class="slbl">Calibre 2025</div><div class="sval" style="color:#555">${pFruto25??'—'}</div><div class="ssub">peso fruto (grs) real</div></div>
+    <div class="scard"><div class="slbl">Calibre Meta 2026</div><div class="sval" style="color:${st.text}">${pFruto}</div><div class="ssub">peso fruto (grs) esperado</div></div>
+  </div>
+  ${kgDarBlk}
+  ${kgRamBlk}`;
 }
 
 Promise.all([loadListas(),loadContadorPins()]).then(()=>checkRaleoIngLock());loadRevisiones();resetCar();loadRevisiones();initRaleoIdx();CC_TARGETS.forEach(t=>ccInit(t.pfx,t.esp,t.mod));FR_TARGETS.forEach(t=>frInit(t.pfx,t.esp,t.mod));
