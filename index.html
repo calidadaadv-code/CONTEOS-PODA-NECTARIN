@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.19.0 -->
+  <!-- v6.21.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1296,15 +1296,10 @@ function ccInit(pfx,esp,mod){
   const arr=ccCuartelArr(esp);
   el.innerHTML=`<div class="form-body">
     <div class="fgrp"><label class="flbl">Cuartel</label><select class="finp" id="${pfx}-cc-cua">${arr.map(c=>`<option value="${c.n}">${c.n}${c.v?' · '+c.v:''}</option>`).join('')}</select></div>
-    <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="${pfx}-cc-hil" min="1" placeholder="01"></div>
-    <div class="fgrp"><label class="flbl">N° Planta</label><input class="finp" type="number" id="${pfx}-cc-pla" min="1" placeholder="01"></div>
     <div class="fgrp"><label class="flbl">Supervisor</label><div class="cwrap"><input class="cinp" type="text" id="${pfx}-cc-sup" placeholder="Seleccionar..." readonly onclick="openDD('${pfx}-cc-sup-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="${pfx}-cc-sup-dd"></div></div></div>
     <div class="fgrp"><label class="flbl">Contador</label><div class="cwrap"><input class="cinp" type="text" id="${pfx}-cc-cnt" placeholder="Seleccionar..." readonly onclick="openDD('${pfx}-cc-cnt-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="${pfx}-cc-cnt-dd"></div></div></div>
     <div class="fgrp"><label class="flbl">Contratista</label><div class="cwrap"><input class="cinp" type="text" id="${pfx}-cc-con" placeholder="Seleccionar..." readonly onclick="openDD('${pfx}-cc-con-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="${pfx}-cc-con-dd"></div></div></div>
   </div>
-  <div class="rbox"><div class="rtitle">N° de Ramilla</div><input class="rinp" type="number" id="${pfx}-cc-nram" min="0" placeholder="0"></div>
-  <div class="rbox" style="margin-top:8px"><div class="rtitle">Conteo</div><input class="rinp" type="number" id="${pfx}-cc-conteo" min="0" placeholder="0"></div>
-  <div class="rbox" style="margin-top:8px"><div class="rtitle">Contramuestra</div><input class="rinp" type="number" id="${pfx}-cc-contram" min="0" placeholder="0"><div class="rhint">Reconteo de verificación</div></div>
   <hr class="divider" style="margin:18px 0">
   <div style="font-size:11px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">PAUTA DE CUMPLIMIENTO — ESCALA 1-5</div>
   <p style="font-size:11px;color:var(--tm);margin-bottom:12px">Ingresa una fila por hilera evaluada (1=muy malo, 5=excelente).</p>
@@ -1354,14 +1349,9 @@ function ccRenderTabla(pfx){const st=ccState[pfx];if(!st)return;const CRIT=CC_CR
 async function guardarCC(pfx,esp,mod){
   const st=ccState[pfx];
   const cua=document.getElementById(`${pfx}-cc-cua`).value;
-  const hil=document.getElementById(`${pfx}-cc-hil`).value;
-  const pla=document.getElementById(`${pfx}-cc-pla`).value;
   const sup=document.getElementById(`${pfx}-cc-sup`).value;
   const cnt=document.getElementById(`${pfx}-cc-cnt`).value;
   const con=document.getElementById(`${pfx}-cc-con`).value;
-  const nram=document.getElementById(`${pfx}-cc-nram`).value;
-  const conteo=document.getElementById(`${pfx}-cc-conteo`).value;
-  const contram=document.getElementById(`${pfx}-cc-contram`).value;
   const obsok=document.getElementById(`${pfx}-cc-obsok`).value;
   const obsfix=document.getElementById(`${pfx}-cc-obsfix`).value;
   const obsextra=document.getElementById(`${pfx}-cc-obsextra`).value;
@@ -1373,15 +1363,10 @@ async function guardarCC(pfx,esp,mod){
   hileraConDatos.forEach(h=>{CRIT.forEach((c,ci)=>{const sc=h.scores[ci]||0;if(sc>0){sumPct+=ccScorePct(sc);cntPct++;}});});
   const pctFinal=cntPct?Math.round(sumPct/cntPct):null;
   const fotos=(ccPhotos[pfx]||[]).map(p=>({url:p.url,tag:p.tag||null}));
-  const rec={timestamp:ts(),modulo:mod,especie:esp,cuartel:cua,hilera:hil||null,planta:pla||null,supervisor:sup,contador:cnt,contratista:con||null,n_ramilla:nram||null,conteo:conteo?parseFloat(conteo):null,contramuestra:contram?parseFloat(contram):null,pauta:hileraConDatos,pct_pauta:pctFinal,obs_ok:obsok||null,obs_fix:obsfix||null,obs_extra:obsextra||null,fotos:fotos.length?fotos:null};
+  const rec={timestamp:ts(),modulo:mod,especie:esp,cuartel:cua,hilera:null,planta:null,supervisor:sup,contador:cnt,contratista:con||null,n_ramilla:null,conteo:null,contramuestra:null,pauta:hileraConDatos,pct_pauta:pctFinal,obs_ok:obsok||null,obs_fix:obsfix||null,obs_extra:obsextra||null,fotos:fotos.length?fotos:null};
   const {error}=await db.from('control_calidad').insert([rec]);
   if(error){toast('⚠ '+(error.message||error.hint||error.code||'Error al guardar'),'warn');return;}
   toast('✓ Control de calidad guardado');
-  document.getElementById(`${pfx}-cc-hil`).value='';
-  document.getElementById(`${pfx}-cc-pla`).value='';
-  document.getElementById(`${pfx}-cc-nram`).value='';
-  document.getElementById(`${pfx}-cc-conteo`).value='';
-  document.getElementById(`${pfx}-cc-contram`).value='';
   document.getElementById(`${pfx}-cc-obsok`).value='';
   document.getElementById(`${pfx}-cc-obsfix`).value='';
   document.getElementById(`${pfx}-cc-obsextra`).value='';
