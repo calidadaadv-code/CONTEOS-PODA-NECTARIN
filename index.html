@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.33.0 -->
+  <!-- v6.34.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -768,7 +768,7 @@
       <button class="lock-btn-g" onclick="chkRaleoIngPin('cer')">Ingresar</button>
     </div>
     <div id="rcer-ing-body" style="display:none">
-    <div class="tog-row" style="margin-bottom:14px"><button class="tog-btn tog-r" id="rcer-selconteos" onclick="ccToggle('rcer','conteos')"><i class="ti ti-clipboard-list" style="font-size:14px;margin-right:4px"></i>Conteos</button><button class="tog-btn" id="rcer-selcc" onclick="ccToggle('rcer','cc')"><i class="ti ti-checkbox" style="font-size:14px;margin-right:4px"></i>Control de Calidad</button></div>
+    <div class="tog-row" style="margin-bottom:14px"><button class="tog-btn tog-r" id="rcer-selconteos" onclick="cerModoToggle('conteos')"><i class="ti ti-clipboard-list" style="font-size:14px;margin-right:4px"></i>Raleo de Yemas</button><button class="tog-btn" id="rcer-selfrutos" onclick="cerModoToggle('frutos')"><i class="ti ti-apple" style="font-size:14px;margin-right:4px"></i>Conteo de Frutos</button></div>
     <div id="rcer-ing-conteos">
     <div class="csel-g" style="--co:var(--rd);--cd:var(--ro);--cc:#fdf0f0"><div><div class="clbl-g" style="color:var(--rd)">Cuartel · Variedad</div><div class="cval-g" style="color:var(--rd)" id="rcer-cval">C-6</div></div><div class="cnav"><button class="nbtn-g" style="background:var(--ro)" onclick="cRaleo('cer',-1)">‹</button><button class="nbtn-g" style="background:var(--ro)" onclick="cRaleo('cer',1)">›</button></div></div>
     <div class="form-body">
@@ -806,7 +806,7 @@
     <button class="sbtn-r" id="rcer-sub" onclick="guardarRaleoCer()"><i class="ti ti-device-floppy"></i>Guardar registro</button>
     <div style="text-align:center;padding:10px 0 2px"><a href="javascript:void(0)" onclick="logoutRaleoIng()" style="font-size:11px;font-family:var(--mo);color:var(--tm);text-decoration:underline">Cambiar de contador</a></div>
     </div>
-    <div id="rcer-ing-cc" style="display:none"></div>
+    <div id="rcer-ing-frutos" style="display:none"></div>
     </div>
   </div>
   <div class="panel" id="rcer-dat"><div class="tog-row"><button class="tog-btn tog-r" id="rcer-dhoy" onclick="viRaleoDat('cer','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button><button class="tog-btn" id="rcer-dacum" onclick="viRaleoDat('cer','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button></div><div id="rcer-ddat"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div></div>
@@ -1305,7 +1305,8 @@ const CC_CRITERIOS={
     {label:'Se respeta cantidad de frutos por medida de ramilla',rango:85},
   ]
 };
-const CC_TARGETS=[{pfx:'rnec',esp:'nec',mod:'raleo'},{pfx:'rcer',esp:'cer',mod:'raleo'},{pfx:'rcir',esp:'cir',mod:'raleo'},{pfx:'rduz',esp:'duz',mod:'raleo'}];
+const CC_TARGETS=[{pfx:'rnec',esp:'nec',mod:'raleo'},{pfx:'rcir',esp:'cir',mod:'raleo'},{pfx:'rduz',esp:'duz',mod:'raleo'}];
+const FR_TARGETS=[{pfx:'rcer',esp:'cer',mod:'raleo'}];
 const CC_TOG={rnec:'tog-g',rcer:'tog-r',rcir:'tog-p',rduz:'tog-d'};
 let ccState={};
 let ccPhotos={};
