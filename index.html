@@ -1244,11 +1244,12 @@ async function loadFrutosCer(){
   const {data,error}=await db.from('conteos_frutos_cer').select('*').order('id',{ascending:true}).limit(10000);
   if(error){rCerFrutosRegs=rCerFrutosRegs||[];return;}
   rCerFrutosRegs=(data||[]).map(r=>{
-    const db_=parseInt(r.dardos_baja)||0,fb=parseInt(r.frutos_baja)||0;
-    const dm=parseInt(r.dardos_media)||0,fm=parseInt(r.frutos_media)||0;
-    const da=parseInt(r.dardos_alta)||0,fa=parseInt(r.frutos_alta)||0;
+    const dar=parseInt(r.dardos)||0,frdar=parseInt(r.frutos_dardo)||0;
+    const ram=parseInt(r.ramillas)||0,frram=parseInt(r.frutos_ramilla)||0;
     return{id:r.id,c:String(r.cuartel),h:r.hilera,p:r.planta,cnt:r.contador,sup:r.supervisor,
-      db:db_,fb,dm,fm,da,fa,dar:db_+dm+da,fru:fb+fm+fa,obs:r.observaciones||'',ts:r.timestamp};
+      dar,frdar,ram,frram,
+      fxd:dar?frdar/dar:null,fxr:ram?frram/ram:null,
+      obs:r.observaciones||'',ts:r.timestamp};
   });
 }
 function cRaleo(e,d){const arr=e==='nec'?CNEC:e==='cer'?CCER:e==='cir'?CCIR:CDUZ;if(!arr.length)return;const cur=window[`r${e}Raleo`]||0;const nxt=Math.max(0,Math.min(arr.length-1,cur+d));window[`r${e}Raleo`]=nxt;const c=arr[nxt];document.getElementById(`r${e}-cval`).textContent=c.n+(c.v?' · '+c.v:'');const rhint=document.getElementById(`r${e}-rhint`);if(e==='cer'){if(rhint)rhint.textContent='3 yemas florales + 1 vegetativa · meta 80% (mín. 75%)';}else{const rang=e==='nec'?RALEO_NEC[c.n]:e==='cir'?RALEO_CIR[c.n]:RALEO_DUZ[c.n];if(rhint&&rang&&rang.ob)rhint.textContent=`Rango: ${rang.mn} – ${rang.ob} – ${rang.mx} frutos`;}}
@@ -1439,7 +1440,6 @@ function cerModoToggle(mode){const cw=document.getElementById('rcer-ing-conteos'
 function frInit(pfx,esp,mod){
   const el=document.getElementById(`${pfx}-ing-frutos`);if(!el)return;
   const arr=ccCuartelArr(esp);
-  const PARTES=[['baja','Parte Baja'],['media','Parte Media'],['alta','Parte Alta']];
   el.innerHTML=`<div class="form-body">
     <div class="fgrp"><label class="flbl">Cuartel · Variedad</label><select class="finp" id="${pfx}-fr-cua">${arr.map(c=>`<option value="${c.n}">${c.n}${c.v?' · '+c.v:''}</option>`).join('')}</select></div>
     <div class="fgrp"><label class="flbl">N° Hilera</label><input class="finp" type="number" id="${pfx}-fr-hil" min="1" placeholder="01"></div>
@@ -1448,14 +1448,19 @@ function frInit(pfx,esp,mod){
     <div class="fgrp"><label class="flbl">Supervisor</label><div class="cwrap"><input class="cinp" type="text" id="${pfx}-fr-sup" placeholder="Seleccionar..." readonly onclick="openDD('${pfx}-fr-sup-dd')"><i class="ti ti-chevron-down carr"></i><div class="cdd" id="${pfx}-fr-sup-dd"></div></div></div>
   </div>
   <hr class="divider" style="margin:18px 0">
-  <div style="font-size:11px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">CONTEO DE FRUTOS — 3 CARGADORES</div>
-  <p style="font-size:11px;color:var(--tm);margin-bottom:12px">Ingresa N° de dardos y N° de frutos contados en cada parte de la planta.</p>
-  ${PARTES.map(([pt,lbl])=>`<div class="rbox" style="margin-top:8px"><div class="rtitle">${lbl}</div>
-      <div style="display:flex;gap:8px;margin-top:4px">
-        <div style="flex:1"><div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-bottom:4px">N° DE DARDOS</div><input class="rinp" type="number" id="${pfx}-fr-${pt}-d" min="0" placeholder="0" style="color:var(--ro);font-size:22px"></div>
-        <div style="flex:1"><div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-bottom:4px">N° DE FRUTOS</div><input class="rinp" type="number" id="${pfx}-fr-${pt}-f" min="0" placeholder="0" style="color:var(--ro);font-size:22px"></div>
-      </div>
-    </div>`).join('')}
+  <div style="font-size:11px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">CONTEO DE FRUTOS</div>
+  <div class="rbox" style="margin-top:8px"><div class="rtitle">Dardo</div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <div style="flex:1"><div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-bottom:4px">N° DE DARDOS</div><input class="rinp" type="number" id="${pfx}-fr-dar" min="0" placeholder="0" style="color:var(--ro);font-size:22px"></div>
+      <div style="flex:1"><div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-bottom:4px">N° DE FRUTOS</div><input class="rinp" type="number" id="${pfx}-fr-frdar" min="0" placeholder="0" style="color:var(--ro);font-size:22px"></div>
+    </div>
+  </div>
+  <div class="rbox" style="margin-top:8px"><div class="rtitle">Ramilla</div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <div style="flex:1"><div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-bottom:4px">N° DE RAMILLAS</div><input class="rinp" type="number" id="${pfx}-fr-ram" min="0" placeholder="0" style="color:var(--ro);font-size:22px"></div>
+      <div style="flex:1"><div style="font-size:10px;font-family:var(--mo);color:var(--tm);margin-bottom:4px">N° DE FRUTOS</div><input class="rinp" type="number" id="${pfx}-fr-frram" min="0" placeholder="0" style="color:var(--ro);font-size:22px"></div>
+    </div>
+  </div>
   <div class="fgrp full" style="margin-top:10px"><label class="flbl">Observaciones</label><input class="finp" type="text" id="${pfx}-fr-obs" placeholder="Observaciones..."></div>
   <button class="sbtn-r" style="margin-top:16px" onclick="guardarFrutosCer('${pfx}','${esp}')"><i class="ti ti-device-floppy"></i>Guardar registro</button>`;
   frDD(pfx);
@@ -1467,24 +1472,21 @@ async function guardarFrutosCer(pfx,esp){
   const cnt=document.getElementById(`${pfx}-fr-cnt`).value;
   const sup=document.getElementById(`${pfx}-fr-sup`).value;
   const obs=document.getElementById(`${pfx}-fr-obs`).value;
-  const partes=['baja','media','alta'];
-  const vals=partes.map(pt=>({d:document.getElementById(`${pfx}-fr-${pt}-d`).value,f:document.getElementById(`${pfx}-fr-${pt}-f`).value}));
-  const faltaParte=vals.some(v=>v.d===''||v.f==='');
-  if(!h||!p||!cnt||!sup||faltaParte){toast('⚠ Completa todos los campos','warn');return;}
-  const nums=vals.map(v=>({d:parseInt(v.d)||0,f:parseInt(v.f)||0}));
+  const dar=document.getElementById(`${pfx}-fr-dar`).value,frdar=document.getElementById(`${pfx}-fr-frdar`).value;
+  const ram=document.getElementById(`${pfx}-fr-ram`).value,frram=document.getElementById(`${pfx}-fr-frram`).value;
+  if(!h||!p||!cnt||!sup||dar===''||frdar===''||ram===''||frram===''){toast('⚠ Completa todos los campos','warn');return;}
   const saveBtn=document.querySelector(`#${pfx}-ing-frutos .sbtn-r`);
   if(saveBtn){saveBtn.disabled=true;saveBtn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';}
   sync(`sync-${pfx}`,'L','Guardando...');
   const rec={timestamp:ts(),especie:esp,cuartel:cua,hilera:parseInt(h),planta:parseInt(p),podador:null,contador:cnt,supervisor:sup,contratista:null,
-    dardos_baja:nums[0].d,frutos_baja:nums[0].f,dardos_media:nums[1].d,frutos_media:nums[1].f,dardos_alta:nums[2].d,frutos_alta:nums[2].f,
+    dardos:parseInt(dar)||0,frutos_dardo:parseInt(frdar)||0,ramillas:parseInt(ram)||0,frutos_ramilla:parseInt(frram)||0,
     observaciones:obs||null};
   const {error}=await db.from('conteos_frutos_cer').insert([rec]);
   if(saveBtn){saveBtn.disabled=false;saveBtn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar registro';}
   if(error){console.error('Error guardarFrutosCer',error);sync(`sync-${pfx}`,'E','Error');toast('⚠ Error: '+(error.message||error.hint||error.code||'al guardar'),'warn');return;}
   sync(`sync-${pfx}`,'O','✓ Guardado');setTimeout(()=>sync(`sync-${pfx}`,'O','En línea'),2000);
   toast('✓ Conteo de frutos guardado');
-  ['hil','pla','obs'].forEach(x=>document.getElementById(`${pfx}-fr-${x}`).value='');
-  partes.forEach(pt=>{document.getElementById(`${pfx}-fr-${pt}-d`).value='';document.getElementById(`${pfx}-fr-${pt}-f`).value='';});
+  ['hil','pla','obs','dar','frdar','ram','frram'].forEach(x=>document.getElementById(`${pfx}-fr-${x}`).value='');
 }
 function initRaleoIdx(){['nec','cer','cir','duz'].forEach(e=>{window[`r${e}Raleo`]=0;window[`r${e}CalRaleo`]=null;window[`r${e.charAt(0).toUpperCase()+e.slice(1)}Regs`]=[];const arr=e==='nec'?CNEC:e==='cer'?CCER:e==='cir'?CCIR:CDUZ;if(arr.length){const c=arr[0];const cv=document.getElementById(`r${e}-cval`);if(cv)cv.textContent=c.n+(c.v?' · '+c.v:'');const rh=document.getElementById(`r${e}-rhint`);if(e==='cer'){if(rh)rh.textContent='3 yemas florales + 1 vegetativa · meta 80% (mín. 75%)';}else{const rang=e==='nec'?RALEO_NEC[c.n]:e==='cir'?RALEO_CIR[c.n]:RALEO_DUZ[c.n];if(rh&&rang&&rang.ob)rh.textContent=`Rango: ${rang.mn} – ${rang.ob} – ${rang.mx} frutos`;}}});}
 
@@ -1911,25 +1913,24 @@ const PROD_NEC=[
   ['C-7B','Gartairo',   10.2913, 29304, 301580, 30000, 2.0, 160.00,1754, 56, 1.75, 65, 33677, 346580, 60, 2.0, 47, 50],
 ];
 // CER: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, kg_tot_meta26, frutos_dardo, peso_fruto_grs, plantas_ha]
-// kgHaMeta/kgTotMeta actualizados según "Estimación Post Poda 2026-2027" (kilos exportables/ha y kilos exportables) — planilla del usuario, sep-2026.
 const PROD_CER=[
   // [c, v, ha, kgHa25, kgTot25, kgHaMeta, kgTotMeta, fDar26, pFruto26grs, pHa, dar25, fDar25, kgHa_pp, kgTot_pp, dar_pp, ram25, fxr25, cargElim25, pFruto25]
-  ['C-6', 'Lapins',  7.0513, 19342, 136359, 18066, 127392, 5.0,11.7,1316, 271, 4.2,     0,      0,   0, 12, 9.5, 6, 12.0],
-  ['C-10','Lapins', 13.9832, 14953, 209049, 16884, 236090, 5.0,11.7,1429, 235, 4.0,     0,      0,   0, 2,  7.6, 8, 12.1],
-  ['C-15','Lapins',  5.0996, 27815, 141855, 17320,  88325, 5.0,11.7,1316, 278, 6.0,     0,      0,   0, 10, 7.6, 6, 12.0],
-  ['C-17','Lapins',  2.5179, 15636,  39402, 21310,  53655, 5.0,11.7,1316, 265, 4.9,     0,      0,   0, 7,  11.0,10,11.7],
-  ['C-18','Lapins',  5.6552, 13572,  80346, 18284, 103402, 5.0,11.7,1316, 258, 4.0,     0,      0,   0, 8,  6.9, 7, 12.1],
-  ['C-19','Lapins',  8.2361, 19547, 161069, 17601, 144963, 5.0,11.7,1316, 298, 5.4,     0,      0,   0, 11, 6.8, 8, 11.5],
-  ['C-22','Lapins', 13.7659, 13944, 191175, 17092, 235288, 5.0,11.7,1316, 261, 5.9,     0,      0,   0, 3,  8.2, 6, 11.2],
-  ['C-24','Lapins',  6.9244, 17420, 120547, 16144, 111784, 5.0,11.7,1316, 248, 5.0,     0,      0,   0, 3,  7.3, 7, 11.3],
-  ['C-11','Santina', 9.6075, 16605, 159571, 13669, 131322, 4.0,10.9,1429, 288, 4.8,     0,      0,   0, 14, 8.1, 8, 11.1],
-  ['C-12','Santina', 8.7210, 16543, 144254, 11978, 104461, 4.0,10.9,1316, 289, 4.7,     0,      0,   0, 13, 7.4, 9, 11.3],
-  ['C-20','Santina', 9.6816, 19308, 186901, 14924, 144488, 4.0,10.9,1316, 290, 5.5,     0,      0,   0, 17, 9.6, 4, 10.7],
-  ['C-21','Santina',11.6151, 16715, 194563, 11817, 137258, 4.0,10.9,1316, 284, 4.6,     0,      0,   0, 18, 8.6, 7, 11.1],
-  ['C-23','Santina', 3.6252, 15285,  55330, 15842,  57431, 4.0,10.9,1316, 396, 4.2,     0,      0,   0, 0,  3.4, 0, 10.4],
-  ['C-25','Santina', 6.8423, 17222, 117800, 14278,  97692, 4.0,10.9,1316, 331, 5.6,     0,      0,   0, 10, 8.8, 3, 10.8],
-  ['C-26','Santina', 8.7886, 15796, 138849, 13651, 119974, 4.0,10.9,1316, 312, 4.1,     0,      0,   0, 6,  6.9, 4, 11.1],
-  ['C-29','Santina', 7.5316, 19372, 145869, 13746, 103530, 4.0,10.9,1316, 331, 4.7,     0,      0,   0, 7,  6.3, 2, 11.0],
+  ['C-6', 'Lapins',  7.0513, 19342, 136359, 21250, 149840, 5.0,11.7,1316, 271, 4.2,     0,      0,   0, 12, 9.5, 6, 12.0],
+  ['C-10','Lapins', 13.9832, 14953, 209049, 21250, 297143, 5.0,11.7,1429, 235, 4.0,     0,      0,   0, 2,  7.6, 8, 12.1],
+  ['C-15','Lapins',  5.0996, 27815, 141855, 21250, 108366, 5.0,11.7,1316, 278, 6.0,     0,      0,   0, 10, 7.6, 6, 12.0],
+  ['C-17','Lapins',  2.5179, 15636,  39402, 21250,  53505, 5.0,11.7,1316, 265, 4.9,     0,      0,   0, 7,  11.0,10,11.7],
+  ['C-18','Lapins',  5.6552, 13572,  80346, 21250, 120172, 5.0,11.7,1316, 258, 4.0,     0,      0,   0, 8,  6.9, 7, 12.1],
+  ['C-19','Lapins',  8.2361, 19547, 161069, 21250, 175018, 5.0,11.7,1316, 298, 5.4,     0,      0,   0, 11, 6.8, 8, 11.5],
+  ['C-22','Lapins', 13.7659, 13944, 191175, 21250, 292525, 5.0,11.7,1316, 261, 5.9,     0,      0,   0, 3,  8.2, 6, 11.2],
+  ['C-24','Lapins',  6.9244, 17420, 120547, 21250, 147143, 5.0,11.7,1316, 248, 5.0,     0,      0,   0, 3,  7.3, 7, 11.3],
+  ['C-11','Santina', 9.6075, 16605, 159571, 17647, 169544, 4.0,10.9,1429, 288, 4.8,     0,      0,   0, 14, 8.1, 8, 11.1],
+  ['C-12','Santina', 8.7210, 16543, 144254, 17647, 153900, 4.0,10.9,1316, 289, 4.7,     0,      0,   0, 13, 7.4, 9, 11.3],
+  ['C-20','Santina', 9.6816, 19308, 186901, 17647, 170852, 4.0,10.9,1316, 290, 5.5,     0,      0,   0, 17, 9.6, 4, 10.7],
+  ['C-21','Santina',11.6151, 16715, 194563, 17647, 204972, 4.0,10.9,1316, 284, 4.6,     0,      0,   0, 18, 8.6, 7, 11.1],
+  ['C-23','Santina', 3.6252, 15285,  55330, 17647,  63974, 4.0,10.9,1316, 396, 4.2,     0,      0,   0, 0,  3.4, 0, 10.4],
+  ['C-25','Santina', 6.8423, 17222, 117800, 17647, 120746, 4.0,10.9,1316, 331, 5.6,     0,      0,   0, 10, 8.8, 3, 10.8],
+  ['C-26','Santina', 8.7886, 15796, 138849, 17647, 155094, 4.0,10.9,1316, 312, 4.1,     0,      0,   0, 6,  6.9, 4, 11.1],
+  ['C-29','Santina', 7.5316, 19372, 145869, 17647, 132911, 4.0,10.9,1316, 331, 4.7,     0,      0,   0, 7,  6.3, 2, 11.0],
 ];
 // CIR: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, kg_tot_meta26, frutos_ml, peso_fruto_grs, plantas_ha]
 const PROD_CIR=[
