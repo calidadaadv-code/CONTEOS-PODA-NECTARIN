@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.30.0 -->
+  <!-- v6.31.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1046,9 +1046,15 @@
     <div class="modal-body"><div class="modal-stats" id="modal-stats"></div><div class="twrap"><table><thead><tr id="modal-thead"></tr></thead><tbody id="modal-tbody"></tbody></table></div></div>
   </div>
 </div>
+<div id="img-view-ov" onclick="closeImgView()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;align-items:center;justify-content:center;padding:16px">
+  <button onclick="closeImgView(event)" style="position:absolute;top:16px;right:16px;width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:22px;line-height:1;cursor:pointer">×</button>
+  <img id="img-view-img" src="" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:6px">
+</div>
 <div class="toast" id="toast"></div>
 </div>
 <script>
+function openImgView(url){const ov=document.getElementById('img-view-ov'),img=document.getElementById('img-view-img');img.src=url;ov.style.display='flex';}
+function closeImgView(e){if(e)e.stopPropagation();document.getElementById('img-view-ov').style.display='none';document.getElementById('img-view-img').src='';}
 const SB_URL='https://qmxcjbyqeazaeionpfli.supabase.co';
 const SB_KEY='sb_publishable_hMw0cuM2-ivAl5-jkBynMw_ZuW_nNds';
 const {createClient}=supabase;
@@ -1268,7 +1274,7 @@ function ccInformeHTML(r){const CRIT=CC_CRITERIOS.raleo;const pctCol2=p=>(p===nu
       ${infoLine('N° Hilera revisada',h.hilera)}
       ${infoLine('N° de plantas revisadas',h.plantas)}
       <table style="width:100%;table-layout:fixed;border-collapse:collapse;margin-top:6px">${critRows}</table>
-    </div>`;}).join('');const fotosHtml=(r.fotos||[]).length?`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px">${r.fotos.map(p=>`<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;border:2px solid ${p.tag==='ok'?'#639922':p.tag==='fix'?'#e24b4a':'var(--gb2)'}"><img src="${p.url}" style="width:100%;height:100%;object-fit:cover"></div>`).join('')}</div>`:'';const tsParts=(r.ts||'').split(' ');return`<div style="background:#fff;border:1px solid var(--gb2);border-radius:10px;padding:10px;margin-bottom:8px">
+    </div>`;}).join('');const fotosHtml=(r.fotos||[]).length?`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px">${r.fotos.map(p=>`<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;border:2px solid ${p.tag==='ok'?'#639922':p.tag==='fix'?'#e24b4a':'var(--gb2)'}"><img src="${p.url}" onclick="openImgView(this.src)" style="width:100%;height:100%;object-fit:cover;cursor:pointer"></div>`).join('')}</div>`:'';const tsParts=(r.ts||'').split(' ');return`<div style="background:#fff;border:1px solid var(--gb2);border-radius:10px;padding:10px;margin-bottom:8px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <span style="font-size:11px;font-weight:700;color:var(--tx)">${fmtF(tsParts[0])} ${tsParts[1]||''}</span>
       <span style="font-size:11px;font-weight:700;color:${pctCol2(r.pct)}">${r.pct!==null&&r.pct!==undefined?r.pct+'%':'—'}</span>
