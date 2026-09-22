@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.34.1 -->
+  <!-- v6.35.1 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -754,10 +754,11 @@
     <div class="hdr-l"><button class="back-btn" onclick="volverRaleo()">← Volver</button><div><div class="hdr-title">🍒 Cerezo — Raleo 2026</div><div class="hdr-sub">Conteo de frutos</div></div></div>
     <div class="hdr-r"><div class="sync-bdg" id="sync-rcer"><i class="ti ti-cloud"></i><span id="sync-rcer-t">...</span></div></div>
   </div>
-  <div class="tabs-cer" style="grid-template-columns:1fr 1fr 1fr 1fr">
+  <div class="tabs-cer" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
     <button class="tab-cer active" data-t="ing" onclick="tabRaleo('cer','ing')"><i class="ti ti-edit"></i>Ingresar</button>
     <button class="tab-cer" data-t="dat" onclick="tabRaleo('cer','dat')"><i class="ti ti-chart-bar"></i>Datos</button>
     <button class="tab-cer" data-t="cal" onclick="tabRaleo('cer','cal')"><i class="ti ti-rosette"></i>Calidad</button>
+    <button class="tab-cer" data-t="prod" onclick="tabRaleo('cer','prod')"><i class="ti ti-trending-up"></i>Producción</button>
     <button class="tab-cer" data-t="cfg" onclick="tabRaleo('cer','cfg')"><i class="ti ti-settings"></i>Listas<span id="lock-rcer-t" style="font-size:9px;margin-left:1px">🔒</span></button>
   </div>
   <div class="panel active" id="rcer-ing">
@@ -811,6 +812,13 @@
   </div>
   <div class="panel" id="rcer-dat"><div class="tog-row"><button class="tog-btn tog-r" id="rcer-dhoy" onclick="viRaleoDat('cer','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button><button class="tog-btn" id="rcer-dacum" onclick="viRaleoDat('cer','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button></div><div id="rcer-ddat"><div class="empty"><i class="ti ti-leaf"></i>Cargando...</div></div></div>
   <div class="panel" id="rcer-cal"><div class="tog-row"><button class="tog-btn tog-r" id="rcer-choy" onclick="viRaleoCalV('cer','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button><button class="tog-btn" id="rcer-cacum" onclick="viRaleoCalV('cer','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button></div><div id="rcer-dcal"><div class="empty"><i class="ti ti-rosette"></i>Cargando...</div></div></div>
+  <div class="panel" id="rcer-prod">
+    <div class="tog-row">
+      <button class="tog-btn tog-r" id="rcer-phoy" onclick="viRaleoProd('cer','hoy')"><i class="ti ti-sun" style="font-size:14px;margin-right:4px"></i>Hoy</button>
+      <button class="tog-btn" id="rcer-pacum" onclick="viRaleoProd('cer','acum')"><i class="ti ti-history" style="font-size:14px;margin-right:4px"></i>Acumulado</button>
+    </div>
+    <div id="rcer-dprod"><div class="empty"><i class="ti ti-trending-up"></i>Cargando...</div></div>
+  </div>
   <div class="panel" id="rcer-cfg">
     <div id="rcer-lock" class="lock-scr">
       <i class="ti ti-shield-lock lock-ico"></i><div class="lock-title">Zona de Administrador</div><div class="lock-sub">Ingresa tu contraseña</div>
@@ -1229,8 +1237,20 @@ let rnecRaleo=0,rcerRaleo=0,rcirRaleo=0,rduzRaleo=0;
 let rnecCalRaleo=null,rcerCalRaleo=null,rcirCalRaleo=null,rduzCalRaleo=null;
 let rnecVR='hoy',rcerVR='hoy',rcirVR='hoy',rduzVR='hoy';
 let rNecRegs=[],rCerRegs=[],rCirRegs=[],rDuzRegs=[];
+let rCerFrutosRegs=[];
 // ── RALEO FUNCIONES ──────────────────────────────────────────────────────
-function tabRaleo(e,t){const tabs=e==='cer'?['ing','dat','cal','cfg']:['ing','dat','cal','prod','cfg'];tabs.forEach((x,i)=>{const tab=document.querySelectorAll(`#view-raleo-${e} .tab-${e}`)[i];const pan=document.getElementById(`r${e}-${x}`);if(x===t){tab&&tab.classList.add('active');pan&&pan.classList.add('active');}else{tab&&tab.classList.remove('active');pan&&pan.classList.remove('active');}});if(t==='dat')loadRaleo(e);if(t==='cal'){loadRaleo(e);loadCCReg(e);}if(t==='prod')loadRaleo(e).then(()=>rnRaleoProd(e));}
+function tabRaleo(e,t){const tabs=['ing','dat','cal','prod','cfg'];tabs.forEach((x,i)=>{const tab=document.querySelectorAll(`#view-raleo-${e} .tab-${e}`)[i];const pan=document.getElementById(`r${e}-${x}`);if(x===t){tab&&tab.classList.add('active');pan&&pan.classList.add('active');}else{tab&&tab.classList.remove('active');pan&&pan.classList.remove('active');}});if(t==='dat')loadRaleo(e);if(t==='cal'){loadRaleo(e);loadCCReg(e);}if(t==='prod'){if(e==='cer')loadFrutosCer().then(()=>rnRaleoProd('cer'));else loadRaleo(e).then(()=>rnRaleoProd(e));}}
+async function loadFrutosCer(){
+  const {data,error}=await db.from('conteos_frutos_cer').select('*').order('id',{ascending:true}).limit(10000);
+  if(error){rCerFrutosRegs=rCerFrutosRegs||[];return;}
+  rCerFrutosRegs=(data||[]).map(r=>{
+    const db_=parseInt(r.dardos_baja)||0,fb=parseInt(r.frutos_baja)||0;
+    const dm=parseInt(r.dardos_media)||0,fm=parseInt(r.frutos_media)||0;
+    const da=parseInt(r.dardos_alta)||0,fa=parseInt(r.frutos_alta)||0;
+    return{id:r.id,c:String(r.cuartel),h:r.hilera,p:r.planta,cnt:r.contador,sup:r.supervisor,
+      db:db_,fb,dm,fm,da,fa,dar:db_+dm+da,fru:fb+fm+fa,obs:r.observaciones||'',ts:r.timestamp};
+  });
+}
 function cRaleo(e,d){const arr=e==='nec'?CNEC:e==='cer'?CCER:e==='cir'?CCIR:CDUZ;if(!arr.length)return;const cur=window[`r${e}Raleo`]||0;const nxt=Math.max(0,Math.min(arr.length-1,cur+d));window[`r${e}Raleo`]=nxt;const c=arr[nxt];document.getElementById(`r${e}-cval`).textContent=c.n+(c.v?' · '+c.v:'');const rhint=document.getElementById(`r${e}-rhint`);if(e==='cer'){if(rhint)rhint.textContent='3 yemas florales + 1 vegetativa · meta 80% (mín. 75%)';}else{const rang=e==='nec'?RALEO_NEC[c.n]:e==='cir'?RALEO_CIR[c.n]:RALEO_DUZ[c.n];if(rhint&&rang&&rang.ob)rhint.textContent=`Rango: ${rang.mn} – ${rang.ob} – ${rang.mx} frutos`;}}
 function valRaleoCer(){const ids=[['rcer-c1-tot','rcer-c1-cum'],['rcer-c2-tot','rcer-c2-cum'],['rcer-c3-tot','rcer-c3-cum']];const fxrEl=document.getElementById('rcer-fxr');const ba=document.getElementById('rcer-abaj'),al=document.getElementById('rcer-aalt');ba.classList.remove('vis');al.classList.remove('vis');let sumTot=0,sumCum=0,algunaVacia=false,todasVacias=true;ids.forEach(([tId,cId])=>{const tRaw=document.getElementById(tId).value,cRaw=document.getElementById(cId).value;if(tRaw!==''||cRaw!=='')todasVacias=false;if(tRaw===''||cRaw===''){algunaVacia=true;}else{sumTot+=parseInt(tRaw)||0;sumCum+=parseInt(cRaw)||0;}});if(todasVacias||algunaVacia){fxrEl.textContent='—';fxrEl.style.color='var(--ro)';return;}const pct=sumTot?(sumCum/sumTot*100):0;fxrEl.textContent=pct.toFixed(1)+'%';if(pct<75){fxrEl.style.color='#9C0006';ba.classList.add('vis');}else if(pct<80){fxrEl.style.color='#633806';al.classList.add('vis');}else{fxrEl.style.color='#0E6655';}}
 async function guardarRaleoCer(){const arr=CCER;const idx=window['rcerRaleo']||0;const c=arr[idx];const h=document.getElementById('rcer-hil').value,p=document.getElementById('rcer-pla').value;const pod=document.getElementById('rcer-pod').value,cnt=document.getElementById('rcer-cnt').value;const sup=document.getElementById('rcer-sup').value,comp=document.getElementById('rcer-con').value;const obsUsr=document.getElementById('rcer-obs').value;const cal=window['rcerCalRaleo'];const ids=[['rcer-c1-tot','rcer-c1-cum'],['rcer-c2-tot','rcer-c2-cum'],['rcer-c3-tot','rcer-c3-cum']];const vals=ids.map(([tId,cId])=>({tot:document.getElementById(tId).value,cum:document.getElementById(cId).value}));const faltaConteo=vals.some(v=>v.tot===''||v.cum==='');if(!h||!p||!pod||!cnt||faltaConteo||!cal){toast('⚠ Completa los 3 conteos y todos los campos','warn');return;}const nums=vals.map(v=>({tot:parseInt(v.tot)||0,cum:parseInt(v.cum)||0}));const sumTot=nums.reduce((s,v)=>s+v.tot,0);const sumCum=nums.reduce((s,v)=>s+v.cum,0);const pct=sumTot?(sumCum/sumTot*100):0;const f=pct<75?'bajo':pct<80?'alto':'no';const detalle=`C1: ${nums[0].cum}/${nums[0].tot} · C2: ${nums[1].cum}/${nums[1].tot} · C3: ${nums[2].cum}/${nums[2].tot}`;const obsFinal=obsUsr?`${detalle} — ${obsUsr}`:detalle;const btn=document.getElementById('rcer-sub');btn.disabled=true;btn.innerHTML='<i class="ti ti-refresh spin"></i> Guardando...';sync('sync-rcer','L','Guardando...');const {error}=await db.from('conteos_raleo_cer').insert([{timestamp:ts(),especie:'cer',cuartel:c.n,hilera:parseInt(h),planta:parseInt(p),podador:pod,contador:cnt,supervisor:sup,contratista:comp,ramillas:sumTot,frutos:sumCum,frutos_x_ramilla:parseFloat(pct.toFixed(2)),fuera_rango:f,calidad:cal,observaciones:obsFinal}]);btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar registro';if(error){console.error('Error guardarRaleoCer',error);sync('sync-rcer','E','Error');toast('⚠ Error: '+(error.message||error.hint||error.code||'al guardar'),'warn');return;}sync('sync-rcer','O','✓ Guardado');setTimeout(()=>sync('sync-rcer','O','En línea'),2000);if(f==='bajo')toast('⚠ Guardado — Bajo mínimo ('+pct.toFixed(1)+'%)','warn');else if(f==='alto')toast('⚠ Guardado — Bajo objetivo ('+pct.toFixed(1)+'%)','warn');else toast('✓ Guardado — Cumplimiento '+pct.toFixed(1)+'%');['hil','pla','obs'].forEach(x=>document.getElementById(`rcer-${x}`).value='');ids.flat().forEach(id=>document.getElementById(id).value='');const fxrEl=document.getElementById('rcer-fxr');fxrEl.textContent='—';fxrEl.style.color='var(--ro)';document.getElementById('rcer-abaj').classList.remove('vis');document.getElementById('rcer-aalt').classList.remove('vis');window['rcerCalRaleo']=null;document.querySelectorAll('#view-raleo-cer .cbtn').forEach(b=>b.classList.remove('on'));loadRaleo('cer');}
@@ -1891,24 +1911,25 @@ const PROD_NEC=[
   ['C-7B','Gartairo',   10.2913, 29304, 301580, 30000, 2.0, 160.00,1754, 56, 1.75, 65, 33677, 346580, 60, 2.0, 47, 50],
 ];
 // CER: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, kg_tot_meta26, frutos_dardo, peso_fruto_grs, plantas_ha]
+// kgHaMeta/kgTotMeta actualizados según "Estimación Post Poda 2026-2027" (kilos exportables/ha y kilos exportables) — planilla del usuario, sep-2026.
 const PROD_CER=[
   // [c, v, ha, kgHa25, kgTot25, kgHaMeta, kgTotMeta, fDar26, pFruto26grs, pHa, dar25, fDar25, kgHa_pp, kgTot_pp, dar_pp, ram25, fxr25, cargElim25, pFruto25]
-  ['C-6', 'Lapins',  7.0513, 19342, 136359, 21250, 149840, 5.0,11.7,1316, 271, 4.2,     0,      0,   0, 12, 9.5, 6, 12.0],
-  ['C-10','Lapins', 13.9832, 14953, 209049, 21250, 297143, 5.0,11.7,1429, 235, 4.0,     0,      0,   0, 2,  7.6, 8, 12.1],
-  ['C-15','Lapins',  5.0996, 27815, 141855, 21250, 108366, 5.0,11.7,1316, 278, 6.0,     0,      0,   0, 10, 7.6, 6, 12.0],
-  ['C-17','Lapins',  2.5179, 15636,  39402, 21250,  53505, 5.0,11.7,1316, 265, 4.9,     0,      0,   0, 7,  11.0,10,11.7],
-  ['C-18','Lapins',  5.6552, 13572,  80346, 21250, 120172, 5.0,11.7,1316, 258, 4.0,     0,      0,   0, 8,  6.9, 7, 12.1],
-  ['C-19','Lapins',  8.2361, 19547, 161069, 21250, 175018, 5.0,11.7,1316, 298, 5.4,     0,      0,   0, 11, 6.8, 8, 11.5],
-  ['C-22','Lapins', 13.7659, 13944, 191175, 21250, 292525, 5.0,11.7,1316, 261, 5.9,     0,      0,   0, 3,  8.2, 6, 11.2],
-  ['C-24','Lapins',  6.9244, 17420, 120547, 21250, 147143, 5.0,11.7,1316, 248, 5.0,     0,      0,   0, 3,  7.3, 7, 11.3],
-  ['C-11','Santina', 9.6075, 16605, 159571, 17647, 169544, 3.5,10.9,1429, 288, 4.8,     0,      0,   0, 14, 8.1, 8, 11.1],
-  ['C-12','Santina', 8.7210, 16543, 144254, 17647, 153900, 3.5,10.9,1316, 289, 4.7,     0,      0,   0, 13, 7.4, 9, 11.3],
-  ['C-20','Santina', 9.6816, 19308, 186901, 17647, 170852, 3.5,10.9,1316, 290, 5.5,     0,      0,   0, 17, 9.6, 4, 10.7],
-  ['C-21','Santina',11.6151, 16715, 194563, 17647, 204972, 3.5,10.9,1316, 284, 4.6,     0,      0,   0, 18, 8.6, 7, 11.1],
-  ['C-23','Santina', 3.6252, 15285,  55330, 17647,  63974, 3.5,10.9,1316, 396, 4.2,     0,      0,   0, 0,  3.4, 0, 10.4],
-  ['C-25','Santina', 6.8423, 17222, 117800, 17647, 120746, 3.5,10.9,1316, 331, 5.6,     0,      0,   0, 10, 8.8, 3, 10.8],
-  ['C-26','Santina', 8.7886, 15796, 138849, 17647, 155094, 3.5,10.9,1316, 312, 4.1,     0,      0,   0, 6,  6.9, 4, 11.1],
-  ['C-29','Santina', 7.5316, 19372, 145869, 17647, 132911, 3.5,10.9,1316, 331, 4.7,     0,      0,   0, 7,  6.3, 2, 11.0],
+  ['C-6', 'Lapins',  7.0513, 19342, 136359, 18066, 127392, 5.0,11.7,1316, 271, 4.2,     0,      0,   0, 12, 9.5, 6, 12.0],
+  ['C-10','Lapins', 13.9832, 14953, 209049, 16884, 236090, 5.0,11.7,1429, 235, 4.0,     0,      0,   0, 2,  7.6, 8, 12.1],
+  ['C-15','Lapins',  5.0996, 27815, 141855, 17320,  88325, 5.0,11.7,1316, 278, 6.0,     0,      0,   0, 10, 7.6, 6, 12.0],
+  ['C-17','Lapins',  2.5179, 15636,  39402, 21310,  53655, 5.0,11.7,1316, 265, 4.9,     0,      0,   0, 7,  11.0,10,11.7],
+  ['C-18','Lapins',  5.6552, 13572,  80346, 18284, 103402, 5.0,11.7,1316, 258, 4.0,     0,      0,   0, 8,  6.9, 7, 12.1],
+  ['C-19','Lapins',  8.2361, 19547, 161069, 17601, 144963, 5.0,11.7,1316, 298, 5.4,     0,      0,   0, 11, 6.8, 8, 11.5],
+  ['C-22','Lapins', 13.7659, 13944, 191175, 17092, 235288, 5.0,11.7,1316, 261, 5.9,     0,      0,   0, 3,  8.2, 6, 11.2],
+  ['C-24','Lapins',  6.9244, 17420, 120547, 16144, 111784, 5.0,11.7,1316, 248, 5.0,     0,      0,   0, 3,  7.3, 7, 11.3],
+  ['C-11','Santina', 9.6075, 16605, 159571, 13669, 131322, 4.0,10.9,1429, 288, 4.8,     0,      0,   0, 14, 8.1, 8, 11.1],
+  ['C-12','Santina', 8.7210, 16543, 144254, 11978, 104461, 4.0,10.9,1316, 289, 4.7,     0,      0,   0, 13, 7.4, 9, 11.3],
+  ['C-20','Santina', 9.6816, 19308, 186901, 14924, 144488, 4.0,10.9,1316, 290, 5.5,     0,      0,   0, 17, 9.6, 4, 10.7],
+  ['C-21','Santina',11.6151, 16715, 194563, 11817, 137258, 4.0,10.9,1316, 284, 4.6,     0,      0,   0, 18, 8.6, 7, 11.1],
+  ['C-23','Santina', 3.6252, 15285,  55330, 15842,  57431, 4.0,10.9,1316, 396, 4.2,     0,      0,   0, 0,  3.4, 0, 10.4],
+  ['C-25','Santina', 6.8423, 17222, 117800, 14278,  97692, 4.0,10.9,1316, 331, 5.6,     0,      0,   0, 10, 8.8, 3, 10.8],
+  ['C-26','Santina', 8.7886, 15796, 138849, 13651, 119974, 4.0,10.9,1316, 312, 4.1,     0,      0,   0, 6,  6.9, 4, 11.1],
+  ['C-29','Santina', 7.5316, 19372, 145869, 13746, 103530, 4.0,10.9,1316, 331, 4.7,     0,      0,   0, 7,  6.3, 2, 11.0],
 ];
 // CIR: [cuartel, variedad, ha, kg_ha_2025, kg_tot_2025, kg_ha_meta26, kg_tot_meta26, frutos_ml, peso_fruto_grs, plantas_ha]
 const PROD_CIR=[
@@ -2189,8 +2210,7 @@ function rnRaleoProd(e){
   const prodTbl=e==='nec'?PROD_NEC:e==='cer'?PROD_CER:e==='cir'?PROD_CIR:PROD_DUZ;
   const fld=RALEO_PROD_FIELDS[e];
   const st=RALEO_PROD_STYLE[e];
-  const regsKey=`r${e.charAt(0).toUpperCase()+e.slice(1)}Regs`;
-  const allRegs=window[regsKey]||[];
+  const allRegs=e==='cer'?(rCerFrutosRegs||[]):(window[`r${e.charAt(0).toUpperCase()+e.slice(1)}Regs`]||[]);
   const v=raleoVProd[e];
   const regs=v==='hoy'?allRegs.filter(r=>r.ts&&r.ts.includes(hoy())):allRegs;
   if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(v==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
