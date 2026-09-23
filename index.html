@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.38.2 -->
+  <!-- v6.39.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2327,8 +2327,10 @@ function rnRaleoProdCer(){
   if(dar25&&s.avgDar!==null){const diffVal=(s.avgDar/dar25*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
   const opts=PROD_CER.filter(r=>stats[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cSel?' selected':''}>${r[0]}${r[1]?' · '+r[1]:''}</option>`).join('');
   const noDatoBlk=(titulo)=>`<div style="background:#fff;border:2px solid ${st.border};border-radius:10px;padding:12px 14px;margin-bottom:14px"><div style="font-size:10px;font-family:var(--mo);color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;font-weight:600">📊 ${titulo}</div><div style="font-size:12px;font-family:var(--mo);color:var(--tm);padding:8px 0">Sin conteos de este tipo para este cuartel</div></div>`;
-  const kgDarBlk=(s.fxd!==null&&dar25)?kgEstBlock(dar25,s.fxd,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,`${c} — vía Dardo`,st.border):noDatoBlk(`Estimación de Kilos (vía Dardo) — ${c}`);
-  const kgRamBlk=(s.fxr!==null&&ram25)?kgEstBlock(ram25,s.fxr,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,`${c} — vía Ramilla`,st.border):noDatoBlk(`Estimación de Kilos (vía Ramilla) — ${c}`);
+  const fxdCalc=s.fxd!==null?s.fxd:0,fxrCalc=s.fxr!==null?s.fxr:0;
+  const frutosPlanta=((dar25||0)*fxdCalc)+((ram25||0)*fxrCalc);
+  const hayDatos=(s.fxd!==null&&dar25)||(s.fxr!==null&&ram25);
+  const kgBlk=hayDatos?kgEstBlock(frutosPlanta,1,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,st.border):noDatoBlk(`Estimación de Kilos — ${c}`);
   el.innerHTML=`<button class="ref-btn ${st.refCls}" onclick="loadFrutosCer().then(()=>rnRaleoProdCer())"><i class="ti ti-refresh"></i>Actualizar</button>
   ${v==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   ${selectorDropdown(opts,`raleoProdCuartel.cer=this.value;rnRaleoProdCer()`,st.border,st.text)}
@@ -2348,8 +2350,7 @@ function rnRaleoProdCer(){
     <div class="scard"><div class="slbl">Calibre 2025</div><div class="sval" style="color:#555">${pFruto25??'—'}</div><div class="ssub">peso fruto (grs) real</div></div>
     <div class="scard"><div class="slbl">Calibre Meta 2026</div><div class="sval" style="color:${st.text}">${pFruto}</div><div class="ssub">peso fruto (grs) esperado</div></div>
   </div>
-  ${kgDarBlk}
-  ${kgRamBlk}`;
+  ${kgBlk}`;
 }
 
 Promise.all([loadListas(),loadContadorPins()]).then(()=>checkRaleoIngLock());loadRevisiones();resetCar();loadRevisiones();initRaleoIdx();CC_TARGETS.forEach(t=>ccInit(t.pfx,t.esp,t.mod));FR_TARGETS.forEach(t=>frInit(t.pfx,t.esp,t.mod));
