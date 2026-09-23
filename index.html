@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.43.0 -->
+  <!-- v6.43.1 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1298,7 +1298,7 @@ function raleoDatFechaHTML(e,isHoy,inputId,onchangeCall){
   const fechaSel=raleoDatFecha[e]||hoy();
   const iid=inputId||`r${e}-fecha-inp`;
   const onch=onchangeCall||`raleoDatFechaChange('${e}',this.value)`;
-  return`<div class="fecha-hoy" style="cursor:pointer;position:relative" onclick="const i=document.getElementById('${iid}');if(i.showPicker)i.showPicker();else i.focus()">📅 ${fechaSel}<input type="date" id="${iid}" value="${fechaSel}" max="${hoy()}" onchange="${onch}" style="position:absolute;opacity:0;width:1px;height:1px;left:50%;top:0;pointer-events:none"></div>`;
+  return`<div class="fecha-hoy"><div style="cursor:pointer;position:relative;display:inline-block;padding:2px 8px"><span style="pointer-events:none">📅 ${fechaSel}</span><input type="date" id="${iid}" value="${fechaSel}" max="${hoy()}" onchange="${onch}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;border:none;cursor:pointer"></div></div>`;
 }
 let raleoVCal={nec:'acum',cer:'acum',cir:'acum',duz:'acum'};
 let raleoCalFecha={nec:null,cer:null,cir:null,duz:null};
@@ -1306,7 +1306,7 @@ function raleoCalFechaChange(e,val){raleoCalFecha[e]=val||null;rnRaleoCal(e);}
 function raleoCalFechaHTML(e){
   if((raleoVCal[e]||'acum')!=='hoy')return'';
   const fechaSel=raleoCalFecha[e]||hoy();
-  return`<div class="fecha-hoy" style="cursor:pointer;position:relative" onclick="const i=document.getElementById('r${e}-cfecha-inp');if(i.showPicker)i.showPicker();else i.focus()">📅 ${fechaSel}<input type="date" id="r${e}-cfecha-inp" value="${fechaSel}" max="${hoy()}" onchange="raleoCalFechaChange('${e}',this.value)" style="position:absolute;opacity:0;width:1px;height:1px;left:50%;top:0;pointer-events:none"></div>`;
+  return`<div class="fecha-hoy"><div style="cursor:pointer;position:relative;display:inline-block;padding:2px 8px"><span style="pointer-events:none">📅 ${fechaSel}</span><input type="date" id="r${e}-cfecha-inp" value="${fechaSel}" max="${hoy()}" onchange="raleoCalFechaChange('${e}',this.value)" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;border:none;cursor:pointer"></div></div>`;
 }
 function viRaleoDat(e,v){raleoVDat[e]=v;const st=RALEO_PROD_STYLE[e];const bHoy=document.getElementById(`r${e}-dhoy`),bAcum=document.getElementById(`r${e}-dacum`);if(bHoy)bHoy.className='tog-btn'+(v==='hoy'?' '+st.tog:'');if(bAcum)bAcum.className='tog-btn'+(v==='acum'?' '+st.tog:'');rnRaleodat(e);}
 function viRaleoCalV(e,v){raleoVCal[e]=v;const st=RALEO_PROD_STYLE[e];const bHoy=document.getElementById(`r${e}-choy`),bAcum=document.getElementById(`r${e}-cacum`);if(bHoy)bHoy.className='tog-btn'+(v==='hoy'?' '+st.tog:'');if(bAcum)bAcum.className='tog-btn'+(v==='acum'?' '+st.tog:'');rnRaleoCal(e);}
