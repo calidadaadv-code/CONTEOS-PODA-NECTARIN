@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.41.0 -->
+  <!-- v6.42.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1291,15 +1291,19 @@ function toggleRcerDat(c){rcerDatExpand=(rcerDatExpand===c)?null:c;rnRaleodat('c
 let raleoVDat={nec:'acum',cer:'acum',cir:'acum',duz:'acum'};
 let raleoDatFecha={nec:null,cer:null,cir:null,duz:null};
 function raleoDatFechaChange(e,val){raleoDatFecha[e]=val||null;rnRaleodat(e);}
-function raleoDatFechaHTML(e){
-  if((raleoVDat[e]||'acum')!=='hoy')return'';
+function raleoDatFechaChangeFrutos(val){raleoDatFecha.cer=val||null;rnFrutosDat();}
+function raleoDatFechaHTML(e,isHoy,inputId,onchangeCall){
+  if(isHoy===undefined)isHoy=(raleoVDat[e]||'acum')==='hoy';
+  if(!isHoy)return'';
   const fechaSel=raleoDatFecha[e]||hoy();
-  return`<div class="fecha-hoy" style="cursor:pointer;position:relative" onclick="const i=document.getElementById('r${e}-fecha-inp');if(i.showPicker)i.showPicker();else i.focus()">📅 ${fechaSel}<input type="date" id="r${e}-fecha-inp" value="${fechaSel}" max="${hoy()}" onchange="raleoDatFechaChange('${e}',this.value)" style="position:absolute;opacity:0;width:1px;height:1px;left:50%;top:0;pointer-events:none"></div>`;
+  const iid=inputId||`r${e}-fecha-inp`;
+  const onch=onchangeCall||`raleoDatFechaChange('${e}',this.value)`;
+  return`<div class="fecha-hoy" style="cursor:pointer;position:relative" onclick="const i=document.getElementById('${iid}');if(i.showPicker)i.showPicker();else i.focus()">📅 ${fechaSel}<input type="date" id="${iid}" value="${fechaSel}" max="${hoy()}" onchange="${onch}" style="position:absolute;opacity:0;width:1px;height:1px;left:50%;top:0;pointer-events:none"></div>`;
 }
 let raleoVCal={nec:'acum',cer:'acum',cir:'acum',duz:'acum'};
 function viRaleoDat(e,v){raleoVDat[e]=v;const st=RALEO_PROD_STYLE[e];const bHoy=document.getElementById(`r${e}-dhoy`),bAcum=document.getElementById(`r${e}-dacum`);if(bHoy)bHoy.className='tog-btn'+(v==='hoy'?' '+st.tog:'');if(bAcum)bAcum.className='tog-btn'+(v==='acum'?' '+st.tog:'');rnRaleodat(e);}
 function viRaleoCalV(e,v){raleoVCal[e]=v;const st=RALEO_PROD_STYLE[e];const bHoy=document.getElementById(`r${e}-choy`),bAcum=document.getElementById(`r${e}-cacum`);if(bHoy)bHoy.className='tog-btn'+(v==='hoy'?' '+st.tog:'');if(bAcum)bAcum.className='tog-btn'+(v==='acum'?' '+st.tog:'');rnRaleoCal(e);}
-function rnRaleodat(e){const el=document.getElementById(`r${e}-ddat`);if(!el)return;const regsKey=`r${e.charAt(0).toUpperCase()+e.slice(1)}Regs`;const allRegs=window[regsKey]||[];const vv=raleoVDat[e]||'acum';const fechaSel=raleoDatFecha[e]||hoy();const regs=vv==='hoy'?allRegs.filter(r=>r.ts&&r.ts.includes(fechaSel)):allRegs;const col=e==='nec'?'var(--vd)':e==='cer'?'var(--ro)':e==='cir'?'var(--pd)':'var(--dd)';if(!regs.length){el.innerHTML=raleoDatFechaHTML(e)+`<div class="empty"><i class="ti ti-leaf"></i>${vv==='hoy'?`Sin conteos el ${fechaSel} — toca otra fecha o Acumulado.`:'Sin registros aún'}</div>`;return;}if(e==='cer'){const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sTot:0,sCump:0,n:0,c1t:0,c1c:0,c2t:0,c2c:0,c3t:0,c3c:0,parsed:0,list:[]};map[r.c].sTot+=(r.ram||0);map[r.c].sCump+=(r.fru||0);map[r.c].n++;map[r.c].list.push(r);const mm=(r.obs||'').match(/C1:\s*(\d+)\/(\d+)\s*·\s*C2:\s*(\d+)\/(\d+)\s*·\s*C3:\s*(\d+)\/(\d+)/);if(mm){map[r.c].c1c+=parseInt(mm[1]);map[r.c].c1t+=parseInt(mm[2]);map[r.c].c2c+=parseInt(mm[3]);map[r.c].c2t+=parseInt(mm[4]);map[r.c].c3c+=parseInt(mm[5]);map[r.c].c3t+=parseInt(mm[6]);map[r.c].parsed++;}});const pctCol=p=>p===null?'var(--tm)':p<75?'#9C0006':p<80?'#633806':'#0E6655';const rows=Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([c,mm])=>{const pct=mm.sTot?(mm.sCump/mm.sTot*100):0;const pcol=pctCol(pct);const exp=rcerDatExpand===c;const p1=mm.c1t?(mm.c1c/mm.c1t*100):null;const p2=mm.c2t?(mm.c2c/mm.c2t*100):null;const p3=mm.c3t?(mm.c3c/mm.c3t*100):null;const fn=s=>s?s.split(/[ ,]+/)[0]:'—';const plantaRows=[...mm.list].sort((a,b)=>(b.fxr??0)-(a.fxr??0)).map(r=>{const rp=pctCol(r.fxr);const rid=r.id;const pexp=rcerPlantaExpand!==null&&String(rcerPlantaExpand)===String(rid);const mr=(r.obs||'').match(/C1:\s*(\d+)\/(\d+)\s*·\s*C2:\s*(\d+)\/(\d+)\s*·\s*C3:\s*(\d+)\/(\d+)/);const rc1=mr?(parseInt(mr[1])/parseInt(mr[2])*100):null;const rc2=mr?(parseInt(mr[3])/parseInt(mr[4])*100):null;const rc3=mr?(parseInt(mr[5])/parseInt(mr[6])*100):null;const rdet=pexp?`<tr><td colspan="4" style="background:#eef0ee;padding:10px"><div style="display:flex;gap:6px;margin-bottom:8px">${[['CONTEO 1',rc1],['CONTEO 2',rc2],['CONTEO 3',rc3]].map(([lbl,pv])=>`<div style="flex:1;text-align:center"><div style="font-size:8px;font-family:var(--mo);color:var(--tm);letter-spacing:1px">${lbl}</div><div style="font-weight:700;font-size:14px;font-family:var(--mo);color:${pctCol(pv)}">${pv!==null?pv.toFixed(1)+'%':'—'}</div></div>`).join('')}</div><div style="display:flex;justify-content:center;gap:18px;font-size:11px;font-family:var(--mo);color:var(--tx)"><span><b>Hilera:</b> ${r.h??'—'}</span><span><b>Planta:</b> ${r.p??'—'}</span></div></td></tr>`:'';return`<tr style="cursor:pointer;border-bottom:1px solid var(--gb2)" onclick="togglePlantaDet('${rid}')"><td style="padding:6px 4px;color:var(--tm)">${fn(r.sup)}</td><td style="padding:6px 4px;color:var(--tm)">${r.comp||'—'}</td><td style="padding:6px 4px;text-align:right;font-weight:700;color:${rp}">${r.fxr!==undefined&&r.fxr!==null?r.fxr.toFixed(1)+'%':'—'}${pexp?' ▾':''}</td><td style="padding:6px 4px;font-weight:600">${r.pod||'—'}</td></tr>${rdet}`;}).join('');const det=exp?`<tr><td colspan="5" style="background:#f7f7f5;padding:14px 8px;white-space:normal;width:1px"><div style="display:flex;gap:10px;align-items:center"><svg viewBox="0 0 60 100" style="width:44px;height:74px;flex-shrink:0"><defs><clipPath id="treeClip${c}"><ellipse cx="30" cy="42" rx="26" ry="40"/></clipPath></defs><rect x="26" y="78" width="8" height="18" fill="#8B5E34" rx="2"></rect><g clip-path="url(#treeClip${c})"><rect x="0" y="2" width="60" height="26.6" fill="#F5CBA7"></rect><rect x="0" y="28.6" width="60" height="26.7" fill="#DCEFE3"></rect><rect x="0" y="55.3" width="60" height="26.7" fill="#FADBD8"></rect></g><ellipse cx="30" cy="42" rx="26" ry="40" fill="none" stroke="#7B241C" stroke-width="2"></ellipse><line x1="4" y1="28.6" x2="56" y2="28.6" stroke="#7B241C" stroke-width="1" stroke-dasharray="3,2"></line><line x1="4" y1="55.3" x2="56" y2="55.3" stroke="#7B241C" stroke-width="1" stroke-dasharray="3,2"></line><text x="30" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="#7B241C" font-family="monospace">3</text><text x="30" y="46" text-anchor="middle" font-size="11" font-weight="700" fill="#7B241C" font-family="monospace">2</text><text x="30" y="72" text-anchor="middle" font-size="11" font-weight="700" fill="#7B241C" font-family="monospace">1</text></svg><div style="display:flex;gap:6px;flex:1">${[['CONTEO 1',p1],['CONTEO 2',p2],['CONTEO 3',p3]].map(([lbl,pv])=>`<div style="flex:1;text-align:center"><div style="font-size:9px;font-family:var(--mo);color:var(--tm);letter-spacing:1px">${lbl}</div><div style="font-weight:700;font-size:17px;font-family:var(--mo);color:${pctCol(pv)}">${pv!==null?pv.toFixed(1)+'%':'—'}</div></div>`).join('')}</div></div><div style="text-align:center;font-size:10px;color:var(--tm);font-family:var(--mo);margin-top:8px">Promedio ponderado sobre ${mm.parsed} planta(s) con detalle</div><hr class="divider" style="margin:12px 0"><table style="width:100%;border-collapse:collapse;font-family:var(--mo);font-size:11px"><thead><tr style="border-bottom:1px solid var(--gb2)"><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">SUP.</th><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">CONTRATISTA</th><th style="text-align:right;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">% CUMPL.</th><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">PAREJA</th></tr></thead><tbody>${plantaRows||'<tr><td colspan="4" style="text-align:center;padding:10px;color:var(--tm)">Sin registros</td></tr>'}</tbody></table></td></tr>`:'';return`<tr style="cursor:pointer" onclick="toggleRcerDat('${c}')"><td style="color:${col};font-weight:600">${exp?'▾':'▸'} ${c}</td><td style="text-align:center">${mm.n}</td><td style="text-align:center">${mm.sTot}</td><td style="text-align:center">${mm.sCump}</td><td style="text-align:center;font-weight:700;color:${pcol}">${pct.toFixed(1)}%</td></tr>${det}`;}).join('');el.innerHTML=raleoDatFechaHTML(e)+`<div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>Dardos Tot.</th><th>Cumplen</th><th>% Cumpl.</th></tr></thead><tbody>${rows}</tbody></table></div><div style="text-align:center;font-size:10px;color:var(--tm);font-family:var(--mo);margin-top:8px">Toca un cuartel para ver el promedio de cada conteo</div>`+rnRaleoCalMini(regs,e);return;}const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sf:0,sr:0,n:0,sfR:0,srR:0,bj:0,dn:0,al:0,list:[]};map[r.c].sf+=r.fru;map[r.c].sr+=r.ram;map[r.c].n++;if(r.ram>0){map[r.c].sfR+=r.fru;map[r.c].srR+=r.ram;}if(r.f==='bajo')map[r.c].bj++;else if(r.f==='alto')map[r.c].al++;else map[r.c].dn++;map[r.c].list.push(r);});const rangoPct=(bj,dn,al,n)=>n?[Math.round(bj/n*100),Math.round(dn/n*100),Math.round(al/n*100)]:[0,0,0];const rows=Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([c,mm])=>{const avgF=(mm.sf/mm.n).toFixed(1);const avgR=mm.srR?(mm.sfR/mm.srR).toFixed(2):'-';const[pBj,pDn,pAl]=rangoPct(mm.bj,mm.dn,mm.al,mm.n);const exp=(raleoDatExpand[e]||null)===c;const supMap={};mm.list.forEach(r=>{const k2=r.sup||'Sin supervisor';if(!supMap[k2])supMap[k2]={sup:r.sup||'Sin supervisor',comps:new Set(),n:0,sf:0,sr:0,bj:0,dn:0,al:0,list:[]};const sm=supMap[k2];sm.n++;sm.comps.add(r.comp||'Sin contratista');sm.sf+=r.fru;sm.sr+=r.ram;sm.list.push(r);if(r.f==='bajo')sm.bj++;else if(r.f==='alto')sm.al++;else sm.dn++;});const supRows=Object.entries(supMap).sort(([,a],[,b])=>a.sup.localeCompare(b.sup)).map(([k2,sm])=>{const enc=encodeURIComponent(k2);const sexp=raleoDatSupExpand[e]===enc;const compTxt=[...sm.comps].join(', ');const[sBj,sDn,sAl]=rangoPct(sm.bj,sm.dn,sm.al,sm.n);const conteoRows=[...sm.list].sort((a,b)=>(b.fru??0)-(a.fru??0)).map(r=>{const rfxr=r.ram?(r.fru/r.ram).toFixed(2):'-';const rFuera=r.f==='bajo'||r.f==='alto';const rcol=rFuera?'#C0392B':col;return`<tr style="border-bottom:1px solid var(--gb2)"><td style="padding:6px 4px;font-weight:600">${r.pod||'—'}</td><td style="padding:6px 4px;text-align:right;font-weight:700;color:${rcol}">${r.fru??'—'}</td><td style="padding:6px 4px;text-align:center;color:var(--tm)">${r.ram??'—'}</td><td style="padding:6px 4px;text-align:right;color:var(--tm)">${rfxr}</td></tr>`;}).join('');const sdet=sexp?`<div style="background:#fff;border-radius:10px;padding:10px 12px;margin:6px 0 10px">
+function rnRaleodat(e){const el=document.getElementById(`r${e}-ddat`);if(!el)return;const regsKey=`r${e.charAt(0).toUpperCase()+e.slice(1)}Regs`;const allRegs=window[regsKey]||[];const vv=raleoVDat[e]||'acum';const fechaSel=raleoDatFecha[e]||hoy();const regs=vv==='hoy'?allRegs.filter(r=>r.ts&&r.ts.includes(fechaSel)):allRegs;const col=e==='nec'?'var(--vd)':e==='cer'?'var(--ro)':e==='cir'?'var(--pd)':'var(--dd)';if(!regs.length){el.innerHTML=raleoDatFechaHTML(e)+`<div class="empty"><i class="ti ti-leaf"></i>${vv==='hoy'?`Sin conteos el ${fechaSel} — toca otra fecha o Acumulado.`:'Sin registros aún'}</div>`;return;}if(e==='cer'){const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sTot:0,sCump:0,n:0,c1t:0,c1c:0,c2t:0,c2c:0,c3t:0,c3c:0,parsed:0,list:[]};map[r.c].sTot+=(r.ram||0);map[r.c].sCump+=(r.fru||0);map[r.c].n++;map[r.c].list.push(r);const mm=(r.obs||'').match(/C1:\s*(\d+)\/(\d+)\s*·\s*C2:\s*(\d+)\/(\d+)\s*·\s*C3:\s*(\d+)\/(\d+)/);if(mm){map[r.c].c1c+=parseInt(mm[1]);map[r.c].c1t+=parseInt(mm[2]);map[r.c].c2c+=parseInt(mm[3]);map[r.c].c2t+=parseInt(mm[4]);map[r.c].c3c+=parseInt(mm[5]);map[r.c].c3t+=parseInt(mm[6]);map[r.c].parsed++;}});const pctCol=p=>p===null?'var(--tm)':p<75?'#9C0006':p<80?'#633806':'#0E6655';const rows=Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([c,mm])=>{const pct=mm.sTot?(mm.sCump/mm.sTot*100):0;const pcol=pctCol(pct);const exp=rcerDatExpand===c;const p1=mm.c1t?(mm.c1c/mm.c1t*100):null;const p2=mm.c2t?(mm.c2c/mm.c2t*100):null;const p3=mm.c3t?(mm.c3c/mm.c3t*100):null;const fn=s=>s?s.split(/[ ,]+/)[0]:'—';const plantaRows=[...mm.list].sort((a,b)=>(b.fxr??0)-(a.fxr??0)).map(r=>{const rp=pctCol(r.fxr);const rid=r.id;const pexp=rcerPlantaExpand!==null&&String(rcerPlantaExpand)===String(rid);const mr=(r.obs||'').match(/C1:\s*(\d+)\/(\d+)\s*·\s*C2:\s*(\d+)\/(\d+)\s*·\s*C3:\s*(\d+)\/(\d+)/);const rc1=mr?(parseInt(mr[1])/parseInt(mr[2])*100):null;const rc2=mr?(parseInt(mr[3])/parseInt(mr[4])*100):null;const rc3=mr?(parseInt(mr[5])/parseInt(mr[6])*100):null;const rdet=pexp?`<tr><td colspan="4" style="background:#eef0ee;padding:10px"><div style="display:flex;gap:6px;margin-bottom:8px">${[['CONTEO 1',rc1],['CONTEO 2',rc2],['CONTEO 3',rc3]].map(([lbl,pv])=>`<div style="flex:1;text-align:center"><div style="font-size:8px;font-family:var(--mo);color:var(--tm);letter-spacing:1px">${lbl}</div><div style="font-weight:700;font-size:14px;font-family:var(--mo);color:${pctCol(pv)}">${pv!==null?pv.toFixed(1)+'%':'—'}</div></div>`).join('')}</div><div style="display:flex;justify-content:center;gap:18px;font-size:11px;font-family:var(--mo);color:var(--tx)"><span><b>Hilera:</b> ${r.h??'—'}</span><span><b>Planta:</b> ${r.p??'—'}</span></div></td></tr>`:'';return`<tr style="cursor:pointer;border-bottom:1px solid var(--gb2)" onclick="togglePlantaDet('${rid}')"><td style="padding:6px 4px;color:var(--tm)">${fn(r.sup)}</td><td style="padding:6px 4px;color:var(--tm)">${r.comp||'—'}</td><td style="padding:6px 4px;text-align:right;font-weight:700;color:${rp}">${r.fxr!==undefined&&r.fxr!==null?r.fxr.toFixed(1)+'%':'—'}${pexp?' ▾':''}</td><td style="padding:6px 4px;font-weight:600">${r.pod||'—'}</td></tr>${rdet}`;}).join('');const det=exp?`<tr><td colspan="5" style="background:#f7f7f5;padding:14px 8px;white-space:normal;width:1px"><div style="display:flex;gap:10px;align-items:center"><svg viewBox="0 0 60 100" style="width:44px;height:74px;flex-shrink:0"><defs><clipPath id="treeClip${c}"><ellipse cx="30" cy="42" rx="26" ry="40"/></clipPath></defs><rect x="26" y="78" width="8" height="18" fill="#8B5E34" rx="2"></rect><g clip-path="url(#treeClip${c})"><rect x="0" y="2" width="60" height="26.6" fill="#F5CBA7"></rect><rect x="0" y="28.6" width="60" height="26.7" fill="#DCEFE3"></rect><rect x="0" y="55.3" width="60" height="26.7" fill="#FADBD8"></rect></g><ellipse cx="30" cy="42" rx="26" ry="40" fill="none" stroke="#7B241C" stroke-width="2"></ellipse><line x1="4" y1="28.6" x2="56" y2="28.6" stroke="#7B241C" stroke-width="1" stroke-dasharray="3,2"></line><line x1="4" y1="55.3" x2="56" y2="55.3" stroke="#7B241C" stroke-width="1" stroke-dasharray="3,2"></line><text x="30" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="#7B241C" font-family="monospace">3</text><text x="30" y="46" text-anchor="middle" font-size="11" font-weight="700" fill="#7B241C" font-family="monospace">2</text><text x="30" y="72" text-anchor="middle" font-size="11" font-weight="700" fill="#7B241C" font-family="monospace">1</text></svg><div style="display:flex;gap:6px;flex:1">${[['CONTEO 1',p1],['CONTEO 2',p2],['CONTEO 3',p3]].map(([lbl,pv])=>`<div style="flex:1;text-align:center"><div style="font-size:9px;font-family:var(--mo);color:var(--tm);letter-spacing:1px">${lbl}</div><div style="font-weight:700;font-size:17px;font-family:var(--mo);color:${pctCol(pv)}">${pv!==null?pv.toFixed(1)+'%':'—'}</div></div>`).join('')}</div></div><div style="text-align:center;font-size:10px;color:var(--tm);font-family:var(--mo);margin-top:8px">Promedio ponderado sobre ${mm.parsed} planta(s) con detalle</div><hr class="divider" style="margin:12px 0"><table style="width:100%;border-collapse:collapse;font-family:var(--mo);font-size:11px"><thead><tr style="border-bottom:1px solid var(--gb2)"><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">SUP.</th><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">CONTRATISTA</th><th style="text-align:right;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">% CUMPL.</th><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">PAREJA</th></tr></thead><tbody>${plantaRows||'<tr><td colspan="4" style="text-align:center;padding:10px;color:var(--tm)">Sin registros</td></tr>'}</tbody></table>${(vv==='hoy')?`<div style="text-align:center;margin-top:14px"><button class="ref-btn ref-r" style="display:inline-flex" onclick="event.stopPropagation();genRaleoDashboardPDF('cerY','${c}','${fechaSel}')"><i class="ti ti-file-download"></i>Descargar Dashboard PDF</button></div>`:''}</td></tr>`:'';return`<tr style="cursor:pointer" onclick="toggleRcerDat('${c}')"><td style="color:${col};font-weight:600">${exp?'▾':'▸'} ${c}</td><td style="text-align:center">${mm.n}</td><td style="text-align:center">${mm.sTot}</td><td style="text-align:center">${mm.sCump}</td><td style="text-align:center;font-weight:700;color:${pcol}">${pct.toFixed(1)}%</td></tr>${det}`;}).join('');el.innerHTML=raleoDatFechaHTML(e)+`<div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>Dardos Tot.</th><th>Cumplen</th><th>% Cumpl.</th></tr></thead><tbody>${rows}</tbody></table></div><div style="text-align:center;font-size:10px;color:var(--tm);font-family:var(--mo);margin-top:8px">Toca un cuartel para ver el promedio de cada conteo</div>`+rnRaleoCalMini(regs,e);return;}const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sf:0,sr:0,n:0,sfR:0,srR:0,bj:0,dn:0,al:0,list:[]};map[r.c].sf+=r.fru;map[r.c].sr+=r.ram;map[r.c].n++;if(r.ram>0){map[r.c].sfR+=r.fru;map[r.c].srR+=r.ram;}if(r.f==='bajo')map[r.c].bj++;else if(r.f==='alto')map[r.c].al++;else map[r.c].dn++;map[r.c].list.push(r);});const rangoPct=(bj,dn,al,n)=>n?[Math.round(bj/n*100),Math.round(dn/n*100),Math.round(al/n*100)]:[0,0,0];const rows=Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([c,mm])=>{const avgF=(mm.sf/mm.n).toFixed(1);const avgR=mm.srR?(mm.sfR/mm.srR).toFixed(2):'-';const[pBj,pDn,pAl]=rangoPct(mm.bj,mm.dn,mm.al,mm.n);const exp=(raleoDatExpand[e]||null)===c;const supMap={};mm.list.forEach(r=>{const k2=r.sup||'Sin supervisor';if(!supMap[k2])supMap[k2]={sup:r.sup||'Sin supervisor',comps:new Set(),n:0,sf:0,sr:0,bj:0,dn:0,al:0,list:[]};const sm=supMap[k2];sm.n++;sm.comps.add(r.comp||'Sin contratista');sm.sf+=r.fru;sm.sr+=r.ram;sm.list.push(r);if(r.f==='bajo')sm.bj++;else if(r.f==='alto')sm.al++;else sm.dn++;});const supRows=Object.entries(supMap).sort(([,a],[,b])=>a.sup.localeCompare(b.sup)).map(([k2,sm])=>{const enc=encodeURIComponent(k2);const sexp=raleoDatSupExpand[e]===enc;const compTxt=[...sm.comps].join(', ');const[sBj,sDn,sAl]=rangoPct(sm.bj,sm.dn,sm.al,sm.n);const conteoRows=[...sm.list].sort((a,b)=>(b.fru??0)-(a.fru??0)).map(r=>{const rfxr=r.ram?(r.fru/r.ram).toFixed(2):'-';const rFuera=r.f==='bajo'||r.f==='alto';const rcol=rFuera?'#C0392B':col;return`<tr style="border-bottom:1px solid var(--gb2)"><td style="padding:6px 4px;font-weight:600">${r.pod||'—'}</td><td style="padding:6px 4px;text-align:right;font-weight:700;color:${rcol}">${r.fru??'—'}</td><td style="padding:6px 4px;text-align:center;color:var(--tm)">${r.ram??'—'}</td><td style="padding:6px 4px;text-align:right;color:var(--tm)">${rfxr}</td></tr>`;}).join('');const sdet=sexp?`<div style="background:#fff;border-radius:10px;padding:10px 12px;margin:6px 0 10px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:12px;color:var(--tm)">Total de conteos de ${sm.sup}</span><span style="font-weight:700;font-size:16px;color:${col}">${sm.n}</span></div>
         <div style="display:flex;justify-content:space-around;text-align:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--gb2)">
           <div><div style="font-size:9px;font-family:var(--mo);color:var(--tm);letter-spacing:.5px">BAJO</div><div style="font-weight:700;font-size:15px;color:#9C0006">${sBj}%</div></div>
@@ -1307,7 +1311,7 @@ function rnRaleodat(e){const el=document.getElementById(`r${e}-ddat`);if(!el)ret
           <div><div style="font-size:9px;font-family:var(--mo);color:var(--tm);letter-spacing:.5px">SOBRE</div><div style="font-weight:700;font-size:15px;color:#633806">${sAl}%</div></div>
         </div>
         <table style="width:100%;border-collapse:collapse;font-family:var(--mo);font-size:11px"><thead><tr style="border-bottom:1px solid var(--gb2)"><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">TRABAJADORES</th><th style="text-align:right;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FRUTOS</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">RAM.</th><th style="text-align:right;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/RAM</th></tr></thead><tbody>${conteoRows||'<tr><td colspan="4" style="text-align:center;padding:10px;color:var(--tm)">Sin registros</td></tr>'}</tbody></table>
-      </div>`:'';return`<div><div style="display:grid;grid-template-columns:1.6fr .7fr .7fr .7fr;gap:4px;padding:7px 0;border-bottom:1px solid var(--gb2);font-size:11px;font-family:var(--mo);align-items:center;cursor:pointer" onclick="toggleRaleoDatSup('${e}','${enc}')"><span style="font-weight:600">${sexp?'▾':'▸'} ${sm.sup}</span><span style="text-align:center;color:#9C0006;font-weight:600">${sBj}%</span><span style="text-align:center;color:#0E6655;font-weight:600">${sDn}%</span><span style="text-align:center;color:#633806;font-weight:600">${sAl}%</span></div>${sdet}</div>`;}).join('');const totExp=(raleoDatTotalExpand[e]||null)===c;const totRows=totExp?[...mm.list].sort((a,b)=>(b.fru??0)-(a.fru??0)).map(r=>{const rfxr=r.ram?(r.fru/r.ram).toFixed(2):'-';const rFuera=r.f==='bajo'||r.f==='alto';const rcol=rFuera?'#C0392B':col;return`<tr style="border-bottom:1px solid var(--gb2)"><td style="padding:6px 4px;font-weight:600">${r.pod||'—'}</td><td style="padding:6px 4px;color:var(--tm);font-size:10px">${r.sup||'—'}</td><td style="padding:6px 4px;text-align:right;font-weight:700;color:${rcol}">${r.fru??'—'}</td><td style="padding:6px 4px;text-align:center;color:var(--tm)">${r.ram??'—'}</td><td style="padding:6px 4px;text-align:right;color:var(--tm)">${rfxr}</td></tr>`;}).join(''):'';const totBlk=`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--gb2)"><div onclick="toggleRaleoDatTotal('${e}','${c}')" style="cursor:pointer;background:#fff;border:1px solid var(--gb2);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;font-family:var(--mo);color:${col}"><span>${totExp?'▾':'▸'} Ver total de conteos</span><span style="color:var(--tm);font-weight:400">${mm.n}</span></div>${totExp?`<div style="margin-top:8px"><table style="width:100%;border-collapse:collapse;font-family:var(--mo);font-size:11px"><thead><tr style="border-bottom:1px solid var(--gb2)"><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">TRABAJADORES</th><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">SUPERVISOR</th><th style="text-align:right;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FRUTOS</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">RAM.</th><th style="text-align:right;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/RAM</th></tr></thead><tbody>${totRows||'<tr><td colspan="5" style="text-align:center;padding:10px;color:var(--tm)">Sin registros</td></tr>'}</tbody></table></div>`:''}</div>`;const det=exp?`<tr><td colspan="7" style="background:#f7f7f5;padding:12px 8px;white-space:normal;width:1px"><div style="font-size:10px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">SUPERVISORES — TOCA UNO PARA VER SU RESUMEN</div><div style="display:grid;grid-template-columns:1.6fr .7fr .7fr .7fr;gap:4px;font-size:9px;font-family:var(--mo);color:var(--tm);letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--gb2)"><span>SUPERVISOR</span><span style="text-align:center">BAJO</span><span style="text-align:center">DENTRO</span><span style="text-align:center">SOBRE</span></div>${supRows||'<div style="font-size:11px;color:var(--tm);font-family:var(--mo);padding-top:6px">Sin datos de supervisor</div>'}${totBlk}</td></tr>`:'';return`<tr style="cursor:pointer" onclick="toggleRaleoDat('${e}','${c}')"><td style="color:${col};font-weight:600">${exp?'▾':'▸'} ${c}</td><td style="text-align:center">${mm.n}</td><td style="text-align:center;font-weight:700;color:${col}">${avgF}</td><td style="text-align:center;color:var(--tm)">${avgR}</td><td style="text-align:center;color:#9C0006">${pBj}%</td><td style="text-align:center;color:#0E6655">${pDn}%</td><td style="text-align:center;color:#633806">${pAl}%</td></tr>${det}`;}).join('');el.innerHTML=raleoDatFechaHTML(e)+`<div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>Prom. Frutos</th><th>Fr/Ram</th><th>Bajo</th><th>Dentro</th><th>Sobre</th></tr></thead><tbody>${rows}</tbody></table></div><div style="text-align:center;font-size:10px;color:var(--tm);font-family:var(--mo);margin-top:8px">Toca un cuartel para ver sus supervisores</div>`;}
+      </div>`:'';return`<div><div style="display:grid;grid-template-columns:1.6fr .7fr .7fr .7fr;gap:4px;padding:7px 0;border-bottom:1px solid var(--gb2);font-size:11px;font-family:var(--mo);align-items:center;cursor:pointer" onclick="toggleRaleoDatSup('${e}','${enc}')"><span style="font-weight:600">${sexp?'▾':'▸'} ${sm.sup}</span><span style="text-align:center;color:#9C0006;font-weight:600">${sBj}%</span><span style="text-align:center;color:#0E6655;font-weight:600">${sDn}%</span><span style="text-align:center;color:#633806;font-weight:600">${sAl}%</span></div>${sdet}</div>`;}).join('');const totExp=(raleoDatTotalExpand[e]||null)===c;const totRows=totExp?[...mm.list].sort((a,b)=>(b.fru??0)-(a.fru??0)).map(r=>{const rfxr=r.ram?(r.fru/r.ram).toFixed(2):'-';const rFuera=r.f==='bajo'||r.f==='alto';const rcol=rFuera?'#C0392B':col;return`<tr style="border-bottom:1px solid var(--gb2)"><td style="padding:6px 4px;font-weight:600">${r.pod||'—'}</td><td style="padding:6px 4px;color:var(--tm);font-size:10px">${r.sup||'—'}</td><td style="padding:6px 4px;text-align:right;font-weight:700;color:${rcol}">${r.fru??'—'}</td><td style="padding:6px 4px;text-align:center;color:var(--tm)">${r.ram??'—'}</td><td style="padding:6px 4px;text-align:right;color:var(--tm)">${rfxr}</td></tr>`;}).join(''):'';const totBlk=`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--gb2)"><div onclick="toggleRaleoDatTotal('${e}','${c}')" style="cursor:pointer;background:#fff;border:1px solid var(--gb2);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;font-family:var(--mo);color:${col}"><span>${totExp?'▾':'▸'} Ver total de conteos</span><span style="color:var(--tm);font-weight:400">${mm.n}</span></div>${totExp?`<div style="margin-top:8px"><table style="width:100%;border-collapse:collapse;font-family:var(--mo);font-size:11px"><thead><tr style="border-bottom:1px solid var(--gb2)"><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">TRABAJADORES</th><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">SUPERVISOR</th><th style="text-align:right;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FRUTOS</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">RAM.</th><th style="text-align:right;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/RAM</th></tr></thead><tbody>${totRows||'<tr><td colspan="5" style="text-align:center;padding:10px;color:var(--tm)">Sin registros</td></tr>'}</tbody></table></div>`:''}</div>`;const dashBtn=(raleoVDat[e]==='hoy')?`<div style="text-align:center;margin-top:14px"><button class="ref-btn ${RALEO_PROD_STYLE[e].refCls}" style="display:inline-flex" onclick="event.stopPropagation();genRaleoDashboardPDF('${e}','${c}','${fechaSel}')"><i class="ti ti-file-download"></i>Descargar Dashboard PDF</button></div>`:'';const det=exp?`<tr><td colspan="7" style="background:#f7f7f5;padding:12px 8px;white-space:normal;width:1px"><div style="font-size:10px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">SUPERVISORES — TOCA UNO PARA VER SU RESUMEN</div><div style="display:grid;grid-template-columns:1.6fr .7fr .7fr .7fr;gap:4px;font-size:9px;font-family:var(--mo);color:var(--tm);letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--gb2)"><span>SUPERVISOR</span><span style="text-align:center">BAJO</span><span style="text-align:center">DENTRO</span><span style="text-align:center">SOBRE</span></div>${supRows||'<div style="font-size:11px;color:var(--tm);font-family:var(--mo);padding-top:6px">Sin datos de supervisor</div>'}${totBlk}${dashBtn}</td></tr>`:'';return`<tr style="cursor:pointer" onclick="toggleRaleoDat('${e}','${c}')"><td style="color:${col};font-weight:600">${exp?'▾':'▸'} ${c}</td><td style="text-align:center">${mm.n}</td><td style="text-align:center;font-weight:700;color:${col}">${avgF}</td><td style="text-align:center;color:var(--tm)">${avgR}</td><td style="text-align:center;color:#9C0006">${pBj}%</td><td style="text-align:center;color:#0E6655">${pDn}%</td><td style="text-align:center;color:#633806">${pAl}%</td></tr>${det}`;}).join('');el.innerHTML=raleoDatFechaHTML(e)+`<div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>Prom. Frutos</th><th>Fr/Ram</th><th>Bajo</th><th>Dentro</th><th>Sobre</th></tr></thead><tbody>${rows}</tbody></table></div><div style="text-align:center;font-size:10px;color:var(--tm);font-family:var(--mo);margin-top:8px">Toca un cuartel para ver sus supervisores</div>`;}
 let raleoCalExpand={nec:null,cer:null,cir:null,duz:null};
 let raleoCalSupExpand={nec:null,cer:null,cir:null,duz:null};
 let raleoDatMiniExpand={nec:null,cer:null,cir:null,duz:null};
@@ -1474,8 +1478,10 @@ function toggleFrutosDat(c){frutosDatExpand=(frutosDatExpand===c)?null:c;rnFruto
 function rnFrutosDat(){
   const el=document.getElementById('rcer-fddat');if(!el)return;
   const allRegs=rCerFrutosRegs||[];
-  const regs=frutosDatV==='hoy'?allRegs.filter(r=>r.ts&&r.ts.includes(hoy())):allRegs;
-  if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-leaf"></i>'+(frutosDatV==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros aún')+'</div>';return;}
+  const fechaSel=raleoDatFecha.cer||hoy();
+  const regs=frutosDatV==='hoy'?allRegs.filter(r=>r.ts&&r.ts.includes(fechaSel)):allRegs;
+  const fHTML=raleoDatFechaHTML('cer',frutosDatV==='hoy','rcer-ffecha-inp',"raleoDatFechaChangeFrutos(this.value)");
+  if(!regs.length){el.innerHTML=fHTML+'<div class="empty"><i class="ti ti-leaf"></i>'+(frutosDatV==='hoy'?`Sin conteos el ${fechaSel} — toca otra fecha o Acumulado.`:'Sin registros aún')+'</div>';return;}
   const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0,list:[]};const m=map[r.c];m.sDar+=r.dar;m.sFrDar+=r.frdar;m.sRam+=r.ram;m.sFrRam+=r.frram;m.n++;m.list.push(r);});
   const rows=Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([c,m])=>{
     const fxd=m.sDar?(m.sFrDar/m.sDar).toFixed(2):'-';
@@ -1486,10 +1492,11 @@ function rnFrutosDat(){
       const rfxr=r.ram?(r.frram/r.ram).toFixed(2):'-';
       return`<tr style="border-bottom:1px solid var(--gb2)"><td style="padding:6px 4px;font-weight:600">${r.cnt||'—'}</td><td style="padding:6px 4px;color:var(--tm)">${r.sup||'—'}</td><td style="padding:6px 4px;text-align:center">${r.dar}/${r.frdar}</td><td style="padding:6px 4px;text-align:center;font-weight:700">${rfxd}</td><td style="padding:6px 4px;text-align:center">${r.ram}/${r.frram}</td><td style="padding:6px 4px;text-align:center;font-weight:700">${rfxr}</td></tr>`;
     }).join('');
-    const det=exp?`<tr><td colspan="4" style="background:#f7f7f5;padding:12px 8px;white-space:normal;width:1px"><table style="width:100%;border-collapse:collapse;font-family:var(--mo);font-size:11px"><thead><tr style="border-bottom:1px solid var(--gb2)"><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">CONTADOR</th><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">SUPERVISOR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">DAR/FR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/DAR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">RAM/FR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/RAM</th></tr></thead><tbody>${detRows}</tbody></table></td></tr>`:'';
+    const dashBtn=(frutosDatV==='hoy')?`<div style="text-align:center;margin-top:10px"><button class="ref-btn ref-r" style="display:inline-flex" onclick="event.stopPropagation();genFrutosDashboardPDF('${c}','${fechaSel}')"><i class="ti ti-file-download"></i>Descargar Dashboard PDF</button></div>`:'';
+    const det=exp?`<tr><td colspan="4" style="background:#f7f7f5;padding:12px 8px;white-space:normal;width:1px"><table style="width:100%;border-collapse:collapse;font-family:var(--mo);font-size:11px"><thead><tr style="border-bottom:1px solid var(--gb2)"><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">CONTADOR</th><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">SUPERVISOR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">DAR/FR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/DAR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">RAM/FR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/RAM</th></tr></thead><tbody>${detRows}</tbody></table>${dashBtn}</td></tr>`:'';
     return`<tr style="cursor:pointer" onclick="toggleFrutosDat('${c}')"><td style="color:var(--ro);font-weight:600">${exp?'▾':'▸'} ${c}</td><td style="text-align:center">${m.n}</td><td style="text-align:center;font-weight:700;color:var(--ro)">${fxd}</td><td style="text-align:center;font-weight:700;color:var(--ro)">${fxr}</td></tr>${det}`;
   }).join('');
-  el.innerHTML=`<div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>Fr/Dardo</th><th>Fr/Ramilla</th></tr></thead><tbody>${rows}</tbody></table></div><div style="text-align:center;font-size:10px;color:var(--tm);font-family:var(--mo);margin-top:8px">Toca un cuartel para ver el detalle por conteo</div>`;
+  el.innerHTML=fHTML+`<div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>Fr/Dardo</th><th>Fr/Ramilla</th></tr></thead><tbody>${rows}</tbody></table></div><div style="text-align:center;font-size:10px;color:var(--tm);font-family:var(--mo);margin-top:8px">Toca un cuartel para ver el detalle por conteo</div>`;
 }
 function frInit(pfx,esp,mod){
   const el=document.getElementById(`${pfx}-ing-frutos`);if(!el)return;
@@ -2372,6 +2379,157 @@ function rnRaleoProdCer(){
     <div class="scard"><div class="slbl">Calibre Meta 2026</div><div class="sval" style="color:${st.text}">${pFruto}</div><div class="ssub">peso fruto (grs) esperado</div></div>
   </div>
   ${kgBlk}`;
+}
+
+// ── DASHBOARD DIARIO DESCARGABLE (PDF) — Raleo Nec/Cir/Duz + Raleo Cerezo ──
+const DASH_CFG={
+  nec:{label:'Raleo — Nectarín',color:'#1D9E75',metric:'fru',metricLabel:'Frutos',unit:''},
+  cir:{label:'Raleo — Ciruelo',color:'#7C3AED',metric:'fru',metricLabel:'Frutos',unit:''},
+  duz:{label:'Raleo — Duraznero',color:'#D35400',metric:'fru',metricLabel:'Frutos',unit:''},
+  cerY:{label:'Raleo de Yemas — Cerezo',color:'#C0392B',metric:'fxr',metricLabel:'% Cumplimiento',unit:'%'}
+};
+function hex2rgb(h){h=h.replace('#','');const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];}
+function genRaleoDashboardPDF(key,cuartel,fecha){
+  const cfg=DASH_CFG[key];if(!cfg){toast('⚠ Tipo de dashboard no reconocido','warn');return;}
+  const especie=key==='cerY'?'cer':key;
+  const regsKey=`r${especie.charAt(0).toUpperCase()+especie.slice(1)}Regs`;
+  const all=window[regsKey]||[];
+  const regs=all.filter(r=>r.c===cuartel&&r.ts&&r.ts.includes(fecha));
+  if(!regs.length){toast('⚠ No hay conteos de este cuartel en esa fecha','warn');return;}
+  const n=regs.length;
+  const vals=regs.map(r=>r[cfg.metric]);
+  const avg=vals.reduce((a,b)=>a+b,0)/n;
+  const maxR=regs.reduce((a,b)=>(b[cfg.metric]>a[cfg.metric]?b:a));
+  const minR=regs.reduce((a,b)=>(b[cfg.metric]<a[cfg.metric]?b:a));
+  const bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=n-bj-al;
+  const pBj=Math.round(bj/n*100),pDn=Math.round(dn/n*100),pAl=Math.round(al/n*100);
+  const supMap={};
+  regs.forEach(r=>{const k=r.sup||'Sin supervisor';if(!supMap[k])supMap[k]={sup:k,comps:new Set(),n:0,sum:0,bj:0,dn:0,al:0};const s=supMap[k];s.n++;s.sum+=r[cfg.metric];if(r.comp)s.comps.add(r.comp);if(r.f==='bajo')s.bj++;else if(r.f==='alto')s.al++;else s.dn++;});
+  const supRows=Object.values(supMap).sort((a,b)=>b.n-a.n);
+  drawDashboardPDF({
+    titulo:cfg.label.toUpperCase(),cuartel,fecha,colorHex:cfg.color,
+    kpis:[
+      {label:'N° Conteos',val:String(n)},
+      {label:`Promedio ${cfg.metricLabel}`,val:avg.toFixed(1)+cfg.unit},
+      {label:'Conteo Más Alto',val:maxR[cfg.metric]+cfg.unit,sub:maxR.pod||maxR.cnt||''},
+      {label:'Conteo Más Bajo',val:minR[cfg.metric]+cfg.unit,sub:minR.pod||minR.cnt||''}
+    ],
+    rango:{pBj,pDn,pAl,bj,dn,al},
+    tablaTitulo:'POR CONTRATISTA · SUPERVISOR',
+    tablaCols:['Supervisor','Contratista','N°',cfg.metricLabel,'Bajo','Dentro','Sobre'],
+    tablaRows:supRows.map(s=>[s.sup,[...s.comps].join(', ')||'—',String(s.n),(s.sum/s.n).toFixed(1)+cfg.unit,Math.round(s.bj/s.n*100)+'%',Math.round(s.dn/s.n*100)+'%',Math.round(s.al/s.n*100)+'%']),
+    fileName:`Dashboard_${cfg.label.replace(/[^a-zA-Z0-9]+/g,'_')}_${cuartel}_${fecha}.pdf`
+  });
+}
+function genFrutosDashboardPDF(cuartel,fecha){
+  const all=rCerFrutosRegs||[];
+  const regs=all.filter(r=>r.c===cuartel&&r.ts&&r.ts.includes(fecha));
+  if(!regs.length){toast('⚠ No hay conteos de este cuartel en esa fecha','warn');return;}
+  const n=regs.length;
+  const sumDar=regs.reduce((s,r)=>s+r.dar,0),sumFrDar=regs.reduce((s,r)=>s+r.frdar,0);
+  const sumRam=regs.reduce((s,r)=>s+r.ram,0),sumFrRam=regs.reduce((s,r)=>s+r.frram,0);
+  const avgFxd=sumDar?sumFrDar/sumDar:0,avgFxr=sumRam?sumFrRam/sumRam:0;
+  const metricTot=r=>(r.frdar||0)+(r.frram||0);
+  const maxR=regs.reduce((a,b)=>metricTot(b)>metricTot(a)?b:a);
+  const minR=regs.reduce((a,b)=>metricTot(b)<metricTot(a)?b:a);
+  const supMap={};
+  regs.forEach(r=>{const k=r.sup||'Sin supervisor';if(!supMap[k])supMap[k]={sup:k,n:0,sDar:0,sFrDar:0,sRam:0,sFrRam:0};const s=supMap[k];s.n++;s.sDar+=r.dar;s.sFrDar+=r.frdar;s.sRam+=r.ram;s.sFrRam+=r.frram;});
+  const supRows=Object.values(supMap).sort((a,b)=>b.n-a.n);
+  drawDashboardPDF({
+    titulo:'CONTEO DE FRUTOS — CEREZO',cuartel,fecha,colorHex:'#C0392B',
+    kpis:[
+      {label:'N° Conteos',val:String(n)},
+      {label:'Frutos/Dardo',val:avgFxd.toFixed(2)},
+      {label:'Frutos/Ramilla',val:avgFxr.toFixed(2)},
+      {label:'Conteo Más Alto',val:String(metricTot(maxR)),sub:maxR.cnt||''}
+    ],
+    rango:null,
+    tablaTitulo:'POR SUPERVISOR',
+    tablaCols:['Supervisor','N°','Fr/Dardo','Fr/Ramilla'],
+    tablaRows:supRows.map(s=>[s.sup,String(s.n),(s.sDar?(s.sFrDar/s.sDar).toFixed(2):'-'),(s.sRam?(s.sFrRam/s.sRam).toFixed(2):'-')]),
+    fileName:`Dashboard_ConteoFrutos_Cerezo_${cuartel}_${fecha}.pdf`
+  });
+}
+function drawDashboardPDF(opts){
+  if(!window.jspdf){toast('⚠ No se pudo cargar el generador de PDF','warn');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const [r,g,b]=hex2rgb(opts.colorHex);
+  const pageW=210,startX=15;
+  doc.setFillColor(r,g,b);
+  doc.rect(0,0,pageW,32,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');doc.setFontSize(17);
+  doc.text(opts.titulo,pageW/2,14,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(11);
+  doc.text(`Cuartel ${opts.cuartel}  ·  ${opts.fecha}`,pageW/2,23,{align:'center'});
+  let y=42;
+  const boxW=42,gap=4;
+  opts.kpis.forEach((k,i)=>{
+    const x=startX+i*(boxW+gap);
+    doc.setFillColor(248,248,246);
+    doc.setDrawColor(225,225,220);
+    doc.roundedRect(x,y,boxW,26,2,2,'FD');
+    doc.setTextColor(r,g,b);
+    doc.setFont('helvetica','bold');doc.setFontSize(16);
+    doc.text(k.val,x+boxW/2,y+13,{align:'center'});
+    doc.setTextColor(110,110,105);
+    doc.setFont('helvetica','normal');doc.setFontSize(7);
+    doc.text(k.label.toUpperCase(),x+boxW/2,y+19,{align:'center',maxWidth:boxW-4});
+    if(k.sub){doc.setFontSize(6.5);doc.text(String(k.sub),x+boxW/2,y+24,{align:'center',maxWidth:boxW-4});}
+  });
+  y+=36;
+  if(opts.rango){
+    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(11);
+    doc.text('CUMPLIMIENTO DE RANGO',startX,y);
+    y+=6;
+    const barW=180,barH=10;
+    const wBj=barW*opts.rango.pBj/100,wDn=barW*opts.rango.pDn/100,wAl=barW*opts.rango.pAl/100;
+    let bx=startX;
+    doc.setFillColor(192,57,43);doc.rect(bx,y,wBj,barH,'F');bx+=wBj;
+    doc.setFillColor(14,102,85);doc.rect(bx,y,wDn,barH,'F');bx+=wDn;
+    doc.setFillColor(99,56,6);doc.rect(bx,y,wAl,barH,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(8);
+    if(wBj>10)doc.text(opts.rango.pBj+'%',startX+wBj/2,y+6.5,{align:'center'});
+    if(wDn>10)doc.text(opts.rango.pDn+'%',startX+wBj+wDn/2,y+6.5,{align:'center'});
+    if(wAl>10)doc.text(opts.rango.pAl+'%',startX+wBj+wDn+wAl/2,y+6.5,{align:'center'});
+    y+=16;
+    doc.setFontSize(8);
+    const legend=[['Bajo mínimo',[192,57,43],opts.rango.bj],['Dentro del rango',[14,102,85],opts.rango.dn],['Sobre máximo',[99,56,6],opts.rango.al]];
+    let lx=startX;
+    legend.forEach(([lbl,col,cnt])=>{
+      doc.setFillColor(col[0],col[1],col[2]);
+      doc.rect(lx,y-3,3,3,'F');
+      doc.setTextColor(60,60,60);doc.setFont('helvetica','normal');
+      doc.text(`${lbl} (${cnt})`,lx+5,y);
+      lx+=60;
+    });
+    y+=12;
+  }
+  doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(11);
+  doc.text(opts.tablaTitulo,startX,y);
+  y+=6;
+  const cols=opts.tablaCols;
+  const nCols=cols.length;
+  const tableW=180;
+  const colW=tableW/nCols;
+  doc.setFillColor(r,g,b);
+  doc.rect(startX,y,tableW,8,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7.5);
+  cols.forEach((c,i)=>doc.text(c.toUpperCase(),startX+i*colW+colW/2,y+5.3,{align:'center',maxWidth:colW-2}));
+  y+=8;
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+  opts.tablaRows.forEach((row,ri)=>{
+    if(y>270){doc.addPage();y=20;}
+    if(ri%2===0){doc.setFillColor(248,248,246);doc.rect(startX,y,tableW,7,'F');}
+    doc.setTextColor(60,60,60);
+    row.forEach((cell,ci)=>{doc.text(String(cell),startX+ci*colW+colW/2,y+4.8,{align:'center',maxWidth:colW-2});});
+    y+=7;
+  });
+  doc.setFontSize(7.5);doc.setTextColor(150,150,150);
+  doc.text(`Generado el ${ts()} · App Conteos de Poda — AADV 2026`,pageW/2,290,{align:'center'});
+  doc.save(opts.fileName);
+  toast('✓ Dashboard PDF descargado');
 }
 
 Promise.all([loadListas(),loadContadorPins()]).then(()=>checkRaleoIngLock());loadRevisiones();resetCar();loadRevisiones();initRaleoIdx();CC_TARGETS.forEach(t=>ccInit(t.pfx,t.esp,t.mod));FR_TARGETS.forEach(t=>frInit(t.pfx,t.esp,t.mod));
