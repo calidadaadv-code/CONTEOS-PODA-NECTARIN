@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.40.0 -->
+  <!-- v6.40.1 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2312,7 +2312,7 @@ function cerPodaAvgDardosRamillas(cuartel){
   const post=todos.filter(r=>(r.tipo||'pre')==='post');
   const usar=post.length?post:todos;
   if(!usar.length)return{avgDar:null,avgRam:null,n:0};
-  const sDar=usar.reduce((s,r)=>s+(r.tot||0),0);
+  const sDar=usar.reduce((s,r)=>s+((r.td||0)+(r.deje||0)),0);
   const sRam=usar.reduce((s,r)=>s+(r.ram||0),0);
   return{avgDar:sDar/usar.length,avgRam:sRam/usar.length,n:usar.length};
 }
