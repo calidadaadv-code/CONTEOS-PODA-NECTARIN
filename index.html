@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.40.1 -->
+  <!-- v6.40.2 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2349,15 +2349,14 @@ function rnRaleoProdCer(){
   ${v==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   ${selectorDropdown(opts,`raleoProdCuartel.cer=this.value;rnRaleoProdCer()`,st.border,st.text)}
   <div class="stats2">
-    <div class="scard" style="grid-column:1/-1"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}${vr?' · '+vr:''}</div></div>
+    <div class="scard"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}${vr?' · '+vr:''}</div></div>
+    <div class="scard"><div class="slbl">Diferencia dardos</div><div class="sval" style="color:${pctDarColor};font-weight:700">${pctDarIcon} ${pctDarDif}</div><div class="ssub">2026 vs 2025</div></div>
     <div class="scard"><div class="slbl">Dardos 2025</div><div class="sval" style="color:#555">${dar25??'—'}</div><div class="ssub">año anterior</div></div>
     <div class="scard"><div class="slbl">Dardos/planta 2026</div><div class="sval" style="color:${st.text}">${darTxt}</div><div class="ssub">promedio real que quedó (Poda)</div></div>
-    <div class="scard" style="grid-column:1/-1"><div class="slbl">Diferencia dardos</div><div class="sval" style="color:${pctDarColor};font-weight:700">${pctDarIcon} ${pctDarDif}</div><div class="ssub">2026 vs 2025</div></div>
     <div class="scard"><div class="slbl">Frutos/Dardo 2025</div><div class="sval" style="color:#555">${fDar25??'—'}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Frutos/Dardo 2026</div><div class="sval" style="color:${st.text}">${s.fxd!==null?s.fxd.toFixed(1):'-'}</div><div class="ssub">real · ${v==='hoy'?'hoy':'acumulado'}</div></div>
     <div class="scard"><div class="slbl">Ramillas 2025</div><div class="sval" style="color:#555">${ram25??'—'}</div><div class="ssub">año anterior</div></div>
     <div class="scard"><div class="slbl">Ramillas/planta 2026</div><div class="sval" style="color:${st.text}">${ramTxt}</div><div class="ssub">promedio real que quedó (Poda)</div></div>
-    <div class="scard" style="grid-column:1/-1"><div class="slbl">Diferencia ramillas</div><div class="sval" style="color:${pctRamColor};font-weight:700">${pctRamIcon} ${pctRamDif}</div><div class="ssub">2026 vs 2025</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2025</div><div class="sval" style="color:#555">${fxr25??'—'}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2026</div><div class="sval" style="color:${st.text}">${s.fxr!==null?s.fxr.toFixed(1):'-'}</div><div class="ssub">real · ${v==='hoy'?'hoy':'acumulado'}</div></div>
     <div class="scard"><div class="slbl">Carg. eliminados 2025</div><div class="sval" style="color:#555">${cargElim25??'—'}</div><div class="ssub">real año anterior</div></div>
