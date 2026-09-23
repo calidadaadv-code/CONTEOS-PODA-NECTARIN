@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.39.0 -->
+  <!-- v6.40.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1258,7 +1258,7 @@ let rnecVR='hoy',rcerVR='hoy',rcirVR='hoy',rduzVR='hoy';
 let rNecRegs=[],rCerRegs=[],rCirRegs=[],rDuzRegs=[];
 let rCerFrutosRegs=[];
 // ── RALEO FUNCIONES ──────────────────────────────────────────────────────
-function tabRaleo(e,t){const tabs=['ing','dat','cal','prod','cfg'];tabs.forEach((x,i)=>{const tab=document.querySelectorAll(`#view-raleo-${e} .tab-${e}`)[i];const pan=document.getElementById(`r${e}-${x}`);if(x===t){tab&&tab.classList.add('active');pan&&pan.classList.add('active');}else{tab&&tab.classList.remove('active');pan&&pan.classList.remove('active');}});if(t==='dat'){loadRaleo(e);if(e==='cer')loadFrutosCer().then(()=>rnFrutosDat());}if(t==='cal'){loadRaleo(e);loadCCReg(e);}if(t==='prod'){if(e==='cer')loadFrutosCer().then(()=>rnRaleoProd('cer'));else loadRaleo(e).then(()=>rnRaleoProd(e));}}
+function tabRaleo(e,t){const tabs=['ing','dat','cal','prod','cfg'];tabs.forEach((x,i)=>{const tab=document.querySelectorAll(`#view-raleo-${e} .tab-${e}`)[i];const pan=document.getElementById(`r${e}-${x}`);if(x===t){tab&&tab.classList.add('active');pan&&pan.classList.add('active');}else{tab&&tab.classList.remove('active');pan&&pan.classList.remove('active');}});if(t==='dat'){loadRaleo(e);if(e==='cer')loadFrutosCer().then(()=>rnFrutosDat());}if(t==='cal'){loadRaleo(e);loadCCReg(e);}if(t==='prod'){if(e==='cer')Promise.all([loadFrutosCer(),loadCer()]).then(()=>rnRaleoProd('cer'));else loadRaleo(e).then(()=>rnRaleoProd(e));}}
 async function loadFrutosCer(){
   const {data,error}=await db.from('conteos_frutos_cer').select('*').order('id',{ascending:true}).limit(10000);
   if(error){rCerFrutosRegs=rCerFrutosRegs||[];return;}
@@ -2305,7 +2305,17 @@ function rnRaleoProd(e){
   ${kg26blk}
   ${esNuevo?'<div style="text-align:center;font-size:11px;font-family:var(--mo);color:var(--tm);margin-top:-6px;margin-bottom:12px">*Cuartel sin dato 2025 — comparado contra la meta 2026</div>':''}`;
 }
-// ── CEREZO PRODUCCIÓN (RALEO) — usa Frutos/Dardo y Frutos/Ramilla reales del "Conteo de Frutos" ──
+// ── CEREZO PRODUCCIÓN (RALEO) — usa Frutos/Dardo y Frutos/Ramilla reales del "Conteo de Frutos",
+// más el promedio real de dardos/ramillas que quedaron por cuartel (mismo dato que usa la Poda) ──
+function cerPodaAvgDardosRamillas(cuartel){
+  const todos=(cRegs||[]).filter(r=>r.c===cuartel);
+  const post=todos.filter(r=>(r.tipo||'pre')==='post');
+  const usar=post.length?post:todos;
+  if(!usar.length)return{avgDar:null,avgRam:null,n:0};
+  const sDar=usar.reduce((s,r)=>s+(r.tot||0),0);
+  const sRam=usar.reduce((s,r)=>s+(r.ram||0),0);
+  return{avgDar:sDar/usar.length,avgRam:sRam/usar.length,n:usar.length};
+}
 function rnRaleoProdCer(){
   const el=document.getElementById('rcer-dprod');if(!el)return;
   const st=RALEO_PROD_STYLE.cer;
@@ -2313,36 +2323,41 @@ function rnRaleoProdCer(){
   const allRegs=rCerFrutosRegs||[];
   const regs=v==='hoy'?allRegs.filter(r=>r.ts&&r.ts.includes(hoy())):allRegs;
   if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(v==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
-  const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0};const m=map[r.c];m.sDar+=r.dar;m.sFrDar+=r.frdar;m.sRam+=r.ram;m.sFrRam+=r.frram;m.n++;});
-  const stats={};Object.keys(map).forEach(c=>{const m=map[c];stats[c]={avgDar:m.n?m.sDar/m.n:null,avgRam:m.n?m.sRam/m.n:null,fxd:m.sDar?m.sFrDar/m.sDar:null,fxr:m.sRam?m.sFrRam/m.sRam:null,n:m.n};});
+  const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sFrDar:0,sFrRam:0,sDarCnt:0,sRamCnt:0,n:0};const m=map[r.c];m.sFrDar+=r.frdar;m.sFrRam+=r.frram;m.sDarCnt+=r.dar;m.sRamCnt+=r.ram;m.n++;});
+  const stats={};Object.keys(map).forEach(c=>{const m=map[c];stats[c]={fxd:m.sDarCnt?m.sFrDar/m.sDarCnt:null,fxr:m.sRamCnt?m.sFrRam/m.sRamCnt:null,n:m.n};});
   if(!raleoProdCuartel.cer||stats[raleoProdCuartel.cer]===undefined)raleoProdCuartel.cer=Object.keys(stats)[0];
   const cSel=raleoProdCuartel.cer;
   const rd=PROD_CER.find(r=>r[0]===cSel)||PROD_CER[0];
   const c=rd[0],vr=rd[1],ha=rd[2],kgHa25=rd[3],kgTot25=rd[4],kgHaMeta=rd[5],kgTotMeta=rd[6],pFruto=rd[8],pHa=rd[9],dar25=rd[10],fDar25=rd[11],ram25=rd[15],fxr25=rd[16],cargElim25=rd[17],pFruto25=rd[18];
-  const s=stats[c]||{avgDar:null,avgRam:null,fxd:null,fxr:null,n:0};
+  const s=stats[c]||{fxd:null,fxr:null,n:0};
+  const pod=cerPodaAvgDardosRamillas(c);
   const totCq=s.n;
-  const avgDarTxt=s.avgDar!==null?s.avgDar.toFixed(1):'-';
-  const avgRamTxt=s.avgRam!==null?s.avgRam.toFixed(1):'-';
-  let pctDif='-',pctColor='inherit',pctIcon='';
-  if(dar25&&s.avgDar!==null){const diffVal=(s.avgDar/dar25*100-100).toFixed(1);pctDif=(diffVal>=0?'+':'')+diffVal+'%';pctColor=parseFloat(diffVal)>=0?'#0E6655':'#791F1F';pctIcon=parseFloat(diffVal)>=0?'↑':'↓';}
   const opts=PROD_CER.filter(r=>stats[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cSel?' selected':''}>${r[0]}${r[1]?' · '+r[1]:''}</option>`).join('');
   const noDatoBlk=(titulo)=>`<div style="background:#fff;border:2px solid ${st.border};border-radius:10px;padding:12px 14px;margin-bottom:14px"><div style="font-size:10px;font-family:var(--mo);color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;font-weight:600">📊 ${titulo}</div><div style="font-size:12px;font-family:var(--mo);color:var(--tm);padding:8px 0">Sin conteos de este tipo para este cuartel</div></div>`;
   const fxdCalc=s.fxd!==null?s.fxd:0,fxrCalc=s.fxr!==null?s.fxr:0;
-  const frutosPlanta=((dar25||0)*fxdCalc)+((ram25||0)*fxrCalc);
-  const hayDatos=(s.fxd!==null&&dar25)||(s.fxr!==null&&ram25);
+  const darUsar=pod.avgDar||0,ramUsar=pod.avgRam||0;
+  const frutosPlanta=(darUsar*fxdCalc)+(ramUsar*fxrCalc);
+  const hayDatos=(s.fxd!==null&&darUsar)||(s.fxr!==null&&ramUsar);
   const kgBlk=hayDatos?kgEstBlock(frutosPlanta,1,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,st.border):noDatoBlk(`Estimación de Kilos — ${c}`);
-  el.innerHTML=`<button class="ref-btn ${st.refCls}" onclick="loadFrutosCer().then(()=>rnRaleoProdCer())"><i class="ti ti-refresh"></i>Actualizar</button>
+  const darTxt=pod.avgDar!==null?pod.avgDar.toFixed(1):'-';
+  const ramTxt=pod.avgRam!==null?pod.avgRam.toFixed(1):'-';
+  let pctDarDif='-',pctDarColor='inherit',pctDarIcon='';
+  if(dar25&&pod.avgDar!==null){const dv=(pod.avgDar/dar25*100-100).toFixed(1);pctDarDif=(dv>=0?'+':'')+dv+'%';pctDarColor=parseFloat(dv)>=0?'#0E6655':'#791F1F';pctDarIcon=parseFloat(dv)>=0?'↑':'↓';}
+  let pctRamDif='-',pctRamColor='inherit',pctRamIcon='';
+  if(ram25&&pod.avgRam!==null){const dv=(pod.avgRam/ram25*100-100).toFixed(1);pctRamDif=(dv>=0?'+':'')+dv+'%';pctRamColor=parseFloat(dv)>=0?'#0E6655':'#791F1F';pctRamIcon=parseFloat(dv)>=0?'↑':'↓';}
+  el.innerHTML=`<button class="ref-btn ${st.refCls}" onclick="Promise.all([loadFrutosCer(),loadCer()]).then(()=>rnRaleoProdCer())"><i class="ti ti-refresh"></i>Actualizar</button>
   ${v==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   ${selectorDropdown(opts,`raleoProdCuartel.cer=this.value;rnRaleoProdCer()`,st.border,st.text)}
   <div class="stats2">
     <div class="scard" style="grid-column:1/-1"><div class="slbl">Total conteos</div><div class="sval">${totCq}</div><div class="ssub">${c}${vr?' · '+vr:''}</div></div>
     <div class="scard"><div class="slbl">Dardos 2025</div><div class="sval" style="color:#555">${dar25??'—'}</div><div class="ssub">año anterior</div></div>
-    <div class="scard"><div class="slbl">Prom. dardos 2026</div><div class="sval" style="color:${st.text}">${avgDarTxt}</div><div class="ssub">promedio real · ${v==='hoy'?'hoy':'acumulado'}</div></div>
-    <div class="scard" style="grid-column:1/-1"><div class="slbl">Diferencia</div><div class="sval" style="color:${pctColor};font-weight:700">${pctIcon} ${pctDif}</div><div class="ssub">2026 vs 2025</div></div>
+    <div class="scard"><div class="slbl">Dardos/planta 2026</div><div class="sval" style="color:${st.text}">${darTxt}</div><div class="ssub">promedio real que quedó (Poda)</div></div>
+    <div class="scard" style="grid-column:1/-1"><div class="slbl">Diferencia dardos</div><div class="sval" style="color:${pctDarColor};font-weight:700">${pctDarIcon} ${pctDarDif}</div><div class="ssub">2026 vs 2025</div></div>
     <div class="scard"><div class="slbl">Frutos/Dardo 2025</div><div class="sval" style="color:#555">${fDar25??'—'}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Frutos/Dardo 2026</div><div class="sval" style="color:${st.text}">${s.fxd!==null?s.fxd.toFixed(1):'-'}</div><div class="ssub">real · ${v==='hoy'?'hoy':'acumulado'}</div></div>
-    <div class="scard"><div class="slbl">Ramillas/Planta 2025</div><div class="sval" style="color:#555">${ram25??'—'}</div><div class="ssub">real año anterior</div></div>
-    <div class="scard"><div class="slbl">Ramillas/Planta 2026</div><div class="sval" style="color:${st.text}">${avgRamTxt}</div><div class="ssub">promedio real · ${v==='hoy'?'hoy':'acumulado'}</div></div>
+    <div class="scard"><div class="slbl">Ramillas 2025</div><div class="sval" style="color:#555">${ram25??'—'}</div><div class="ssub">año anterior</div></div>
+    <div class="scard"><div class="slbl">Ramillas/planta 2026</div><div class="sval" style="color:${st.text}">${ramTxt}</div><div class="ssub">promedio real que quedó (Poda)</div></div>
+    <div class="scard" style="grid-column:1/-1"><div class="slbl">Diferencia ramillas</div><div class="sval" style="color:${pctRamColor};font-weight:700">${pctRamIcon} ${pctRamDif}</div><div class="ssub">2026 vs 2025</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2025</div><div class="sval" style="color:#555">${fxr25??'—'}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2026</div><div class="sval" style="color:${st.text}">${s.fxr!==null?s.fxr.toFixed(1):'-'}</div><div class="ssub">real · ${v==='hoy'?'hoy':'acumulado'}</div></div>
     <div class="scard"><div class="slbl">Carg. eliminados 2025</div><div class="sval" style="color:#555">${cargElim25??'—'}</div><div class="ssub">real año anterior</div></div>
