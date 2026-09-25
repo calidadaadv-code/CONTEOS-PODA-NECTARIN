@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.52.0 -->
+  <!-- v6.53.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2515,20 +2515,6 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
   const minList=supRows.slice().sort((a,b)=>a.min-b.min).map(s=>({label:s.sup,val:s.min+cfg.unit}));
   const maxList=supRows.slice().sort((a,b)=>b.max-a.max).map(s=>({label:s.sup,val:s.max+cfg.unit}));
   const supCont=supRows.map(s=>({sup:s.sup,comp:[...s.comps].join(', ')||'Sin contratista'}));
-  let rangoAnalisis;
-  if(cfg.metric==='fru'){
-    const objTxt=rangoObjetivo?` (rango técnico ${rangoObjetivo.mn}–${rangoObjetivo.mx}, ideal ${rangoObjetivo.ob} frutos/planta)`:'';
-    rangoAnalisis=`De los ${n} conteos registrados, un ${pDn}% (${dn}) se ubica dentro del rango técnico de carga frutal${objTxt}, reflejando un ajuste adecuado entre la relación fuente–demanda de la planta.`;
-    if(pAl>0)rangoAnalisis+=` El ${pAl}% (${al}) supera el máximo, lo que evidencia raleo insuficiente: una carga sobre el óptimo compite por fotoasimilados, reduce el calibre esperado y aumenta el riesgo de vecería (alternancia productiva) para la próxima temporada.`;
-    if(pBj>0)rangoAnalisis+=` El ${pBj}% (${bj}) está bajo el mínimo, lo que indica raleo excesivo: una carga insuficiente favorece calibres sobredimensionados —con menor firmeza y vida de poscosecha— y un uso ineficiente del potencial productivo de la planta.`;
-    rangoAnalisis+=' El cumplimiento del rango numérico no garantiza por sí solo una carga efectiva de calidad: ramillas sin ralear, exceso de frutos por ramilla, racimos/montones o fruta pegada al eje pueden estar inflando el conteo sin representar carga definitiva.';
-    if(pDn<70)rangoAnalisis+=` Con un cumplimiento del ${pDn}%, se recomienda reforzar la supervisión y el repaso de raleo en terreno, priorizando ${pAl>=pBj?'las plantas con exceso de carga':'las plantas con carga insuficiente'}.`;
-  }else{
-    rangoAnalisis=`De los ${n} conteos registrados, un ${pDn}% (${dn}) cumple el objetivo de raleo de yemas establecido para el cuartel.`;
-    if(pAl>0)rangoAnalisis+=` Un ${pAl}% (${al}) se encuentra sobre el objetivo, lo que puede desbalancear la carga de la temporada.`;
-    if(pBj>0)rangoAnalisis+=` Un ${pBj}% (${bj}) está bajo el objetivo, lo que puede reducir el potencial de cuaja y la carga frutal posterior.`;
-    if(pDn<70)rangoAnalisis+=' Se recomienda reforzar la capacitación y supervisión del raleo de yemas en este cuartel.';
-  }
   drawDashboardPDF({
     titulo:cfg.label.toUpperCase(),cuartel,variedad,fecha,colorHex:cfg.color,
     kpis:[
@@ -2538,7 +2524,6 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
       {label:'Conteo Más Bajo',val:minR[cfg.metric]+cfg.unit,list:minList}
     ],
     rango:{pBj,pDn,pAl,bj,dn,al},
-    rangoAnalisis,
     rangoObjetivo,
     supCont,
     fileName:`Dashboard_${cfg.label.replace(/[^a-zA-Z0-9]+/g,'_')}_${cuartel}_${fecha}.pdf`
@@ -2589,16 +2574,14 @@ async function drawDashboardPDF(opts){
   const {jsPDF}=window.jspdf;
   const [r,g,b]=hex2rgb(opts.colorHex);
   // ── Pre-render charts as images (mientras el doc aún no existe) ──
-  let rangoBarImg=null,bar2Img=null;
+  let rangoDonutImg=null,bar2Img=null;
   if(opts.rango&&window.Chart){
-    rangoBarImg=await renderChartImg({
-      type:'bar',
+    rangoDonutImg=await renderChartImg({
+      type:'doughnut',
       data:{labels:['Bajo mínimo','Dentro del rango','Sobre máximo'],
-        datasets:[{data:[opts.rango.pBj,opts.rango.pDn,opts.rango.pAl],backgroundColor:['#C0392B','#0E6655','#7B4B06'],borderRadius:6,barPercentage:0.65}]},
-      options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{enabled:false}},
-        scales:{x:{min:0,max:100,ticks:{font:{size:22},stepSize:20,callback:v=>v+'%'},grid:{color:'#e8e8e4'}},y:{ticks:{font:{size:24}},grid:{display:false}}},
-        layout:{padding:{right:25,left:5,top:10,bottom:5}}}
-    },900,420);
+        datasets:[{data:[opts.rango.bj,opts.rango.dn,opts.rango.al],backgroundColor:['#C0392B','#0E6655','#7B4B06'],borderColor:'#ffffff',borderWidth:6}]},
+      options:{cutout:'62%',plugins:{legend:{display:false},tooltip:{enabled:false}}}
+    },700,700);
   }
   if(opts.barChart2&&window.Chart&&opts.barChart2.labels.length){
     const bc=opts.barChart2;
@@ -2671,38 +2654,25 @@ async function drawDashboardPDF(opts){
   if(opts.rango){
     doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
     doc.text('CONTROL DE CALIDAD DEL RALEO',startX,y);
-    y+=6;
-    const chartH=42;
-    if(rangoBarImg){
-      try{doc.addImage(rangoBarImg,'PNG',startX,y,180,chartH);}catch(e){}
+    y+=8;
+    const donutSize=55;
+    const donutX=startX+(180-donutSize)/2;
+    if(rangoDonutImg){
+      try{doc.addImage(rangoDonutImg,'PNG',donutX,y,donutSize,donutSize);}catch(e){}
     }
-    y+=chartH+5;
+    y+=donutSize+10;
     const legend=[['Bajo mínimo',[192,57,43],opts.rango.pBj,opts.rango.bj],['Dentro del rango',[14,102,85],opts.rango.pDn,opts.rango.dn],['Sobre máximo',[123,75,6],opts.rango.pAl,opts.rango.al]];
     const legW=180/3;
     legend.forEach(([lbl,col,pct,cnt],i)=>{
-      const lx=startX+i*legW;
+      const lx=startX+i*legW+legW/2;
       doc.setFillColor(col[0],col[1],col[2]);
-      doc.rect(lx,y-3,3,3,'F');
+      doc.rect(lx-legW/2+8,y-3,3,3,'F');
       doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(9);
-      doc.text(`${pct}%`,lx+5,y);
+      doc.text(`${pct}%`,lx+3,y,{align:'center'});
       doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(120,120,115);
-      doc.text(`${lbl} (${cnt})`,lx+5,y+4.2,{maxWidth:legW-8});
+      doc.text(`${lbl} (${cnt})`,lx+3,y+4.2,{align:'center',maxWidth:legW-8});
     });
-    y+=13;
-    if(opts.rangoAnalisis){
-      doc.setFont('helvetica','normal');doc.setFontSize(8);
-      const lines=doc.splitTextToSize(opts.rangoAnalisis,168);
-      const boxH3=lines.length*4.2+9;
-      doc.setFillColor(250,247,240);doc.setDrawColor(225,215,195);
-      doc.roundedRect(startX,y,180,boxH3,2.5,2.5,'FD');
-      doc.setTextColor(140,110,30);doc.setFont('helvetica','bold');doc.setFontSize(7);
-      doc.text('ANÁLISIS',startX+6,y+6.5);
-      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(70,70,65);
-      doc.text(lines,startX+6,y+12);
-      y+=boxH3+10;
-    }else{
-      y+=6;
-    }
+    y+=20;
   }
   if(opts.rangoObjetivo){
     if(y>240){doc.addPage();y=20;}
