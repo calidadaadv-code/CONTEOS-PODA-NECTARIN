@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.53.0 -->
+  <!-- v6.54.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2515,6 +2515,16 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
   const minList=supRows.slice().sort((a,b)=>a.min-b.min).map(s=>({label:s.sup,val:s.min+cfg.unit}));
   const maxList=supRows.slice().sort((a,b)=>b.max-a.max).map(s=>({label:s.sup,val:s.max+cfg.unit}));
   const supCont=supRows.map(s=>({sup:s.sup,comp:[...s.comps].join(', ')||'Sin contratista'}));
+  let criterios=null;
+  if(especie!=='cer'){
+    const ccKey=`CC${especie.charAt(0).toUpperCase()+especie.slice(1)}Regs`;
+    const ccAll=window[ccKey]||[];
+    const ccRegs=ccAll.filter(r=>r.c===cuartel&&r.ts&&r.ts.includes(fecha));
+    const CRITc=CC_CRITERIOS.raleo;
+    const totSc=new Array(CRITc.length).fill(0),totCc=new Array(CRITc.length).fill(0);
+    ccRegs.forEach(rr=>{(rr.pauta||[]).forEach(h=>{CRITc.forEach((cr,ci)=>{const sc=h.scores?h.scores[ci]:0;if(sc>0){totSc[ci]+=sc;totCc[ci]++;}});});});
+    criterios=CRITc.map((cr,ci)=>{const avgc=totCc[ci]?totSc[ci]/totCc[ci]:null;const pctc=avgc!==null?ccScorePct(avgc):null;return {label:cr.label,pct:pctc,rango:cr.rango};});
+  }
   drawDashboardPDF({
     titulo:cfg.label.toUpperCase(),cuartel,variedad,fecha,colorHex:cfg.color,
     kpis:[
@@ -2524,6 +2534,7 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
       {label:'Conteo Más Bajo',val:minR[cfg.metric]+cfg.unit,list:minList}
     ],
     rango:{pBj,pDn,pAl,bj,dn,al},
+    criterios,
     rangoObjetivo,
     supCont,
     fileName:`Dashboard_${cfg.label.replace(/[^a-zA-Z0-9]+/g,'_')}_${cuartel}_${fecha}.pdf`
@@ -2651,28 +2662,34 @@ async function drawDashboardPDF(opts){
     });
     y+=10;
   }
-  if(opts.rango){
+  if(opts.criterios&&opts.criterios.length){
     doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
     doc.text('CONTROL DE CALIDAD DEL RALEO',startX,y);
-    y+=8;
-    const donutSize=55;
-    const donutX=startX+(180-donutSize)/2;
-    if(rangoDonutImg){
-      try{doc.addImage(rangoDonutImg,'PNG',donutX,y,donutSize,donutSize);}catch(e){}
-    }
-    y+=donutSize+10;
-    const legend=[['Bajo mínimo',[192,57,43],opts.rango.pBj,opts.rango.bj],['Dentro del rango',[14,102,85],opts.rango.pDn,opts.rango.dn],['Sobre máximo',[123,75,6],opts.rango.pAl,opts.rango.al]];
-    const legW=180/3;
-    legend.forEach(([lbl,col,pct,cnt],i)=>{
-      const lx=startX+i*legW+legW/2;
-      doc.setFillColor(col[0],col[1],col[2]);
-      doc.rect(lx-legW/2+8,y-3,3,3,'F');
-      doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(9);
-      doc.text(`${pct}%`,lx+3,y,{align:'center'});
-      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(120,120,115);
-      doc.text(`${lbl} (${cnt})`,lx+3,y+4.2,{align:'center',maxWidth:legW-8});
+    y+=6;
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,140,135);
+    doc.text('Pauta de cumplimiento — promedio del cuartel',startX,y);
+    y+=7;
+    const barFullW=180,trackH=2.4;
+    opts.criterios.forEach((cr,i)=>{
+      const pct=cr.pct;
+      const col=pct===null?[150,150,145]:pct>=cr.rango?[14,102,85]:pct>=cr.rango-15?[183,121,31]:[192,57,43];
+      doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(60,60,60);
+      doc.text(`${i+1}. ${cr.label}  (min. ${cr.rango}%)`,startX,y,{maxWidth:barFullW});
+      y+=5;
+      doc.setFillColor(238,240,238);
+      doc.roundedRect(startX,y,barFullW-20,trackH,1,1,'F');
+      const w=pct!==null?Math.max(2,Math.min(100,pct))/100*(barFullW-20):0;
+      if(w>0){doc.setFillColor(col[0],col[1],col[2]);doc.roundedRect(startX,y,w,trackH,1,1,'F');}
+      doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(col[0],col[1],col[2]);
+      doc.text(pct!==null?`${pct}%`:'—',startX+barFullW,y+2,{align:'right'});
+      y+=trackH+6;
     });
-    y+=20;
+    if(opts.criterios.every(c=>c.pct===null)){
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,140,135);
+      doc.text('Sin registros de Control de Calidad para esta fecha.',startX,y);
+      y+=5;
+    }
+    y+=4;
   }
   if(opts.rangoObjetivo){
     if(y>240){doc.addPage();y=20;}
@@ -2697,6 +2714,28 @@ async function drawDashboardPDF(opts){
     doc.setTextColor(120,120,115);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
     doc.text('MÁXIMO',startX+segW*2.5,y+19.5,{align:'center'});
     y+=cardH+10;
+  }
+  if(opts.rango&&rangoDonutImg){
+    if(y>210){doc.addPage();y=20;}
+    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    doc.text('CUMPLIMIENTO DE RANGO DE FRUTOS',startX,y);
+    y+=8;
+    const donutSize=55;
+    const donutX=startX+(180-donutSize)/2;
+    try{doc.addImage(rangoDonutImg,'PNG',donutX,y,donutSize,donutSize);}catch(e){}
+    y+=donutSize+10;
+    const legend=[['Bajo mínimo',[192,57,43],opts.rango.pBj,opts.rango.bj],['Dentro del rango',[14,102,85],opts.rango.pDn,opts.rango.dn],['Sobre máximo',[123,75,6],opts.rango.pAl,opts.rango.al]];
+    const legW=180/3;
+    legend.forEach(([lbl,col,pct,cnt],i)=>{
+      const lx=startX+i*legW+legW/2;
+      doc.setFillColor(col[0],col[1],col[2]);
+      doc.rect(lx-legW/2+8,y-3,3,3,'F');
+      doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(9);
+      doc.text(`${pct}%`,lx+3,y,{align:'center'});
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(120,120,115);
+      doc.text(`${lbl} (${cnt})`,lx+3,y+4.2,{align:'center',maxWidth:legW-8});
+    });
+    y+=20;
   }
   const listMax=Math.max(0,...opts.kpis.map(k=>k.list?Math.min(k.list.length,8):0));
   const kpiH=listMax>0?(28+3+listMax*2.6+2):28;
