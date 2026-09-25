@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.48.0 -->
+  <!-- v6.49.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2499,19 +2499,28 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
   const bj=regs.filter(r=>r.f==='bajo').length,al=regs.filter(r=>r.f==='alto').length,dn=n-bj-al;
   const pBj=Math.round(bj/n*100),pDn=Math.round(dn/n*100),pAl=Math.round(al/n*100);
   const supMap={};
-  regs.forEach(r=>{const k=r.sup||'Sin supervisor';if(!supMap[k])supMap[k]={sup:k,comps:new Set(),n:0,sum:0,bj:0,dn:0,al:0};const s=supMap[k];s.n++;s.sum+=r[cfg.metric];if(r.comp)s.comps.add(r.comp);if(r.f==='bajo')s.bj++;else if(r.f==='alto')s.al++;else s.dn++;});
+  regs.forEach(r=>{const k=r.sup||'Sin supervisor';if(!supMap[k])supMap[k]={sup:k,comps:new Set(),n:0,sum:0,bj:0,dn:0,al:0,min:r[cfg.metric],max:r[cfg.metric]};const s=supMap[k];s.n++;s.sum+=r[cfg.metric];if(r.comp)s.comps.add(r.comp);if(r.f==='bajo')s.bj++;else if(r.f==='alto')s.al++;else s.dn++;if(r[cfg.metric]<s.min)s.min=r[cfg.metric];if(r[cfg.metric]>s.max)s.max=r[cfg.metric];});
   const supRows=Object.values(supMap).sort((a,b)=>b.n-a.n);
   const chartSupTop=supRows.slice(0,8);
   const promLbl=cfg.metric==='fru'?'Promedio\nFrutos/Planta':`Promedio\n${cfg.metricLabel}`;
   const rangoTabla=cfg.metric==='fru'?(especie==='nec'?RALEO_NEC:especie==='cir'?RALEO_CIR:especie==='duz'?RALEO_DUZ:null):null;
   const rangoObjetivo=(rangoTabla&&rangoTabla[cuartel])?rangoTabla[cuartel]:null;
+  const arrCua=ccCuartelArr(especie);
+  const cuaInfo=arrCua.find(x=>x.n===cuartel);
+  const variedad=cuaInfo?cuaInfo.v:'';
+  const contMap={};
+  regs.forEach(r=>{const k=r.cnt||'Sin contador';contMap[k]=(contMap[k]||0)+1;});
+  const contList=Object.entries(contMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({label:k,val:String(v)}));
+  const promList=supRows.slice().sort((a,b)=>(b.sum/b.n)-(a.sum/a.n)).map(s=>({label:s.sup,val:(s.sum/s.n).toFixed(1)+cfg.unit}));
+  const minList=supRows.slice().sort((a,b)=>a.min-b.min).map(s=>({label:s.sup,val:s.min+cfg.unit}));
+  const maxList=supRows.slice().sort((a,b)=>b.max-a.max).map(s=>({label:s.sup,val:s.max+cfg.unit}));
   drawDashboardPDF({
-    titulo:cfg.label.toUpperCase(),cuartel,fecha,colorHex:cfg.color,
+    titulo:cfg.label.toUpperCase(),cuartel,variedad,fecha,colorHex:cfg.color,
     kpis:[
-      {label:'N° Conteos',val:String(n)},
-      {label:`Promedio ${cfg.metricLabel}`,val:avg.toFixed(1)+cfg.unit},
-      {label:'Conteo Más Alto',val:maxR[cfg.metric]+cfg.unit,sub:maxR.pod||maxR.cnt||''},
-      {label:'Conteo Más Bajo',val:minR[cfg.metric]+cfg.unit,sub:minR.pod||minR.cnt||''}
+      {label:'N° Conteos',val:String(n),list:contList},
+      {label:`Promedio ${cfg.metricLabel}`,val:avg.toFixed(1)+cfg.unit,list:promList},
+      {label:'Conteo Más Alto',val:maxR[cfg.metric]+cfg.unit,sub:maxR.pod||maxR.cnt||'',list:maxList},
+      {label:'Conteo Más Bajo',val:minR[cfg.metric]+cfg.unit,sub:minR.pod||minR.cnt||'',list:minList}
     ],
     rango:{pBj,pDn,pAl,bj,dn,al},
     rangoObjetivo,
@@ -2622,19 +2631,46 @@ async function drawDashboardPDF(opts){
   doc.setFont('helvetica','bold');doc.setFontSize(titleSize);
   doc.text(opts.titulo,56,19,{maxWidth:96});
   doc.setFont('helvetica','normal');doc.setFontSize(8.5);
-  doc.text(`DASHBOARD DIARIO · ${opts.fecha}`,56,27,{maxWidth:96});
-  doc.setFont('helvetica','normal');doc.setFontSize(8);
-  doc.text('CUARTEL',198,15,{align:'right'});
-  doc.setFont('helvetica','bold');doc.setFontSize(30);
-  doc.text(String(opts.cuartel),198,32,{align:'right'});
+  doc.text(`DEPARTAMENTO DE CALIDAD · ${opts.fecha}`,56,27,{maxWidth:96});
+  doc.setFont('helvetica','bold');doc.setFontSize(28);
+  doc.text(String(opts.cuartel),198,18,{align:'right'});
+  if(opts.variedad){
+    doc.setFont('helvetica','bold');doc.setFontSize(13);
+    doc.text(String(opts.variedad),198,28,{align:'right'});
+  }
   let y=54;
+  if(opts.rangoObjetivo){
+    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
+    doc.text('RANGO OBJETIVO DEL CUARTEL (FRUTOS/PLANTA)',startX,y);
+    y+=5;
+    const cardW=180,cardH=24,segW=cardW/3;
+    doc.setFillColor(248,248,246);doc.setDrawColor(225,225,220);
+    doc.roundedRect(startX,y,cardW,cardH,2.5,2.5,'FD');
+    doc.setFillColor(r,g,b);
+    doc.rect(startX+segW,y,segW,cardH,'F');
+    doc.setTextColor(192,57,43);doc.setFont('helvetica','bold');doc.setFontSize(19);
+    doc.text(String(opts.rangoObjetivo.mn),startX+segW/2,y+13,{align:'center'});
+    doc.setTextColor(120,120,115);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+    doc.text('MÍNIMO',startX+segW/2,y+19.5,{align:'center'});
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(22);
+    doc.text(String(opts.rangoObjetivo.ob),startX+segW*1.5,y+14,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+    doc.text('OBJETIVO IDEAL',startX+segW*1.5,y+20.5,{align:'center'});
+    doc.setTextColor(14,102,85);doc.setFont('helvetica','bold');doc.setFontSize(19);
+    doc.text(String(opts.rangoObjetivo.mx),startX+segW*2.5,y+13,{align:'center'});
+    doc.setTextColor(120,120,115);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+    doc.text('MÁXIMO',startX+segW*2.5,y+19.5,{align:'center'});
+    y+=cardH+10;
+  }
   const boxW=42,gap=4;
+  const listMax=Math.max(0,...opts.kpis.map(k=>k.list?Math.min(k.list.length,8):0));
+  const kpiH=listMax>0?(28+3+listMax*2.6+2):28;
   opts.kpis.forEach((k,i)=>{
     const x=startX+i*(boxW+gap);
     const isMain=i===0;
     doc.setFillColor(isMain?r:248,isMain?g:248,isMain?b:246);
     doc.setDrawColor(225,225,220);
-    doc.roundedRect(x,y,boxW,28,2.5,2.5,isMain?'F':'FD');
+    doc.roundedRect(x,y,boxW,kpiH,2.5,2.5,isMain?'F':'FD');
     doc.setTextColor(isMain?255:r,isMain?255:g,isMain?255:b);
     doc.setFont('helvetica','bold');doc.setFontSize(isMain?20:17);
     doc.text(k.val,x+boxW/2,y+14,{align:'center'});
@@ -2642,8 +2678,28 @@ async function drawDashboardPDF(opts){
     doc.setFont('helvetica','normal');doc.setFontSize(7);
     doc.text(k.label.toUpperCase(),x+boxW/2,y+20,{align:'center',maxWidth:boxW-4});
     if(k.sub){doc.setFontSize(6.5);doc.text(String(k.sub),x+boxW/2,y+25,{align:'center',maxWidth:boxW-4});}
+    if(k.list&&k.list.length){
+      let ly=y+29;
+      doc.setDrawColor(isMain?255:225,isMain?255:225,isMain?255:220);
+      doc.line(x+4,ly-2,x+boxW-4,ly-2);
+      doc.setFont('helvetica','normal');doc.setFontSize(5.3);
+      const rows=k.list.slice(0,8);
+      rows.forEach(it=>{
+        doc.setTextColor(isMain?255:70,isMain?255:70,isMain?255:65);
+        doc.text(String(it.label),x+3,ly,{maxWidth:boxW-14});
+        doc.setFont('helvetica','bold');
+        doc.text(String(it.val),x+boxW-3,ly,{align:'right'});
+        doc.setFont('helvetica','normal');
+        ly+=2.6;
+      });
+      if(k.list.length>8){
+        doc.setTextColor(isMain?230:140,isMain?230:140,isMain?230:135);
+        doc.setFontSize(5);
+        doc.text(`+${k.list.length-8} más`,x+boxW/2,ly,{align:'center'});
+      }
+    }
   });
-  y+=38;
+  y+=kpiH+10;
   // ── Sección gráfica: donut (rango) + barra (por supervisor) lado a lado ──
   if(opts.rango||opts.barChart||opts.barChart2){
     const chartTop=y;
@@ -2689,29 +2745,6 @@ async function drawDashboardPDF(opts){
       y=Math.max(y,leftBottom);
     }
     y+=10;
-  }
-  if(opts.rangoObjetivo){
-    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
-    doc.text('RANGO OBJETIVO DEL CUARTEL (FRUTOS/PLANTA)',startX,y);
-    y+=5;
-    const cardW=180,cardH=24,segW=cardW/3;
-    doc.setFillColor(248,248,246);doc.setDrawColor(225,225,220);
-    doc.roundedRect(startX,y,cardW,cardH,2.5,2.5,'FD');
-    doc.setFillColor(r,g,b);
-    doc.rect(startX+segW,y,segW,cardH,'F');
-    doc.setTextColor(192,57,43);doc.setFont('helvetica','bold');doc.setFontSize(19);
-    doc.text(String(opts.rangoObjetivo.mn),startX+segW/2,y+13,{align:'center'});
-    doc.setTextColor(120,120,115);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
-    doc.text('MÍNIMO',startX+segW/2,y+19.5,{align:'center'});
-    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(22);
-    doc.text(String(opts.rangoObjetivo.ob),startX+segW*1.5,y+14,{align:'center'});
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);
-    doc.text('OBJETIVO IDEAL',startX+segW*1.5,y+20.5,{align:'center'});
-    doc.setTextColor(14,102,85);doc.setFont('helvetica','bold');doc.setFontSize(19);
-    doc.text(String(opts.rangoObjetivo.mx),startX+segW*2.5,y+13,{align:'center'});
-    doc.setTextColor(120,120,115);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
-    doc.text('MÁXIMO',startX+segW*2.5,y+19.5,{align:'center'});
-    y+=cardH+10;
   }
   doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
   doc.text(opts.tablaTitulo,startX,y);
