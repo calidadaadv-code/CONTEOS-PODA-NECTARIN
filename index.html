@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.50.0 -->
+  <!-- v6.51.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2514,7 +2514,7 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
   const promList=supRows.slice().sort((a,b)=>(b.sum/b.n)-(a.sum/a.n)).map(s=>({label:s.sup,val:(s.sum/s.n).toFixed(1)+cfg.unit}));
   const minList=supRows.slice().sort((a,b)=>a.min-b.min).map(s=>({label:s.sup,val:s.min+cfg.unit}));
   const maxList=supRows.slice().sort((a,b)=>b.max-a.max).map(s=>({label:s.sup,val:s.max+cfg.unit}));
-  const supCont=supRows.map(s=>`${s.sup} — ${[...s.comps].join(', ')||'Sin contratista'}`);
+  const supCont=supRows.map(s=>({sup:s.sup,comp:[...s.comps].join(', ')||'Sin contratista'}));
   let rangoAnalisis=`El ${pDn}% de los conteos (${dn} de ${n}) se encuentra dentro del rango ideal de carga frutal.`;
   if(pAl>0)rangoAnalisis+=` Un ${pAl}% (${al}) supera el máximo permitido, lo que puede indicar raleo insuficiente.`;
   if(pBj>0)rangoAnalisis+=` Un ${pBj}% (${bj}) está bajo el mínimo, lo que puede indicar raleo excesivo.`;
@@ -2609,6 +2609,17 @@ async function drawDashboardPDF(opts){
     },900,Math.max(340,bc.labels.length*110));
   }
   const doc=new jsPDF({unit:'mm',format:'a4'});
+  const fitText=(s,maxW)=>{
+    s=String(s);
+    if(doc.getTextWidth(s)<=maxW)return s;
+    let lo=0,hi=s.length;
+    while(lo<hi){
+      const mid=Math.ceil((lo+hi)/2);
+      const cand=s.slice(0,mid)+'…';
+      if(doc.getTextWidth(cand)<=maxW)lo=mid;else hi=mid-1;
+    }
+    return s.slice(0,lo)+'…';
+  };
   const pageW=210,startX=15;
   doc.setFillColor(r,g,b);
   doc.rect(0,0,pageW,40,'F');
@@ -2634,23 +2645,23 @@ async function drawDashboardPDF(opts){
   if(opts.supCont&&opts.supCont.length){
     doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
     doc.text('SUPERVISORES Y CONTRATISTAS EN TERRENO',startX,y);
-    y+=5;
-    const boxW2=180,perCol=Math.ceil(opts.supCont.length/2),lineH=4.4;
-    const boxH2=Math.max(14,perCol*lineH+6);
-    doc.setFillColor(248,248,246);doc.setDrawColor(225,225,220);
-    doc.roundedRect(startX,y,boxW2,boxH2,2.5,2.5,'FD');
-    const colW2=boxW2/2;
-    doc.setFont('helvetica','normal');doc.setFontSize(7.3);
-    opts.supCont.forEach((txt,i)=>{
-      const col=i<perCol?0:1;
-      const row=i<perCol?i:i-perCol;
-      const cx=startX+9+col*colW2;
-      const cy=y+7+row*lineH;
+    y+=6;
+    const tW2=180,colW2=[tW2*0.42,tW2*0.58],colX2=[startX,startX+colW2[0]],rowH2=9;
+    doc.setFillColor(r,g,b);
+    doc.rect(startX,y,tW2,7,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7.5);
+    doc.text('SUPERVISOR',colX2[0]+3,y+4.8);
+    doc.text('CONTRATISTA',colX2[1]+3,y+4.8);
+    y+=7;
+    doc.setFont('helvetica','normal');doc.setFontSize(8);
+    opts.supCont.forEach((it,i)=>{
+      if(i%2===0){doc.setFillColor(248,248,246);doc.rect(startX,y,tW2,rowH2,'F');}
       doc.setTextColor(60,60,60);
-      doc.text('•',cx-5,cy);
-      doc.text(txt,cx,cy,{maxWidth:colW2-16});
+      doc.text(fitText(it.sup,colW2[0]-6),colX2[0]+3,y+6);
+      doc.text(fitText(it.comp,colW2[1]-6),colX2[1]+3,y+6);
+      y+=rowH2;
     });
-    y+=boxH2+10;
+    y+=10;
   }
   if(opts.rango){
     doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
@@ -2792,17 +2803,6 @@ async function drawDashboardPDF(opts){
   drawTableHeader();
   doc.setFont('helvetica','normal');doc.setFontSize(8);
   const rowH=9;
-  const fitText=(s,maxW)=>{
-    s=String(s);
-    if(doc.getTextWidth(s)<=maxW)return s;
-    let lo=0,hi=s.length;
-    while(lo<hi){
-      const mid=Math.ceil((lo+hi)/2);
-      const cand=s.slice(0,mid)+'…';
-      if(doc.getTextWidth(cand)<=maxW)lo=mid;else hi=mid-1;
-    }
-    return s.slice(0,lo)+'…';
-  };
   opts.tablaRows.forEach((row,ri)=>{
     if(y>265){doc.addPage();y=20;drawTableHeader();doc.setFont('helvetica','normal');doc.setFontSize(8);}
     if(ri%2===0){doc.setFillColor(248,248,246);doc.rect(startX,y,tableW,rowH,'F');}
