@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.51.0 -->
+  <!-- v6.52.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2515,10 +2515,20 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
   const minList=supRows.slice().sort((a,b)=>a.min-b.min).map(s=>({label:s.sup,val:s.min+cfg.unit}));
   const maxList=supRows.slice().sort((a,b)=>b.max-a.max).map(s=>({label:s.sup,val:s.max+cfg.unit}));
   const supCont=supRows.map(s=>({sup:s.sup,comp:[...s.comps].join(', ')||'Sin contratista'}));
-  let rangoAnalisis=`El ${pDn}% de los conteos (${dn} de ${n}) se encuentra dentro del rango ideal de carga frutal.`;
-  if(pAl>0)rangoAnalisis+=` Un ${pAl}% (${al}) supera el máximo permitido, lo que puede indicar raleo insuficiente.`;
-  if(pBj>0)rangoAnalisis+=` Un ${pBj}% (${bj}) está bajo el mínimo, lo que puede indicar raleo excesivo.`;
-  if(pDn<70)rangoAnalisis+=' Se recomienda reforzar la supervisión y el repaso del raleo en este cuartel.';
+  let rangoAnalisis;
+  if(cfg.metric==='fru'){
+    const objTxt=rangoObjetivo?` (rango técnico ${rangoObjetivo.mn}–${rangoObjetivo.mx}, ideal ${rangoObjetivo.ob} frutos/planta)`:'';
+    rangoAnalisis=`De los ${n} conteos registrados, un ${pDn}% (${dn}) se ubica dentro del rango técnico de carga frutal${objTxt}, reflejando un ajuste adecuado entre la relación fuente–demanda de la planta.`;
+    if(pAl>0)rangoAnalisis+=` El ${pAl}% (${al}) supera el máximo, lo que evidencia raleo insuficiente: una carga sobre el óptimo compite por fotoasimilados, reduce el calibre esperado y aumenta el riesgo de vecería (alternancia productiva) para la próxima temporada.`;
+    if(pBj>0)rangoAnalisis+=` El ${pBj}% (${bj}) está bajo el mínimo, lo que indica raleo excesivo: una carga insuficiente favorece calibres sobredimensionados —con menor firmeza y vida de poscosecha— y un uso ineficiente del potencial productivo de la planta.`;
+    rangoAnalisis+=' El cumplimiento del rango numérico no garantiza por sí solo una carga efectiva de calidad: ramillas sin ralear, exceso de frutos por ramilla, racimos/montones o fruta pegada al eje pueden estar inflando el conteo sin representar carga definitiva.';
+    if(pDn<70)rangoAnalisis+=` Con un cumplimiento del ${pDn}%, se recomienda reforzar la supervisión y el repaso de raleo en terreno, priorizando ${pAl>=pBj?'las plantas con exceso de carga':'las plantas con carga insuficiente'}.`;
+  }else{
+    rangoAnalisis=`De los ${n} conteos registrados, un ${pDn}% (${dn}) cumple el objetivo de raleo de yemas establecido para el cuartel.`;
+    if(pAl>0)rangoAnalisis+=` Un ${pAl}% (${al}) se encuentra sobre el objetivo, lo que puede desbalancear la carga de la temporada.`;
+    if(pBj>0)rangoAnalisis+=` Un ${pBj}% (${bj}) está bajo el objetivo, lo que puede reducir el potencial de cuaja y la carga frutal posterior.`;
+    if(pDn<70)rangoAnalisis+=' Se recomienda reforzar la capacitación y supervisión del raleo de yemas en este cuartel.';
+  }
   drawDashboardPDF({
     titulo:cfg.label.toUpperCase(),cuartel,variedad,fecha,colorHex:cfg.color,
     kpis:[
@@ -2531,11 +2541,6 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
     rangoAnalisis,
     rangoObjetivo,
     supCont,
-    tablaTitulo:'POR CONTRATISTA · SUPERVISOR',
-    tablaCols:['Supervisor','Contratista',promLbl,'% Bajo el\nMínimo','% Dentro del\nRango','% Sobre el\nMáximo'],
-    colWidths:[1.5,1.3,1.05,1.05,1.15,1.05],
-    colAlign:['left','left','center','center','center','center'],
-    tablaRows:supRows.map(s=>[s.sup,[...s.comps].join(', ')||'—',(s.sum/s.n).toFixed(1)+cfg.unit,Math.round(s.bj/s.n*100)+'%',Math.round(s.dn/s.n*100)+'%',Math.round(s.al/s.n*100)+'%']),
     fileName:`Dashboard_${cfg.label.replace(/[^a-zA-Z0-9]+/g,'_')}_${cuartel}_${fecha}.pdf`
   });
 }
@@ -2700,6 +2705,7 @@ async function drawDashboardPDF(opts){
     }
   }
   if(opts.rangoObjetivo){
+    if(y>240){doc.addPage();y=20;}
     doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
     doc.text('RANGO OBJETIVO DEL CUARTEL (FRUTOS/PLANTA)',startX,y);
     y+=5;
@@ -2722,12 +2728,13 @@ async function drawDashboardPDF(opts){
     doc.text('MÁXIMO',startX+segW*2.5,y+19.5,{align:'center'});
     y+=cardH+10;
   }
+  const listMax=Math.max(0,...opts.kpis.map(k=>k.list?Math.min(k.list.length,8):0));
+  const kpiH=listMax>0?(28+3+listMax*2.6+2):28;
+  if(y+kpiH+17>287){doc.addPage();y=20;}
   doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
   doc.text('RESUMEN DE CONTEOS',startX,y);
   y+=7;
   const boxW=42,gap=4;
-  const listMax=Math.max(0,...opts.kpis.map(k=>k.list?Math.min(k.list.length,8):0));
-  const kpiH=listMax>0?(28+3+listMax*2.6+2):28;
   opts.kpis.forEach((k,i)=>{
     const x=startX+i*(boxW+gap);
     const isMain=i===0;
@@ -2771,48 +2778,50 @@ async function drawDashboardPDF(opts){
     try{doc.addImage(bar2Img,'PNG',startX,y,180,bH);}catch(e){}
     y+=bH+10;
   }
-  if(y>190){doc.addPage();y=20;}
-  doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
-  doc.text(opts.tablaTitulo,startX,y);
-  doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,140,135);
-  doc.text('Detalle completo de todos los conteos registrados',startX,y+4.5);
-  y+=10;
-  const cols=opts.tablaCols;
-  const tableW=180;
-  const weights=opts.colWidths||cols.map(()=>1);
-  const wSum=weights.reduce((a,b)=>a+b,0);
-  const colWs=weights.map(w=>tableW*w/wSum);
-  const colX=[];let acc=startX;colWs.forEach(w=>{colX.push(acc);acc+=w;});
-  const align=opts.colAlign||cols.map(()=>'center');
-  const colsLines=cols.map(c=>c.toUpperCase().split('\n'));
-  const maxHdrLines=Math.max(...colsLines.map(l=>l.length));
-  const headerH=maxHdrLines>1?(7+(maxHdrLines-1)*3.6):8;
-  const drawTableHeader=()=>{
-    doc.setFillColor(r,g,b);
-    doc.rect(startX,y,tableW,headerH,'F');
-    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7);
-    colsLines.forEach((lines,i)=>{
-      const cx=align[i]==='left'?colX[i]+2:colX[i]+colWs[i]/2;
-      const al=align[i]==='left'?'left':'center';
-      const totalH=(lines.length-1)*3.4;
-      const startY=headerH/2-totalH/2+2.4;
-      lines.forEach((ln,li)=>{doc.text(ln,cx,y+startY+li*3.4,{align:al,maxWidth:colWs[i]-3});});
+  if(opts.tablaRows&&opts.tablaRows.length){
+    if(y>190){doc.addPage();y=20;}
+    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    doc.text(opts.tablaTitulo,startX,y);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,140,135);
+    doc.text('Detalle completo de todos los conteos registrados',startX,y+4.5);
+    y+=10;
+    const cols=opts.tablaCols;
+    const tableW=180;
+    const weights=opts.colWidths||cols.map(()=>1);
+    const wSum=weights.reduce((a,b)=>a+b,0);
+    const colWs=weights.map(w=>tableW*w/wSum);
+    const colX=[];let acc=startX;colWs.forEach(w=>{colX.push(acc);acc+=w;});
+    const align=opts.colAlign||cols.map(()=>'center');
+    const colsLines=cols.map(c=>c.toUpperCase().split('\n'));
+    const maxHdrLines=Math.max(...colsLines.map(l=>l.length));
+    const headerH=maxHdrLines>1?(7+(maxHdrLines-1)*3.6):8;
+    const drawTableHeader=()=>{
+      doc.setFillColor(r,g,b);
+      doc.rect(startX,y,tableW,headerH,'F');
+      doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7);
+      colsLines.forEach((lines,i)=>{
+        const cx=align[i]==='left'?colX[i]+2:colX[i]+colWs[i]/2;
+        const al=align[i]==='left'?'left':'center';
+        const totalH=(lines.length-1)*3.4;
+        const startY=headerH/2-totalH/2+2.4;
+        lines.forEach((ln,li)=>{doc.text(ln,cx,y+startY+li*3.4,{align:al,maxWidth:colWs[i]-3});});
+      });
+      y+=headerH;
+    };
+    drawTableHeader();
+    doc.setFont('helvetica','normal');doc.setFontSize(8);
+    const rowH=9;
+    opts.tablaRows.forEach((row,ri)=>{
+      if(y>265){doc.addPage();y=20;drawTableHeader();doc.setFont('helvetica','normal');doc.setFontSize(8);}
+      if(ri%2===0){doc.setFillColor(248,248,246);doc.rect(startX,y,tableW,rowH,'F');}
+      doc.setTextColor(60,60,60);
+      row.forEach((cell,ci)=>{
+        const cx=align[ci]==='left'?colX[ci]+2:colX[ci]+colWs[ci]/2;
+        doc.text(fitText(cell,colWs[ci]-4),cx,y+5.7,{align:align[ci]==='left'?'left':'center'});
+      });
+      y+=rowH;
     });
-    y+=headerH;
-  };
-  drawTableHeader();
-  doc.setFont('helvetica','normal');doc.setFontSize(8);
-  const rowH=9;
-  opts.tablaRows.forEach((row,ri)=>{
-    if(y>265){doc.addPage();y=20;drawTableHeader();doc.setFont('helvetica','normal');doc.setFontSize(8);}
-    if(ri%2===0){doc.setFillColor(248,248,246);doc.rect(startX,y,tableW,rowH,'F');}
-    doc.setTextColor(60,60,60);
-    row.forEach((cell,ci)=>{
-      const cx=align[ci]==='left'?colX[ci]+2:colX[ci]+colWs[ci]/2;
-      doc.text(fitText(cell,colWs[ci]-4),cx,y+5.7,{align:align[ci]==='left'?'left':'center'});
-    });
-    y+=rowH;
-  });
+  }
   doc.setFontSize(7.5);doc.setTextColor(150,150,150);
   doc.text(`Generado el ${ts()} · App Conteos de Poda — AADV 2026`,pageW/2,290,{align:'center'});
   doc.save(opts.fileName);
