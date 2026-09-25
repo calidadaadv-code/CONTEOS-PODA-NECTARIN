@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.49.0 -->
+  <!-- v6.50.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2514,22 +2514,23 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
   const promList=supRows.slice().sort((a,b)=>(b.sum/b.n)-(a.sum/a.n)).map(s=>({label:s.sup,val:(s.sum/s.n).toFixed(1)+cfg.unit}));
   const minList=supRows.slice().sort((a,b)=>a.min-b.min).map(s=>({label:s.sup,val:s.min+cfg.unit}));
   const maxList=supRows.slice().sort((a,b)=>b.max-a.max).map(s=>({label:s.sup,val:s.max+cfg.unit}));
+  const supCont=supRows.map(s=>`${s.sup} — ${[...s.comps].join(', ')||'Sin contratista'}`);
+  let rangoAnalisis=`El ${pDn}% de los conteos (${dn} de ${n}) se encuentra dentro del rango ideal de carga frutal.`;
+  if(pAl>0)rangoAnalisis+=` Un ${pAl}% (${al}) supera el máximo permitido, lo que puede indicar raleo insuficiente.`;
+  if(pBj>0)rangoAnalisis+=` Un ${pBj}% (${bj}) está bajo el mínimo, lo que puede indicar raleo excesivo.`;
+  if(pDn<70)rangoAnalisis+=' Se recomienda reforzar la supervisión y el repaso del raleo en este cuartel.';
   drawDashboardPDF({
     titulo:cfg.label.toUpperCase(),cuartel,variedad,fecha,colorHex:cfg.color,
     kpis:[
       {label:'N° Conteos',val:String(n),list:contList},
       {label:`Promedio ${cfg.metricLabel}`,val:avg.toFixed(1)+cfg.unit,list:promList},
-      {label:'Conteo Más Alto',val:maxR[cfg.metric]+cfg.unit,sub:maxR.pod||maxR.cnt||'',list:maxList},
-      {label:'Conteo Más Bajo',val:minR[cfg.metric]+cfg.unit,sub:minR.pod||minR.cnt||'',list:minList}
+      {label:'Conteo Más Alto',val:maxR[cfg.metric]+cfg.unit,list:maxList},
+      {label:'Conteo Más Bajo',val:minR[cfg.metric]+cfg.unit,list:minList}
     ],
     rango:{pBj,pDn,pAl,bj,dn,al},
+    rangoAnalisis,
     rangoObjetivo,
-    barChart:{
-      titulo:`PROMEDIO ${cfg.metricLabel.toUpperCase()} POR SUPERVISOR`,
-      labels:chartSupTop.map(s=>s.sup),
-      values:chartSupTop.map(s=>+(s.sum/s.n).toFixed(1)),
-      unit:cfg.unit
-    },
+    supCont,
     tablaTitulo:'POR CONTRATISTA · SUPERVISOR',
     tablaCols:['Supervisor','Contratista',promLbl,'% Bajo el\nMínimo','% Dentro del\nRango','% Sobre el\nMáximo'],
     colWidths:[1.5,1.3,1.05,1.05,1.15,1.05],
@@ -2583,25 +2584,16 @@ async function drawDashboardPDF(opts){
   const {jsPDF}=window.jspdf;
   const [r,g,b]=hex2rgb(opts.colorHex);
   // ── Pre-render charts as images (mientras el doc aún no existe) ──
-  let donutImg=null,barImg=null,bar2Img=null;
+  let rangoBarImg=null,bar2Img=null;
   if(opts.rango&&window.Chart){
-    donutImg=await renderChartImg({
-      type:'doughnut',
-      data:{labels:['Bajo mínimo','Dentro del rango','Sobre máximo'],
-        datasets:[{data:[opts.rango.bj,opts.rango.dn,opts.rango.al],backgroundColor:['#C0392B','#0E6655','#7B4B06'],borderColor:'#ffffff',borderWidth:3}]},
-      options:{cutout:'58%',plugins:{legend:{display:false},tooltip:{enabled:false}}}
-    },500,500);
-  }
-  if(opts.barChart&&window.Chart&&opts.barChart.labels.length){
-    const bc=opts.barChart;
-    barImg=await renderChartImg({
+    rangoBarImg=await renderChartImg({
       type:'bar',
-      data:{labels:bc.labels,datasets:[{label:bc.titulo,data:bc.values,backgroundColor:opts.colorHex,borderRadius:4}]},
-      options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{enabled:false},
-        datalabels:undefined},
-        scales:{x:{ticks:{font:{size:20}},grid:{color:'#e8e8e4'}},y:{ticks:{font:{size:20}},grid:{display:false}}},
-        layout:{padding:{right:30}}}
-    },900,Math.max(320,bc.labels.length*90));
+      data:{labels:['Bajo mínimo','Dentro del rango','Sobre máximo'],
+        datasets:[{data:[opts.rango.pBj,opts.rango.pDn,opts.rango.pAl],backgroundColor:['#C0392B','#0E6655','#7B4B06'],borderRadius:6,barPercentage:0.65}]},
+      options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{enabled:false}},
+        scales:{x:{min:0,max:100,ticks:{font:{size:22},stepSize:20,callback:v=>v+'%'},grid:{color:'#e8e8e4'}},y:{ticks:{font:{size:24}},grid:{display:false}}},
+        layout:{padding:{right:25,left:5,top:10,bottom:5}}}
+    },900,420);
   }
   if(opts.barChart2&&window.Chart&&opts.barChart2.labels.length){
     const bc=opts.barChart2;
@@ -2639,6 +2631,63 @@ async function drawDashboardPDF(opts){
     doc.text(String(opts.variedad),198,28,{align:'right'});
   }
   let y=54;
+  if(opts.supCont&&opts.supCont.length){
+    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
+    doc.text('SUPERVISORES Y CONTRATISTAS EN TERRENO',startX,y);
+    y+=5;
+    const boxW2=180,perCol=Math.ceil(opts.supCont.length/2),lineH=4.4;
+    const boxH2=Math.max(14,perCol*lineH+6);
+    doc.setFillColor(248,248,246);doc.setDrawColor(225,225,220);
+    doc.roundedRect(startX,y,boxW2,boxH2,2.5,2.5,'FD');
+    const colW2=boxW2/2;
+    doc.setFont('helvetica','normal');doc.setFontSize(7.3);
+    opts.supCont.forEach((txt,i)=>{
+      const col=i<perCol?0:1;
+      const row=i<perCol?i:i-perCol;
+      const cx=startX+9+col*colW2;
+      const cy=y+7+row*lineH;
+      doc.setTextColor(60,60,60);
+      doc.text('•',cx-5,cy);
+      doc.text(txt,cx,cy,{maxWidth:colW2-16});
+    });
+    y+=boxH2+10;
+  }
+  if(opts.rango){
+    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    doc.text('CONTROL DE CALIDAD DEL RALEO',startX,y);
+    y+=6;
+    const chartH=42;
+    if(rangoBarImg){
+      try{doc.addImage(rangoBarImg,'PNG',startX,y,180,chartH);}catch(e){}
+    }
+    y+=chartH+5;
+    const legend=[['Bajo mínimo',[192,57,43],opts.rango.pBj,opts.rango.bj],['Dentro del rango',[14,102,85],opts.rango.pDn,opts.rango.dn],['Sobre máximo',[123,75,6],opts.rango.pAl,opts.rango.al]];
+    const legW=180/3;
+    legend.forEach(([lbl,col,pct,cnt],i)=>{
+      const lx=startX+i*legW;
+      doc.setFillColor(col[0],col[1],col[2]);
+      doc.rect(lx,y-3,3,3,'F');
+      doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(9);
+      doc.text(`${pct}%`,lx+5,y);
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(120,120,115);
+      doc.text(`${lbl} (${cnt})`,lx+5,y+4.2,{maxWidth:legW-8});
+    });
+    y+=13;
+    if(opts.rangoAnalisis){
+      doc.setFont('helvetica','normal');doc.setFontSize(8);
+      const lines=doc.splitTextToSize(opts.rangoAnalisis,168);
+      const boxH3=lines.length*4.2+9;
+      doc.setFillColor(250,247,240);doc.setDrawColor(225,215,195);
+      doc.roundedRect(startX,y,180,boxH3,2.5,2.5,'FD');
+      doc.setTextColor(140,110,30);doc.setFont('helvetica','bold');doc.setFontSize(7);
+      doc.text('ANÁLISIS',startX+6,y+6.5);
+      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(70,70,65);
+      doc.text(lines,startX+6,y+12);
+      y+=boxH3+10;
+    }else{
+      y+=6;
+    }
+  }
   if(opts.rangoObjetivo){
     doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
     doc.text('RANGO OBJETIVO DEL CUARTEL (FRUTOS/PLANTA)',startX,y);
@@ -2662,6 +2711,9 @@ async function drawDashboardPDF(opts){
     doc.text('MÁXIMO',startX+segW*2.5,y+19.5,{align:'center'});
     y+=cardH+10;
   }
+  doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
+  doc.text('RESUMEN DE CONTEOS',startX,y);
+  y+=7;
   const boxW=42,gap=4;
   const listMax=Math.max(0,...opts.kpis.map(k=>k.list?Math.min(k.list.length,8):0));
   const kpiH=listMax>0?(28+3+listMax*2.6+2):28;
@@ -2700,52 +2752,15 @@ async function drawDashboardPDF(opts){
     }
   });
   y+=kpiH+10;
-  // ── Sección gráfica: donut (rango) + barra (por supervisor) lado a lado ──
-  if(opts.rango||opts.barChart||opts.barChart2){
-    const chartTop=y;
-    const colGap=6;
-    const leftW=opts.rango?70:0;
-    const rightW=opts.rango?(180-leftW-colGap):180;
-    if(opts.rango){
-      doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
-      doc.text('CUMPLIMIENTO DE RANGO',startX,y);
-      const imgY=y+4,imgSize=52;
-      if(donutImg){
-        try{doc.addImage(donutImg,'PNG',startX+(leftW-imgSize)/2,imgY,imgSize,imgSize);}catch(e){}
-      }
-      let ly=imgY+imgSize+6;
-      doc.setFontSize(7.5);
-      const legend=[['Bajo mínimo',[192,57,43],opts.rango.pBj,opts.rango.bj],['Dentro del rango',[14,102,85],opts.rango.pDn,opts.rango.dn],['Sobre máximo',[123,75,6],opts.rango.pAl,opts.rango.al]];
-      legend.forEach(([lbl,col,pct,cnt])=>{
-        doc.setFillColor(col[0],col[1],col[2]);
-        doc.rect(startX,ly-2.6,3,3,'F');
-        doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');
-        doc.text(`${pct}%`,startX+5,ly);
-        doc.setFont('helvetica','normal');doc.setTextColor(120,120,115);
-        doc.text(`${lbl} (${cnt})`,startX+15,ly);
-        ly+=5.5;
-      });
-    }
-    const rx=startX+(opts.rango?leftW+colGap:0);
-    if(opts.barChart&&barImg){
-      doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
-      doc.text(opts.barChart.titulo,rx,y,{maxWidth:rightW});
-      const bH=Math.min(70,Math.max(40,opts.barChart.labels.length*8));
-      try{doc.addImage(barImg,'PNG',rx,y+4,rightW,bH);}catch(e){}
-      y=Math.max(y,chartTop)+4+bH;
-    }else if(opts.barChart2&&bar2Img){
-      doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
-      doc.text(opts.barChart2.titulo,rx,y,{maxWidth:rightW});
-      const bH=Math.min(78,Math.max(45,opts.barChart2.labels.length*10));
-      try{doc.addImage(bar2Img,'PNG',rx,y+4,rightW,bH);}catch(e){}
-      y=Math.max(y,chartTop)+4+bH;
-    }
-    if(opts.rango){
-      const leftBottom=chartTop+4+52+6+3*5.5;
-      y=Math.max(y,leftBottom);
-    }
-    y+=10;
+  if(!opts.rango&&opts.barChart2&&bar2Img){
+    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    doc.text(opts.barChart2.titulo,startX,y,{maxWidth:180});
+    y+=6;
+    const bH=Math.min(78,Math.max(45,opts.barChart2.labels.length*10));
+    try{doc.addImage(bar2Img,'PNG',startX,y,180,bH);}catch(e){}
+    y+=bH+10;
   }
+  if(y>190){doc.addPage();y=20;}
   doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
   doc.text(opts.tablaTitulo,startX,y);
   doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,140,135);
@@ -2761,24 +2776,41 @@ async function drawDashboardPDF(opts){
   const colsLines=cols.map(c=>c.toUpperCase().split('\n'));
   const maxHdrLines=Math.max(...colsLines.map(l=>l.length));
   const headerH=maxHdrLines>1?(7+(maxHdrLines-1)*3.6):8;
-  doc.setFillColor(r,g,b);
-  doc.rect(startX,y,tableW,headerH,'F');
-  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7);
-  colsLines.forEach((lines,i)=>{
-    const cx=align[i]==='left'?colX[i]+2:colX[i]+colWs[i]/2;
-    const al=align[i]==='left'?'left':'center';
-    const totalH=(lines.length-1)*3.4;
-    const startY=headerH/2-totalH/2+2.4;
-    lines.forEach((ln,li)=>{doc.text(ln,cx,y+startY+li*3.4,{align:al,maxWidth:colWs[i]-3});});
-  });
-  y+=headerH;
+  const drawTableHeader=()=>{
+    doc.setFillColor(r,g,b);
+    doc.rect(startX,y,tableW,headerH,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7);
+    colsLines.forEach((lines,i)=>{
+      const cx=align[i]==='left'?colX[i]+2:colX[i]+colWs[i]/2;
+      const al=align[i]==='left'?'left':'center';
+      const totalH=(lines.length-1)*3.4;
+      const startY=headerH/2-totalH/2+2.4;
+      lines.forEach((ln,li)=>{doc.text(ln,cx,y+startY+li*3.4,{align:al,maxWidth:colWs[i]-3});});
+    });
+    y+=headerH;
+  };
+  drawTableHeader();
   doc.setFont('helvetica','normal');doc.setFontSize(8);
   const rowH=9;
+  const fitText=(s,maxW)=>{
+    s=String(s);
+    if(doc.getTextWidth(s)<=maxW)return s;
+    let lo=0,hi=s.length;
+    while(lo<hi){
+      const mid=Math.ceil((lo+hi)/2);
+      const cand=s.slice(0,mid)+'…';
+      if(doc.getTextWidth(cand)<=maxW)lo=mid;else hi=mid-1;
+    }
+    return s.slice(0,lo)+'…';
+  };
   opts.tablaRows.forEach((row,ri)=>{
-    if(y>265){doc.addPage();y=20;}
+    if(y>265){doc.addPage();y=20;drawTableHeader();doc.setFont('helvetica','normal');doc.setFontSize(8);}
     if(ri%2===0){doc.setFillColor(248,248,246);doc.rect(startX,y,tableW,rowH,'F');}
     doc.setTextColor(60,60,60);
-    row.forEach((cell,ci)=>{const cx=align[ci]==='left'?colX[ci]+2:colX[ci]+colWs[ci]/2;doc.text(String(cell),cx,y+5.7,{align:align[ci]==='left'?'left':'center',maxWidth:colWs[ci]-3});});
+    row.forEach((cell,ci)=>{
+      const cx=align[ci]==='left'?colX[ci]+2:colX[ci]+colWs[ci]/2;
+      doc.text(fitText(cell,colWs[ci]-4),cx,y+5.7,{align:align[ci]==='left'?'left':'center'});
+    });
     y+=rowH;
   });
   doc.setFontSize(7.5);doc.setTextColor(150,150,150);
