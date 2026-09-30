@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.59.0 -->
+  <!-- v6.60.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2549,6 +2549,7 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
     const ccKey=`CC${especie.charAt(0).toUpperCase()+especie.slice(1)}Regs`;
     const ccAll=window[ccKey]||[];
     const ccRegs=ccAll.filter(r=>r.c===cuartel&&r.ts&&r.ts.includes(fecha));
+    console.log('[CC Debug]',{ccKey,cuartelBuscado:cuartel,fechaBuscada:fecha,totalEnCC:ccAll.length,coincidencias:ccRegs.length,muestraCC:ccAll.slice(0,3).map(r=>({c:r.c,ts:r.ts,sup:r.sup}))});
     const CRITc=CC_CRITERIOS.raleo;
     const totSc=new Array(CRITc.length).fill(0),totCc=new Array(CRITc.length).fill(0);
     ccRegs.forEach(rr=>{(rr.pauta||[]).forEach(h=>{CRITc.forEach((cr,ci)=>{const sc=h.scores?h.scores[ci]:0;if(sc>0){totSc[ci]+=sc;totCc[ci]++;}});});});
