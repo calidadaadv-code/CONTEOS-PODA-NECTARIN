@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.60.0 -->
+  <!-- v6.61.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2367,6 +2367,12 @@ function rnRaleoProd(e){
   const avgTxt=avg!==null?avg.toFixed(1):'-';
   const opts=prodTbl.filter(r=>avgFru[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cSel?' selected':''}>${r[0]}${r[1]?' · '+r[1]:''}</option>`).join('');
   const kg26blk=kgEstBlock(avg,1,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,st.border);
+  const pesoCaja=RALEO_PESO_CAJA[e];
+  const kg26haReal=avg!==null?Math.round(avg*1*pFruto*pHa/1000):null;
+  const kg26totReal=kg26haReal!==null?Math.round(kg26haReal*ha):null;
+  const cajasAnio=pesoCaja?Math.round(kgTot25/pesoCaja):null;
+  const cajasEst=pesoCaja?Math.round(kgTotMeta/pesoCaja):null;
+  const cajasReal=(pesoCaja&&kg26totReal!==null)?Math.round(kg26totReal/pesoCaja):null;
   const rangObj=e==='nec'?RALEO_NEC[c]:e==='cir'?RALEO_CIR[c]:RALEO_DUZ[c];
   const fIdeal=rangObj&&rangObj.ob?rangObj.ob:null;
   const histTbl=e==='nec'?RALEO_HIST_NEC:e==='cir'?RALEO_HIST_CIR:RALEO_HIST_DUZ;
@@ -2389,6 +2395,9 @@ function rnRaleoProd(e){
     <div class="scard"><div class="slbl">Peso fruto esperado 2026</div><div class="sval" style="color:#3730A3">${pFruto} grs</div><div class="ssub">peso fruto estimado</div></div>
     <div class="scard"><div class="slbl">Plantas/ha</div><div class="sval" style="color:#555">${pHa}</div><div class="ssub">densidad · ${ha} ha</div></div>
     <div class="scard"><div class="slbl">Peso caja embalada</div><div class="sval" style="color:#555">${RALEO_PESO_CAJA[e]??'—'}${RALEO_PESO_CAJA[e]?' kg':''}</div><div class="ssub">caja equivalente</div></div>
+    <div class="scard"><div class="slbl">Cajas año anterior</div><div class="sval" style="color:#555">${cajasAnio!==null?cajasAnio.toLocaleString('es-CL'):'—'}</div><div class="ssub">real 2025</div></div>
+    <div class="scard"><div class="slbl">Cajas estimadas</div><div class="sval" style="color:#3730A3">${cajasEst!==null?cajasEst.toLocaleString('es-CL'):'—'}</div><div class="ssub">meta 2026</div></div>
+    <div class="scard" style="grid-column:1/-1"><div class="slbl">Cajas reales</div><div class="sval" style="color:${st.text}">${cajasReal!==null?cajasReal.toLocaleString('es-CL'):'—'}</div><div class="ssub">según raleo · conteo real de frutos ${v==='hoy'?'hoy':'acumulado'}</div></div>
   </div>
   ${kg26blk}
   ${esNuevo?'<div style="text-align:center;font-size:11px;font-family:var(--mo);color:var(--tm);margin-top:-6px;margin-bottom:12px">*Cuartel sin dato 2025 — comparado contra la meta 2026</div>':''}`;
