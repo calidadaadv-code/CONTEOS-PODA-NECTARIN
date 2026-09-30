@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.66.0 -->
+  <!-- v6.68.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2362,20 +2362,23 @@ function computeRaleoProd(e,cuartel,avg){
   const kgTot25=fld.kgTot25!==null&&rd[fld.kgTot25]>0?rd[fld.kgTot25]:kgTotMeta;
   const esNuevo=fld.kgHa25===null||!(rd[fld.kgHa25]>0);
   const pesoCaja=RALEO_PESO_CAJA[e];
-  const pctExport=(RALEO_PCT_EXPORT_CUARTEL[e]&&RALEO_PCT_EXPORT_CUARTEL[e][c]!==undefined)?RALEO_PCT_EXPORT_CUARTEL[e][c]:(RALEO_PCT_EXPORT[e]??null);
+  // % exportable real 2025 (por cuartel, planilla "Resultados 2025-2026") — usado sólo para Cajas Año Anterior
+  const pctExportReal=(RALEO_PCT_EXPORT_CUARTEL[e]&&RALEO_PCT_EXPORT_CUARTEL[e][c]!==undefined)?RALEO_PCT_EXPORT_CUARTEL[e][c]:(RALEO_PCT_EXPORT[e]??null);
+  // % exportable meta (parejo por especie, planilla "Estimación 2026-2027 Pre Poda") — usado para Cajas Estimadas y Cajas Reales
+  const pctExportMeta=RALEO_PCT_EXPORT[e]??null;
   const kg26haReal=(avg!==null&&avg!==undefined&&!isNaN(avg))?Math.round(avg*1*pFruto*pHa/1000):null;
   const kg26totReal=kg26haReal!==null?Math.round(kg26haReal*ha):null;
   // Cajas por hectárea (no totales) — sólo la fracción exportable de los kilos se embala en cajas
-  const cajasAnioHa=(pesoCaja&&pctExport)?Math.round(kgHa25*pctExport/pesoCaja):null;
-  const cajasEstHa=(pesoCaja&&pctExport)?Math.round(kgHaMeta*pctExport/pesoCaja):null;
-  const cajasRealHa=(pesoCaja&&pctExport&&kg26haReal!==null)?Math.round(kg26haReal*pctExport/pesoCaja):null;
+  const cajasAnioHa=(pesoCaja&&pctExportReal)?Math.round(kgHa25*pctExportReal/pesoCaja):null;
+  const cajasEstHa=(pesoCaja&&pctExportMeta)?Math.round(kgHaMeta*pctExportMeta/pesoCaja):null;
+  const cajasRealHa=(pesoCaja&&pctExportMeta&&kg26haReal!==null)?Math.round(kg26haReal*pctExportMeta/pesoCaja):null;
   const rangObj=e==='nec'?RALEO_NEC[c]:e==='cir'?RALEO_CIR[c]:RALEO_DUZ[c];
   const fIdeal=rangObj&&rangObj.ob?rangObj.ob:null;
   const histTbl=e==='nec'?RALEO_HIST_NEC:e==='cir'?RALEO_HIST_CIR:RALEO_HIST_DUZ;
   const hist=histTbl[c]||null;
   const calEspTbl=e==='nec'?RALEO_CAL_ESP_NEC:e==='cir'?RALEO_CAL_ESP_CIR:RALEO_CAL_ESP_DUZ;
   const calEsp=calEspTbl[c]??null;
-  return{c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,pctExport,kg26haReal,kg26totReal,cajasAnioHa,cajasEstHa,cajasRealHa,rangObj,fIdeal,hist,calEsp};
+  return{c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,pctExportReal,pctExportMeta,kg26haReal,kg26totReal,cajasAnioHa,cajasEstHa,cajasRealHa,rangObj,fIdeal,hist,calEsp};
 }
 function rnRaleoProd(e){
   if(e==='cer'){rnRaleoProdCer();return;}
@@ -2393,7 +2396,7 @@ function rnRaleoProd(e){
   const cSel=raleoProdCuartel[e];
   const avg=avgFru[cSel]!==undefined?avgFru[cSel]:null;
   const pd=computeRaleoProd(e,cSel,avg);
-  const {c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,pctExport,cajasAnioHa,cajasEstHa,cajasRealHa,rangObj,fIdeal,hist,calEsp}=pd;
+  const {c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,pctExportReal,pctExportMeta,cajasAnioHa,cajasEstHa,cajasRealHa,rangObj,fIdeal,hist,calEsp}=pd;
   const totCq=map[c]?map[c].n:0;
   const avgTxt=avg!==null?avg.toFixed(1):'-';
   const opts=prodTbl.filter(r=>avgFru[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cSel?' selected':''}>${r[0]}${r[1]?' · '+r[1]:''}</option>`).join('');
@@ -2418,11 +2421,10 @@ function rnRaleoProd(e){
   <div style="background:#fff;border:2px solid ${st.border};border-radius:10px;padding:12px 14px;margin-bottom:14px">
     <div style="font-size:10px;font-family:var(--mo);color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;font-weight:600">📦 Cajas por Hectárea — ${c}</div>
     <div class="stats3">
-      <div class="scard" style="text-align:center"><div class="slbl">Cajas año ant.</div><div class="sval" style="color:#555">${cajasAnioHa!==null?cajasAnioHa.toLocaleString('es-CL'):'—'}</div><div class="ssub">real 2025</div></div>
-      <div class="scard" style="text-align:center"><div class="slbl">Cajas estimadas</div><div class="sval" style="color:#3730A3">${cajasEstHa!==null?cajasEstHa.toLocaleString('es-CL'):'—'}</div><div class="ssub">meta 2026</div></div>
-      <div class="scard" style="text-align:center;background:#E8F8F5"><div class="slbl">Cajas reales</div><div class="sval" style="color:${st.text}">${cajasRealHa!==null?cajasRealHa.toLocaleString('es-CL'):'—'}</div><div class="ssub">según raleo</div></div>
+      <div class="scard" style="text-align:center"><div class="slbl">Cajas año ant.</div><div class="sval" style="color:#555">${cajasAnioHa!==null?cajasAnioHa.toLocaleString('es-CL'):'—'}</div><div class="ssub">real 2025 · ${pctExportReal?Math.round(pctExportReal*100)+'%':'—'} export</div></div>
+      <div class="scard" style="text-align:center"><div class="slbl">Cajas estimadas</div><div class="sval" style="color:#3730A3">${cajasEstHa!==null?cajasEstHa.toLocaleString('es-CL'):'—'}</div><div class="ssub">meta 2026 · ${pctExportMeta?Math.round(pctExportMeta*100)+'%':'—'} export</div></div>
+      <div class="scard" style="text-align:center;background:#E8F8F5"><div class="slbl">Cajas reales</div><div class="sval" style="color:${st.text}">${cajasRealHa!==null?cajasRealHa.toLocaleString('es-CL'):'—'}</div><div class="ssub">según raleo · ${pctExportMeta?Math.round(pctExportMeta*100)+'%':'—'} export</div></div>
     </div>
-    <div style="font-size:9.5px;font-family:var(--mo);color:var(--tm);text-align:center">cajas/ha · ${pesoCaja?pesoCaja+' kg c/u':'sin peso de caja definido'}${pctExport?` · ${Math.round(pctExport*100)}% exportable`:''} · ${v==='hoy'?'hoy':'acumulado'}</div>
   </div>
   ${kg26blk}
   ${esNuevo?'<div style="text-align:center;font-size:11px;font-family:var(--mo);color:var(--tm);margin-top:-6px;margin-bottom:12px">*Cuartel sin dato 2025 — comparado contra la meta 2026</div>':''}`;
@@ -2982,9 +2984,9 @@ async function drawDashboardPDF(opts){
     doc.line(startX+cBoxW,y+3,startX+cBoxW,y+cBoxH-3);
     doc.line(startX+cBoxW*2,y+3,startX+cBoxW*2,y+cBoxH-3);
     const cBoxes=[
-      {label:'Cajas año ant.',val:pr.cajasAnioHa,sub:'real 2025',col:[100,100,95]},
-      {label:'Cajas estimadas',val:pr.cajasEstHa,sub:'meta 2026',col:[55,48,163]},
-      {label:'Cajas reales',val:pr.cajasRealHa,sub:'según raleo',col:[r,g,b]}
+      {label:'Cajas año ant.',val:pr.cajasAnioHa,sub:`real 2025 · ${pr.pctExportReal?Math.round(pr.pctExportReal*100)+'%':'—'}`,col:[100,100,95]},
+      {label:'Cajas estimadas',val:pr.cajasEstHa,sub:`meta 2026 · ${pr.pctExportMeta?Math.round(pr.pctExportMeta*100)+'%':'—'}`,col:[55,48,163]},
+      {label:'Cajas reales',val:pr.cajasRealHa,sub:`según raleo · ${pr.pctExportMeta?Math.round(pr.pctExportMeta*100)+'%':'—'}`,col:[r,g,b]}
     ];
     cBoxes.forEach((k,i)=>{
       const cx=startX+i*cBoxW;
@@ -2997,7 +2999,7 @@ async function drawDashboardPDF(opts){
     });
     y+=cBoxH+5;
     doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.setTextColor(140,140,135);
-    doc.text(`Cajas por hectárea${pr.pctExport?` · ${Math.round(pr.pctExport*100)}% exportable`:''} · cajas reales según el promedio acumulado de frutos/planta contado en terreno`,startX,y,{maxWidth:180});
+    doc.text(`Cajas por hectárea · año anterior con ${pr.pctExportReal?Math.round(pr.pctExportReal*100)+'%':'—'} exportable real 2025 · estimadas y reales con ${pr.pctExportMeta?Math.round(pr.pctExportMeta*100)+'%':'—'} exportable (meta pre-poda)`,startX,y,{maxWidth:180});
     y+=9;
   }
   if(!opts.rango&&opts.barChart2&&bar2Img){
