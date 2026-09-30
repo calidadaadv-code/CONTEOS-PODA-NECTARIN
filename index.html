@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.62.0 -->
+  <!-- v6.63.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -231,6 +231,7 @@
     .pass-inp{flex:1;padding:9px 10px;border:1px solid var(--gb2);border-radius:7px;font-size:13px;font-family:var(--mo);background:#f9f9f7;color:var(--tx);letter-spacing:.1em}
     .pass-btn{padding:9px 14px;color:#fff;border:none;border-radius:7px;font-size:12px;font-family:var(--mo);cursor:pointer}
     .stats2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    .stats3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
     .scard{background:#f9f9f7;border-radius:9px;padding:12px 14px;border:.5px solid var(--gb2)}
     .slbl{font-size:10px;font-family:var(--mo);color:var(--tm);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
     .sval{font-size:26px;font-family:var(--mo);font-weight:500;color:var(--tx)}
@@ -2356,16 +2357,17 @@ function computeRaleoProd(e,cuartel,avg){
   const pesoCaja=RALEO_PESO_CAJA[e];
   const kg26haReal=(avg!==null&&avg!==undefined&&!isNaN(avg))?Math.round(avg*1*pFruto*pHa/1000):null;
   const kg26totReal=kg26haReal!==null?Math.round(kg26haReal*ha):null;
-  const cajasAnio=pesoCaja?Math.round(kgTot25/pesoCaja):null;
-  const cajasEst=pesoCaja?Math.round(kgTotMeta/pesoCaja):null;
-  const cajasReal=(pesoCaja&&kg26totReal!==null)?Math.round(kg26totReal/pesoCaja):null;
+  // Cajas por hectárea (no totales)
+  const cajasAnioHa=pesoCaja?Math.round(kgHa25/pesoCaja):null;
+  const cajasEstHa=pesoCaja?Math.round(kgHaMeta/pesoCaja):null;
+  const cajasRealHa=(pesoCaja&&kg26haReal!==null)?Math.round(kg26haReal/pesoCaja):null;
   const rangObj=e==='nec'?RALEO_NEC[c]:e==='cir'?RALEO_CIR[c]:RALEO_DUZ[c];
   const fIdeal=rangObj&&rangObj.ob?rangObj.ob:null;
   const histTbl=e==='nec'?RALEO_HIST_NEC:e==='cir'?RALEO_HIST_CIR:RALEO_HIST_DUZ;
   const hist=histTbl[c]||null;
   const calEspTbl=e==='nec'?RALEO_CAL_ESP_NEC:e==='cir'?RALEO_CAL_ESP_CIR:RALEO_CAL_ESP_DUZ;
   const calEsp=calEspTbl[c]??null;
-  return{c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,kg26haReal,kg26totReal,cajasAnio,cajasEst,cajasReal,rangObj,fIdeal,hist,calEsp};
+  return{c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,kg26haReal,kg26totReal,cajasAnioHa,cajasEstHa,cajasRealHa,rangObj,fIdeal,hist,calEsp};
 }
 function rnRaleoProd(e){
   if(e==='cer'){rnRaleoProdCer();return;}
@@ -2383,7 +2385,7 @@ function rnRaleoProd(e){
   const cSel=raleoProdCuartel[e];
   const avg=avgFru[cSel]!==undefined?avgFru[cSel]:null;
   const pd=computeRaleoProd(e,cSel,avg);
-  const {c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,cajasAnio,cajasEst,cajasReal,rangObj,fIdeal,hist,calEsp}=pd;
+  const {c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,cajasAnioHa,cajasEstHa,cajasRealHa,rangObj,fIdeal,hist,calEsp}=pd;
   const totCq=map[c]?map[c].n:0;
   const avgTxt=avg!==null?avg.toFixed(1):'-';
   const opts=prodTbl.filter(r=>avgFru[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cSel?' selected':''}>${r[0]}${r[1]?' · '+r[1]:''}</option>`).join('');
@@ -2404,9 +2406,15 @@ function rnRaleoProd(e){
     <div class="scard"><div class="slbl">Peso fruto esperado 2026</div><div class="sval" style="color:#3730A3">${pFruto} grs</div><div class="ssub">peso fruto estimado</div></div>
     <div class="scard"><div class="slbl">Plantas/ha</div><div class="sval" style="color:#555">${pHa}</div><div class="ssub">densidad · ${ha} ha</div></div>
     <div class="scard"><div class="slbl">Peso caja embalada</div><div class="sval" style="color:#555">${RALEO_PESO_CAJA[e]??'—'}${RALEO_PESO_CAJA[e]?' kg':''}</div><div class="ssub">caja equivalente</div></div>
-    <div class="scard"><div class="slbl">Cajas año anterior</div><div class="sval" style="color:#555">${cajasAnio!==null?cajasAnio.toLocaleString('es-CL'):'—'}</div><div class="ssub">real 2025</div></div>
-    <div class="scard"><div class="slbl">Cajas estimadas</div><div class="sval" style="color:#3730A3">${cajasEst!==null?cajasEst.toLocaleString('es-CL'):'—'}</div><div class="ssub">meta 2026</div></div>
-    <div class="scard" style="grid-column:1/-1"><div class="slbl">Cajas reales</div><div class="sval" style="color:${st.text}">${cajasReal!==null?cajasReal.toLocaleString('es-CL'):'—'}</div><div class="ssub">según raleo · conteo real de frutos ${v==='hoy'?'hoy':'acumulado'}</div></div>
+  </div>
+  <div style="background:#fff;border:2px solid ${st.border};border-radius:10px;padding:12px 14px;margin-bottom:14px">
+    <div style="font-size:10px;font-family:var(--mo);color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;font-weight:600">📦 Cajas por Hectárea — ${c}</div>
+    <div class="stats3">
+      <div class="scard" style="text-align:center"><div class="slbl">Cajas año ant.</div><div class="sval" style="color:#555">${cajasAnioHa!==null?cajasAnioHa.toLocaleString('es-CL'):'—'}</div><div class="ssub">real 2025</div></div>
+      <div class="scard" style="text-align:center"><div class="slbl">Cajas estimadas</div><div class="sval" style="color:#3730A3">${cajasEstHa!==null?cajasEstHa.toLocaleString('es-CL'):'—'}</div><div class="ssub">meta 2026</div></div>
+      <div class="scard" style="text-align:center;background:#E8F8F5"><div class="slbl">Cajas reales</div><div class="sval" style="color:${st.text}">${cajasRealHa!==null?cajasRealHa.toLocaleString('es-CL'):'—'}</div><div class="ssub">según raleo</div></div>
+    </div>
+    <div style="font-size:9.5px;font-family:var(--mo);color:var(--tm);text-align:center">cajas/ha · ${pesoCaja?pesoCaja+' kg c/u':'sin peso de caja definido'} · ${v==='hoy'?'hoy':'acumulado'}</div>
   </div>
   ${kg26blk}
   ${esNuevo?'<div style="text-align:center;font-size:11px;font-family:var(--mo);color:var(--tm);margin-top:-6px;margin-bottom:12px">*Cuartel sin dato 2025 — comparado contra la meta 2026</div>':''}`;
@@ -2873,36 +2881,49 @@ async function drawDashboardPDF(opts){
   });
   y+=kpiH+10;
   if(opts.prod){
-    if(y+64>287){doc.addPage();y=20;}
+    if(y+80>287){doc.addPage();y=20;}
     doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
-    doc.text('PRODUCCIÓN ESTIMADA — CAJAS',startX,y);
+    doc.text('PRODUCCIÓN ESTIMADA — CAJAS/HA',startX,y);
     y+=7;
-    const pBoxW=42,pGap=4,pBoxH=26;
-    const pBoxes=[
-      {label:'Plantas/ha',val:String(opts.prod.pHa),sub:`${opts.prod.ha} ha`},
-      {label:'Peso caja',val:opts.prod.pesoCaja?opts.prod.pesoCaja+' kg':'—',sub:'equivalente'},
-      {label:'Cajas año ant.',val:opts.prod.cajasAnio!==null?opts.prod.cajasAnio.toLocaleString('es-CL'):'—',sub:'real 2025'},
-      {label:'Cajas estimadas',val:opts.prod.cajasEst!==null?opts.prod.cajasEst.toLocaleString('es-CL'):'—',sub:'meta 2026'}
+    const ctxBoxW=88,ctxGap=4,ctxBoxH=16;
+    const ctxBoxes=[
+      {label:'Plantas/ha',val:String(opts.prod.pHa),sub:`densidad · ${opts.prod.ha} ha`},
+      {label:'Peso caja',val:opts.prod.pesoCaja?opts.prod.pesoCaja+' kg':'—',sub:'equivalente embalado'}
     ];
-    pBoxes.forEach((k,i)=>{
-      const x=startX+i*(pBoxW+pGap);
+    ctxBoxes.forEach((k,i)=>{
+      const x=startX+i*(ctxBoxW+ctxGap);
       doc.setFillColor(248,248,246);doc.setDrawColor(225,225,220);
-      doc.roundedRect(x,y,pBoxW,pBoxH,2.5,2.5,'FD');
-      doc.setTextColor(r,g,b);doc.setFont('helvetica','bold');doc.setFontSize(14);
-      doc.text(k.val,x+pBoxW/2,y+12,{align:'center',maxWidth:pBoxW-4});
+      doc.roundedRect(x,y,ctxBoxW,ctxBoxH,2.5,2.5,'FD');
+      doc.setTextColor(r,g,b);doc.setFont('helvetica','bold');doc.setFontSize(12);
+      doc.text(k.val,x+8,y+10.5);
       doc.setTextColor(110,110,105);doc.setFont('helvetica','normal');doc.setFontSize(6.3);
-      doc.text(k.label.toUpperCase(),x+pBoxW/2,y+18,{align:'center',maxWidth:pBoxW-4});
-      doc.setFontSize(6);
-      doc.text(k.sub,x+pBoxW/2,y+22.5,{align:'center',maxWidth:pBoxW-4});
+      doc.text(`${k.label.toUpperCase()} · ${k.sub}`,x+8,y+14.3,{maxWidth:ctxBoxW-12});
     });
-    y+=pBoxH+7;
-    doc.setFillColor(r,g,b);
-    doc.roundedRect(startX,y,180,20,2.5,2.5,'F');
-    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(19);
-    doc.text(opts.prod.cajasReal!==null?opts.prod.cajasReal.toLocaleString('es-CL')+' cajas':'—',startX+10,y+13);
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);
-    doc.text('CAJAS REALES — según raleo (conteo real de frutos/planta acumulado)',startX+10,y+17.3,{maxWidth:150});
-    y+=20+10;
+    y+=ctxBoxH+8;
+    const boxTotW=180,cBoxH=32,cBoxW=boxTotW/3;
+    doc.setFillColor(248,250,249);doc.setDrawColor(r,g,b);doc.setLineWidth(0.5);
+    doc.roundedRect(startX,y,boxTotW,cBoxH,2.5,2.5,'FD');
+    doc.setDrawColor(225,225,220);doc.setLineWidth(0.2);
+    doc.line(startX+cBoxW,y+3,startX+cBoxW,y+cBoxH-3);
+    doc.line(startX+cBoxW*2,y+3,startX+cBoxW*2,y+cBoxH-3);
+    const cBoxes=[
+      {label:'Cajas año ant.',val:opts.prod.cajasAnioHa,sub:'real 2025',col:[100,100,95]},
+      {label:'Cajas estimadas',val:opts.prod.cajasEstHa,sub:'meta 2026',col:[55,48,163]},
+      {label:'Cajas reales',val:opts.prod.cajasRealHa,sub:'según raleo',col:[r,g,b]}
+    ];
+    cBoxes.forEach((k,i)=>{
+      const cx=startX+i*cBoxW;
+      doc.setTextColor(k.col[0],k.col[1],k.col[2]);doc.setFont('helvetica','bold');doc.setFontSize(17);
+      doc.text(k.val!==null?k.val.toLocaleString('es-CL'):'—',cx+cBoxW/2,y+15,{align:'center'});
+      doc.setTextColor(110,110,105);doc.setFont('helvetica','normal');doc.setFontSize(6.8);
+      doc.text(k.label.toUpperCase(),cx+cBoxW/2,y+22,{align:'center',maxWidth:cBoxW-6});
+      doc.setFontSize(6.3);
+      doc.text(k.sub,cx+cBoxW/2,y+26.5,{align:'center',maxWidth:cBoxW-6});
+    });
+    y+=cBoxH+5;
+    doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.setTextColor(140,140,135);
+    doc.text('Cajas por hectárea · cajas reales según el promedio acumulado de frutos/planta contado en terreno',startX,y,{maxWidth:180});
+    y+=9;
   }
   if(!opts.rango&&opts.barChart2&&bar2Img){
     doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
