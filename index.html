@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.61.0 -->
+  <!-- v6.62.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2341,6 +2341,32 @@ function viRaleoProd(e,v){
   if(bAcum)bAcum.className='tog-btn'+(v==='acum'?' '+st.tog:'');
   rnRaleoProd(e);
 }
+// Cálculo compartido de producción/cajas para un cuartel de raleo (nec/cir/duz) — usado por
+// la tab Producción en pantalla y por el dashboard PDF, para que ambos muestren lo mismo.
+function computeRaleoProd(e,cuartel,avg){
+  const prodTbl=e==='nec'?PROD_NEC:e==='cir'?PROD_CIR:PROD_DUZ;
+  const fld=RALEO_PROD_FIELDS[e];
+  const rd=prodTbl.find(r=>r[0]===cuartel)||prodTbl[0];
+  const c=rd[0],vr=rd[1],ha=rd[fld.ha],pFruto=rd[fld.pFruto],pHa=rd[fld.pHa];
+  const kgHaMeta=rd[fld.kgHaMeta];
+  const kgTotMeta=fld.kgTotMeta!==null?rd[fld.kgTotMeta]:kgHaMeta*ha;
+  const kgHa25=fld.kgHa25!==null&&rd[fld.kgHa25]>0?rd[fld.kgHa25]:kgHaMeta;
+  const kgTot25=fld.kgTot25!==null&&rd[fld.kgTot25]>0?rd[fld.kgTot25]:kgTotMeta;
+  const esNuevo=fld.kgHa25===null||!(rd[fld.kgHa25]>0);
+  const pesoCaja=RALEO_PESO_CAJA[e];
+  const kg26haReal=(avg!==null&&avg!==undefined&&!isNaN(avg))?Math.round(avg*1*pFruto*pHa/1000):null;
+  const kg26totReal=kg26haReal!==null?Math.round(kg26haReal*ha):null;
+  const cajasAnio=pesoCaja?Math.round(kgTot25/pesoCaja):null;
+  const cajasEst=pesoCaja?Math.round(kgTotMeta/pesoCaja):null;
+  const cajasReal=(pesoCaja&&kg26totReal!==null)?Math.round(kg26totReal/pesoCaja):null;
+  const rangObj=e==='nec'?RALEO_NEC[c]:e==='cir'?RALEO_CIR[c]:RALEO_DUZ[c];
+  const fIdeal=rangObj&&rangObj.ob?rangObj.ob:null;
+  const histTbl=e==='nec'?RALEO_HIST_NEC:e==='cir'?RALEO_HIST_CIR:RALEO_HIST_DUZ;
+  const hist=histTbl[c]||null;
+  const calEspTbl=e==='nec'?RALEO_CAL_ESP_NEC:e==='cir'?RALEO_CAL_ESP_CIR:RALEO_CAL_ESP_DUZ;
+  const calEsp=calEspTbl[c]??null;
+  return{c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,kg26haReal,kg26totReal,cajasAnio,cajasEst,cajasReal,rangObj,fIdeal,hist,calEsp};
+}
 function rnRaleoProd(e){
   if(e==='cer'){rnRaleoProdCer();return;}
   const el=document.getElementById(`r${e}-dprod`);if(!el)return;
@@ -2355,30 +2381,13 @@ function rnRaleoProd(e){
   const avgFru={};Object.keys(map).forEach(c=>{avgFru[c]=map[c].s/map[c].n;});
   if(!raleoProdCuartel[e]||avgFru[raleoProdCuartel[e]]===undefined)raleoProdCuartel[e]=Object.keys(avgFru)[0];
   const cSel=raleoProdCuartel[e];
-  const rd=prodTbl.find(r=>r[0]===cSel)||prodTbl[0];
-  const c=rd[0],vr=rd[1],ha=rd[fld.ha],pFruto=rd[fld.pFruto],pHa=rd[fld.pHa];
-  const kgHaMeta=rd[fld.kgHaMeta];
-  const kgTotMeta=fld.kgTotMeta!==null?rd[fld.kgTotMeta]:kgHaMeta*ha;
-  const kgHa25=fld.kgHa25!==null&&rd[fld.kgHa25]>0?rd[fld.kgHa25]:kgHaMeta;
-  const kgTot25=fld.kgTot25!==null&&rd[fld.kgTot25]>0?rd[fld.kgTot25]:kgTotMeta;
-  const esNuevo=fld.kgHa25===null||!(rd[fld.kgHa25]>0);
-  const avg=avgFru[c]!==undefined?avgFru[c]:null;
+  const avg=avgFru[cSel]!==undefined?avgFru[cSel]:null;
+  const pd=computeRaleoProd(e,cSel,avg);
+  const {c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,cajasAnio,cajasEst,cajasReal,rangObj,fIdeal,hist,calEsp}=pd;
   const totCq=map[c]?map[c].n:0;
   const avgTxt=avg!==null?avg.toFixed(1):'-';
   const opts=prodTbl.filter(r=>avgFru[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cSel?' selected':''}>${r[0]}${r[1]?' · '+r[1]:''}</option>`).join('');
   const kg26blk=kgEstBlock(avg,1,pFruto,pHa,ha,kgHa25,kgTot25,kgHaMeta,kgTotMeta,c,st.border);
-  const pesoCaja=RALEO_PESO_CAJA[e];
-  const kg26haReal=avg!==null?Math.round(avg*1*pFruto*pHa/1000):null;
-  const kg26totReal=kg26haReal!==null?Math.round(kg26haReal*ha):null;
-  const cajasAnio=pesoCaja?Math.round(kgTot25/pesoCaja):null;
-  const cajasEst=pesoCaja?Math.round(kgTotMeta/pesoCaja):null;
-  const cajasReal=(pesoCaja&&kg26totReal!==null)?Math.round(kg26totReal/pesoCaja):null;
-  const rangObj=e==='nec'?RALEO_NEC[c]:e==='cir'?RALEO_CIR[c]:RALEO_DUZ[c];
-  const fIdeal=rangObj&&rangObj.ob?rangObj.ob:null;
-  const histTbl=e==='nec'?RALEO_HIST_NEC:e==='cir'?RALEO_HIST_CIR:RALEO_HIST_DUZ;
-  const hist=histTbl[c]||null;
-  const calEspTbl=e==='nec'?RALEO_CAL_ESP_NEC:e==='cir'?RALEO_CAL_ESP_CIR:RALEO_CAL_ESP_DUZ;
-  const calEsp=calEspTbl[c]??null;
   el.innerHTML=`<button class="ref-btn ${st.refCls}" onclick="loadRaleo('${e}').then(()=>rnRaleoProd('${e}'))"><i class="ti ti-refresh"></i>Actualizar</button>
   ${v==='hoy'?`<div class="fecha-hoy">📅 ${hoy()}</div>`:''}
   ${selectorDropdown(opts,`raleoProdCuartel.${e}=this.value;rnRaleoProd('${e}')`,st.border,st.text)}
@@ -2567,6 +2576,12 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
     ccRegs.forEach(rr=>{const k2=(rr.sup||'Sin supervisor')+'||'+(rr.comp||'Sin contratista');if(!ccSupMap[k2])ccSupMap[k2]={sup:rr.sup||'Sin supervisor',comp:rr.comp||'Sin contratista',n:0,sum:0,cnt:0};const sm=ccSupMap[k2];sm.n++;if(rr.pct!==null&&rr.pct!==undefined){sm.sum+=rr.pct;sm.cnt++;}});
     ccSupList=Object.values(ccSupMap).sort((a,b)=>a.sup.localeCompare(b.sup)).map(sm=>({sup:sm.sup,comp:sm.comp,n:sm.n,pct:sm.cnt?Math.round(sm.sum/sm.cnt):null}));
   }
+  let prod=null;
+  if((especie==='nec'||especie==='cir'||especie==='duz')&&cfg.metric==='fru'){
+    const cuartelRegsAll=all.filter(r=>r.c===cuartel);
+    const avgFruAll=cuartelRegsAll.length?cuartelRegsAll.reduce((s,r)=>s+(r.fru||0),0)/cuartelRegsAll.length:null;
+    prod=computeRaleoProd(especie,cuartel,avgFruAll);
+  }
   drawDashboardPDF({
     titulo:cfg.label.toUpperCase(),cuartel,variedad,fecha,colorHex:cfg.color,
     kpis:[
@@ -2580,6 +2595,7 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
     ccSupList,
     rangoObjetivo,
     supCont,
+    prod,
     fileName:`Dashboard_${cfg.label.replace(/[^a-zA-Z0-9]+/g,'_')}_${cuartel}_${fecha}.pdf`
   });
 }
@@ -2856,6 +2872,38 @@ async function drawDashboardPDF(opts){
     }
   });
   y+=kpiH+10;
+  if(opts.prod){
+    if(y+64>287){doc.addPage();y=20;}
+    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    doc.text('PRODUCCIÓN ESTIMADA — CAJAS',startX,y);
+    y+=7;
+    const pBoxW=42,pGap=4,pBoxH=26;
+    const pBoxes=[
+      {label:'Plantas/ha',val:String(opts.prod.pHa),sub:`${opts.prod.ha} ha`},
+      {label:'Peso caja',val:opts.prod.pesoCaja?opts.prod.pesoCaja+' kg':'—',sub:'equivalente'},
+      {label:'Cajas año ant.',val:opts.prod.cajasAnio!==null?opts.prod.cajasAnio.toLocaleString('es-CL'):'—',sub:'real 2025'},
+      {label:'Cajas estimadas',val:opts.prod.cajasEst!==null?opts.prod.cajasEst.toLocaleString('es-CL'):'—',sub:'meta 2026'}
+    ];
+    pBoxes.forEach((k,i)=>{
+      const x=startX+i*(pBoxW+pGap);
+      doc.setFillColor(248,248,246);doc.setDrawColor(225,225,220);
+      doc.roundedRect(x,y,pBoxW,pBoxH,2.5,2.5,'FD');
+      doc.setTextColor(r,g,b);doc.setFont('helvetica','bold');doc.setFontSize(14);
+      doc.text(k.val,x+pBoxW/2,y+12,{align:'center',maxWidth:pBoxW-4});
+      doc.setTextColor(110,110,105);doc.setFont('helvetica','normal');doc.setFontSize(6.3);
+      doc.text(k.label.toUpperCase(),x+pBoxW/2,y+18,{align:'center',maxWidth:pBoxW-4});
+      doc.setFontSize(6);
+      doc.text(k.sub,x+pBoxW/2,y+22.5,{align:'center',maxWidth:pBoxW-4});
+    });
+    y+=pBoxH+7;
+    doc.setFillColor(r,g,b);
+    doc.roundedRect(startX,y,180,20,2.5,2.5,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(19);
+    doc.text(opts.prod.cajasReal!==null?opts.prod.cajasReal.toLocaleString('es-CL')+' cajas':'—',startX+10,y+13);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+    doc.text('CAJAS REALES — según raleo (conteo real de frutos/planta acumulado)',startX+10,y+17.3,{maxWidth:150});
+    y+=20+10;
+  }
   if(!opts.rango&&opts.barChart2&&bar2Img){
     doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
     doc.text(opts.barChart2.titulo,startX,y,{maxWidth:180});
