@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.63.0 -->
+  <!-- v6.66.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1292,6 +1292,13 @@ const RALEO_CAL_ESP_CIR={'C-28':68,'C-7A':48};
 const RALEO_CAL_ESP_DUZ={'C-27':50};
 // Peso caja equivalente embalada (Kg), planilla "Estimación 2026-2027"
 const RALEO_PESO_CAJA={nec:8,cer:null,cir:7,duz:8};
+// % de fruta exportable (el resto es descarte/packing) — aplicado antes de convertir kilos a cajas
+const RALEO_PCT_EXPORT={nec:0.80,cer:null,cir:0.80,duz:0.80};
+// % exportable real 2025 por cuartel (planilla "Resultados 2025-2026") — donde exista, prevalece sobre RALEO_PCT_EXPORT
+const RALEO_PCT_EXPORT_CUARTEL={
+  nec:{'C-32':0.86,'C-03':0.90,'C-04':0.88,'C-05':0.89,'C-02':0.81,'C-09':0.78,'C-13':0.82,'C-30':0.85,'C-7B':0.72,'C-01':0.80,'C-08':0.83,'C-31':0.84},
+  cir:{},duz:{}
+};
 let rnecRaleo=0,rcerRaleo=0,rcirRaleo=0,rduzRaleo=0;
 let rnecCalRaleo=null,rcerCalRaleo=null,rcirCalRaleo=null,rduzCalRaleo=null;
 let rnecVR='hoy',rcerVR='hoy',rcirVR='hoy',rduzVR='hoy';
@@ -2355,19 +2362,20 @@ function computeRaleoProd(e,cuartel,avg){
   const kgTot25=fld.kgTot25!==null&&rd[fld.kgTot25]>0?rd[fld.kgTot25]:kgTotMeta;
   const esNuevo=fld.kgHa25===null||!(rd[fld.kgHa25]>0);
   const pesoCaja=RALEO_PESO_CAJA[e];
+  const pctExport=(RALEO_PCT_EXPORT_CUARTEL[e]&&RALEO_PCT_EXPORT_CUARTEL[e][c]!==undefined)?RALEO_PCT_EXPORT_CUARTEL[e][c]:(RALEO_PCT_EXPORT[e]??null);
   const kg26haReal=(avg!==null&&avg!==undefined&&!isNaN(avg))?Math.round(avg*1*pFruto*pHa/1000):null;
   const kg26totReal=kg26haReal!==null?Math.round(kg26haReal*ha):null;
-  // Cajas por hectárea (no totales)
-  const cajasAnioHa=pesoCaja?Math.round(kgHa25/pesoCaja):null;
-  const cajasEstHa=pesoCaja?Math.round(kgHaMeta/pesoCaja):null;
-  const cajasRealHa=(pesoCaja&&kg26haReal!==null)?Math.round(kg26haReal/pesoCaja):null;
+  // Cajas por hectárea (no totales) — sólo la fracción exportable de los kilos se embala en cajas
+  const cajasAnioHa=(pesoCaja&&pctExport)?Math.round(kgHa25*pctExport/pesoCaja):null;
+  const cajasEstHa=(pesoCaja&&pctExport)?Math.round(kgHaMeta*pctExport/pesoCaja):null;
+  const cajasRealHa=(pesoCaja&&pctExport&&kg26haReal!==null)?Math.round(kg26haReal*pctExport/pesoCaja):null;
   const rangObj=e==='nec'?RALEO_NEC[c]:e==='cir'?RALEO_CIR[c]:RALEO_DUZ[c];
   const fIdeal=rangObj&&rangObj.ob?rangObj.ob:null;
   const histTbl=e==='nec'?RALEO_HIST_NEC:e==='cir'?RALEO_HIST_CIR:RALEO_HIST_DUZ;
   const hist=histTbl[c]||null;
   const calEspTbl=e==='nec'?RALEO_CAL_ESP_NEC:e==='cir'?RALEO_CAL_ESP_CIR:RALEO_CAL_ESP_DUZ;
   const calEsp=calEspTbl[c]??null;
-  return{c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,kg26haReal,kg26totReal,cajasAnioHa,cajasEstHa,cajasRealHa,rangObj,fIdeal,hist,calEsp};
+  return{c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,pctExport,kg26haReal,kg26totReal,cajasAnioHa,cajasEstHa,cajasRealHa,rangObj,fIdeal,hist,calEsp};
 }
 function rnRaleoProd(e){
   if(e==='cer'){rnRaleoProdCer();return;}
@@ -2385,7 +2393,7 @@ function rnRaleoProd(e){
   const cSel=raleoProdCuartel[e];
   const avg=avgFru[cSel]!==undefined?avgFru[cSel]:null;
   const pd=computeRaleoProd(e,cSel,avg);
-  const {c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,cajasAnioHa,cajasEstHa,cajasRealHa,rangObj,fIdeal,hist,calEsp}=pd;
+  const {c,vr,ha,pFruto,pHa,kgHaMeta,kgTotMeta,kgHa25,kgTot25,esNuevo,pesoCaja,pctExport,cajasAnioHa,cajasEstHa,cajasRealHa,rangObj,fIdeal,hist,calEsp}=pd;
   const totCq=map[c]?map[c].n:0;
   const avgTxt=avg!==null?avg.toFixed(1):'-';
   const opts=prodTbl.filter(r=>avgFru[r[0]]!==undefined).map(r=>`<option value="${r[0]}"${r[0]===cSel?' selected':''}>${r[0]}${r[1]?' · '+r[1]:''}</option>`).join('');
@@ -2414,7 +2422,7 @@ function rnRaleoProd(e){
       <div class="scard" style="text-align:center"><div class="slbl">Cajas estimadas</div><div class="sval" style="color:#3730A3">${cajasEstHa!==null?cajasEstHa.toLocaleString('es-CL'):'—'}</div><div class="ssub">meta 2026</div></div>
       <div class="scard" style="text-align:center;background:#E8F8F5"><div class="slbl">Cajas reales</div><div class="sval" style="color:${st.text}">${cajasRealHa!==null?cajasRealHa.toLocaleString('es-CL'):'—'}</div><div class="ssub">según raleo</div></div>
     </div>
-    <div style="font-size:9.5px;font-family:var(--mo);color:var(--tm);text-align:center">cajas/ha · ${pesoCaja?pesoCaja+' kg c/u':'sin peso de caja definido'} · ${v==='hoy'?'hoy':'acumulado'}</div>
+    <div style="font-size:9.5px;font-family:var(--mo);color:var(--tm);text-align:center">cajas/ha · ${pesoCaja?pesoCaja+' kg c/u':'sin peso de caja definido'}${pctExport?` · ${Math.round(pctExport*100)}% exportable`:''} · ${v==='hoy'?'hoy':'acumulado'}</div>
   </div>
   ${kg26blk}
   ${esNuevo?'<div style="text-align:center;font-size:11px;font-family:var(--mo);color:var(--tm);margin-top:-6px;margin-bottom:12px">*Cuartel sin dato 2025 — comparado contra la meta 2026</div>':''}`;
@@ -2589,6 +2597,9 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
     const cuartelRegsAll=all.filter(r=>r.c===cuartel);
     const avgFruAll=cuartelRegsAll.length?cuartelRegsAll.reduce((s,r)=>s+(r.fru||0),0)/cuartelRegsAll.length:null;
     prod=computeRaleoProd(especie,cuartel,avgFruAll);
+    prod.avg=avgFruAll;
+    prod.avgTxt=avgFruAll!==null?avgFruAll.toFixed(1):'-';
+    prod.totCq=cuartelRegsAll.length;
   }
   drawDashboardPDF({
     titulo:cfg.label.toUpperCase(),cuartel,variedad,fecha,colorHex:cfg.color,
@@ -2685,6 +2696,31 @@ async function drawDashboardPDF(opts){
       if(doc.getTextWidth(cand)<=maxW)lo=mid;else hi=mid-1;
     }
     return s.slice(0,lo)+'…';
+  };
+  // Dibuja una grilla de tarjetas tipo "scard" (label + valor + sub), n columnas, ancho total 180mm.
+  // Devuelve el nuevo y. Pagina automáticamente si una fila no cabe.
+  const drawCardGrid=(items,y0,cols,cardH)=>{
+    cardH=cardH||22;
+    const totW=180,gap=4;
+    const cardW=(totW-(cols-1)*gap)/cols;
+    let col=0,rowY=y0;
+    items.forEach(it=>{
+      if(col===0&&rowY+cardH>290){doc.addPage();rowY=20;}
+      const cx=startX+col*(cardW+gap);
+      doc.setFillColor(it.bg?it.bg[0]:248,it.bg?it.bg[1]:248,it.bg?it.bg[2]:246);
+      doc.setDrawColor(225,225,220);doc.setLineWidth(0.3);
+      doc.roundedRect(cx,rowY,cardW,cardH,2,2,'FD');
+      const col_=it.color||[60,60,60];
+      doc.setTextColor(col_[0],col_[1],col_[2]);doc.setFont('helvetica','bold');doc.setFontSize(11.5);
+      doc.text(fitText(String(it.val),cardW-10),cx+6,rowY+9.5);
+      doc.setTextColor(120,120,115);doc.setFont('helvetica','normal');doc.setFontSize(6.1);
+      doc.text(fitText(String(it.label).toUpperCase(),cardW-10),cx+6,rowY+14.3);
+      if(it.sub){doc.setFontSize(5.8);doc.setTextColor(150,150,145);doc.text(fitText(String(it.sub),cardW-10),cx+6,rowY+18.3);}
+      col++;
+      if(col>=cols){col=0;rowY+=cardH+4;}
+    });
+    if(col!==0)rowY+=cardH+4;
+    return rowY;
   };
   const pageW=210,startX=15;
   doc.setFillColor(r,g,b);
@@ -2881,48 +2917,87 @@ async function drawDashboardPDF(opts){
   });
   y+=kpiH+10;
   if(opts.prod){
-    if(y+80>287){doc.addPage();y=20;}
+    const pr=opts.prod;
+    if(y>240){doc.addPage();y=20;}
     doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
-    doc.text('PRODUCCIÓN ESTIMADA — CAJAS/HA',startX,y);
-    y+=7;
-    const ctxBoxW=88,ctxGap=4,ctxBoxH=16;
-    const ctxBoxes=[
-      {label:'Plantas/ha',val:String(opts.prod.pHa),sub:`densidad · ${opts.prod.ha} ha`},
-      {label:'Peso caja',val:opts.prod.pesoCaja?opts.prod.pesoCaja+' kg':'—',sub:'equivalente embalado'}
+    doc.text('PRODUCCIÓN',startX,y);
+    y+=3;
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,140,135);
+    doc.text(`${pr.c}${pr.vr?' · '+pr.vr:''} — mismos datos que la tab Producción`,startX,y+3.5);
+    y+=9;
+    const diffIdeal=(pr.avg!==null&&pr.fIdeal)?(pr.avg/pr.fIdeal*100-100):null;
+    const diff25=(pr.avg!==null&&pr.hist)?(pr.avg/pr.hist.fru*100-100):null;
+    const items=[
+      {label:'Total conteos',val:pr.totCq,sub:`${pr.c}${pr.vr?' · '+pr.vr:''}`},
+      {label:'Prom. Frutos/planta 2026',val:pr.avgTxt,sub:'conteo real · acumulado',color:[r,g,b]},
+      {label:'Frutos Ideal (Objetivo)',val:pr.fIdeal??'—',sub:pr.rangObj?`rango ${pr.rangObj.mn}–${pr.rangObj.mx}`:'sin rango definido',color:[55,48,163]},
+      {label:'Diferencia vs Ideal',val:diffIdeal!==null?`${diffIdeal>=0?'+':'-'}${Math.abs(diffIdeal).toFixed(1)}%`:'—',sub:diffIdeal!==null?`${pr.avgTxt} real vs ${pr.fIdeal} ideal`:'sin datos',color:diffIdeal!==null?(diffIdeal>=0?[14,102,85]:[121,31,31]):[140,140,135],bg:diffIdeal!==null?(diffIdeal>=0?[232,248,245]:[250,235,235]):null},
+      {label:'Frutos/planta 2025',val:pr.hist?pr.hist.fru:'—',sub:'real año anterior'},
+      {label:'Dif. vs 2025',val:diff25!==null?`${diff25>=0?'+':'-'}${Math.abs(diff25).toFixed(1)}%`:'—',sub:diff25!==null?`${pr.avgTxt} este año`:'sin datos suficientes',color:diff25!==null?(diff25>=0?[14,102,85]:[121,31,31]):[140,140,135]},
+      {label:'Calibre obtenido 2025',val:pr.hist?pr.hist.cal:'—',sub:'real año anterior'},
+      {label:'Calibre esperado 2026',val:pr.calEsp??'—',sub:'meta temporada actual',color:[55,48,163]},
+      {label:'Peso fruto 2025',val:pr.hist?pr.hist.peso+' grs':'—',sub:'real año anterior'},
+      {label:'Peso fruto esperado 2026',val:pr.pFruto+' grs',sub:'peso fruto estimado',color:[55,48,163]},
+      {label:'Plantas/ha',val:String(pr.pHa),sub:`densidad · ${pr.ha} ha`},
+      {label:'Peso caja embalada',val:pr.pesoCaja?pr.pesoCaja+' kg':'—',sub:'caja equivalente'}
     ];
-    ctxBoxes.forEach((k,i)=>{
-      const x=startX+i*(ctxBoxW+ctxGap);
-      doc.setFillColor(248,248,246);doc.setDrawColor(225,225,220);
-      doc.roundedRect(x,y,ctxBoxW,ctxBoxH,2.5,2.5,'FD');
-      doc.setTextColor(r,g,b);doc.setFont('helvetica','bold');doc.setFontSize(12);
-      doc.text(k.val,x+8,y+10.5);
-      doc.setTextColor(110,110,105);doc.setFont('helvetica','normal');doc.setFontSize(6.3);
-      doc.text(`${k.label.toUpperCase()} · ${k.sub}`,x+8,y+14.3,{maxWidth:ctxBoxW-12});
+    y=drawCardGrid(items,y,2,20);
+    y+=3;
+    // Estimación de kilos/ha
+    if(y>250){doc.addPage();y=20;}
+    doc.setFillColor(255,255,255);doc.setDrawColor(r,g,b);doc.setLineWidth(0.5);
+    const kgBoxH=32;
+    doc.roundedRect(startX,y,180,kgBoxH,2.5,2.5,'D');
+    doc.setLineWidth(0.2);
+    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
+    doc.text(`ESTIMACIÓN DE KILOS/HA — ${pr.c}`,startX+6,y+7);
+    const kW=180/3;
+    const vsC=(pr.kg26haReal!==null&&pr.kgHa25)?(pr.kg26haReal/pr.kgHa25*100-100):null;
+    const vsM=(pr.kg26haReal!==null&&pr.kgHaMeta)?(pr.kg26haReal/pr.kgHaMeta*100-100):null;
+    const kgItems=[
+      {label:'Kilos/ha 2025',val:pr.kgHa25?pr.kgHa25.toLocaleString('es-CL'):'—',col:[192,57,43]},
+      {label:'Meta 2026',val:pr.kgHaMeta?pr.kgHaMeta.toLocaleString('es-CL'):'—',col:[55,48,163]},
+      {label:'Estimado actual',val:pr.kg26haReal!==null?pr.kg26haReal.toLocaleString('es-CL'):'—',col:[14,102,85]}
+    ];
+    kgItems.forEach((k,i)=>{
+      const cx=startX+i*kW;
+      doc.setTextColor(k.col[0],k.col[1],k.col[2]);doc.setFont('helvetica','bold');doc.setFontSize(13);
+      doc.text(k.val,cx+kW/2,y+18,{align:'center'});
+      doc.setTextColor(110,110,105);doc.setFont('helvetica','normal');doc.setFontSize(6.2);
+      doc.text(k.label.toUpperCase(),cx+kW/2,y+24,{align:'center',maxWidth:kW-8});
     });
-    y+=ctxBoxH+8;
-    const boxTotW=180,cBoxH=32,cBoxW=boxTotW/3;
+    doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(140,140,135);
+    const vsTxt=[
+      vsC!==null?`vs 2025: ${vsC>=0?'+':'-'}${Math.abs(vsC).toFixed(0)}%`:'',
+      vsM!==null?`vs Meta 2026: ${vsM>=0?'+':'-'}${Math.abs(vsM).toFixed(0)}%`:''
+    ].filter(Boolean).join('   ·   ');
+    doc.text(vsTxt,startX+90,y+29,{align:'center'});
+    y+=kgBoxH+8;
+    // Cajas/ha
+    if(y>255){doc.addPage();y=20;}
+    const cBoxH=30,cBoxW=180/3;
     doc.setFillColor(248,250,249);doc.setDrawColor(r,g,b);doc.setLineWidth(0.5);
-    doc.roundedRect(startX,y,boxTotW,cBoxH,2.5,2.5,'FD');
+    doc.roundedRect(startX,y,180,cBoxH,2.5,2.5,'FD');
     doc.setDrawColor(225,225,220);doc.setLineWidth(0.2);
     doc.line(startX+cBoxW,y+3,startX+cBoxW,y+cBoxH-3);
     doc.line(startX+cBoxW*2,y+3,startX+cBoxW*2,y+cBoxH-3);
     const cBoxes=[
-      {label:'Cajas año ant.',val:opts.prod.cajasAnioHa,sub:'real 2025',col:[100,100,95]},
-      {label:'Cajas estimadas',val:opts.prod.cajasEstHa,sub:'meta 2026',col:[55,48,163]},
-      {label:'Cajas reales',val:opts.prod.cajasRealHa,sub:'según raleo',col:[r,g,b]}
+      {label:'Cajas año ant.',val:pr.cajasAnioHa,sub:'real 2025',col:[100,100,95]},
+      {label:'Cajas estimadas',val:pr.cajasEstHa,sub:'meta 2026',col:[55,48,163]},
+      {label:'Cajas reales',val:pr.cajasRealHa,sub:'según raleo',col:[r,g,b]}
     ];
     cBoxes.forEach((k,i)=>{
       const cx=startX+i*cBoxW;
-      doc.setTextColor(k.col[0],k.col[1],k.col[2]);doc.setFont('helvetica','bold');doc.setFontSize(17);
-      doc.text(k.val!==null?k.val.toLocaleString('es-CL'):'—',cx+cBoxW/2,y+15,{align:'center'});
-      doc.setTextColor(110,110,105);doc.setFont('helvetica','normal');doc.setFontSize(6.8);
-      doc.text(k.label.toUpperCase(),cx+cBoxW/2,y+22,{align:'center',maxWidth:cBoxW-6});
-      doc.setFontSize(6.3);
-      doc.text(k.sub,cx+cBoxW/2,y+26.5,{align:'center',maxWidth:cBoxW-6});
+      doc.setTextColor(k.col[0],k.col[1],k.col[2]);doc.setFont('helvetica','bold');doc.setFontSize(16);
+      doc.text(k.val!==null?k.val.toLocaleString('es-CL'):'—',cx+cBoxW/2,y+14,{align:'center'});
+      doc.setTextColor(110,110,105);doc.setFont('helvetica','normal');doc.setFontSize(6.6);
+      doc.text(k.label.toUpperCase(),cx+cBoxW/2,y+21,{align:'center',maxWidth:cBoxW-6});
+      doc.setFontSize(6.1);
+      doc.text(k.sub,cx+cBoxW/2,y+25,{align:'center',maxWidth:cBoxW-6});
     });
     y+=cBoxH+5;
     doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.setTextColor(140,140,135);
-    doc.text('Cajas por hectárea · cajas reales según el promedio acumulado de frutos/planta contado en terreno',startX,y,{maxWidth:180});
+    doc.text(`Cajas por hectárea${pr.pctExport?` · ${Math.round(pr.pctExport*100)}% exportable`:''} · cajas reales según el promedio acumulado de frutos/planta contado en terreno`,startX,y,{maxWidth:180});
     y+=9;
   }
   if(!opts.rango&&opts.barChart2&&bar2Img){
