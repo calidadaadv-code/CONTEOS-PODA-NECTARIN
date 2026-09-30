@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.57.0 -->
+  <!-- v6.59.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1365,7 +1365,36 @@ function toggleRaleoDatMini(e,c){raleoDatMiniExpand[e]=(raleoDatMiniExpand[e]===
 function toggleRaleoCal(e,c){const was=raleoCalExpand[e]===c;raleoCalExpand[e]=was?null:c;raleoCalSupExpand[e]=null;rnRaleoCal(e);}
 function toggleRaleoCalSup(e,k2){raleoCalSupExpand[e]=(raleoCalSupExpand[e]===k2)?null:k2;rnRaleoCal(e);}
 function rnRaleoCalMini(regs,e){if(!regs.length)return'';const map={},supMap={};regs.forEach(r=>{if(!map[r.c])map[r.c]={tot:0,bj:0,dn:0,al:0};map[r.c].tot++;if(r.f==='bajo')map[r.c].bj++;else if(r.f==='alto')map[r.c].al++;else map[r.c].dn++;const sn=r.sup||'Sin supervisor';if(!supMap[r.c])supMap[r.c]={};if(!supMap[r.c][sn])supMap[r.c][sn]={tot:0,bj:0,dn:0,al:0};supMap[r.c][sn].tot++;if(r.f==='bajo')supMap[r.c][sn].bj++;else if(r.f==='alto')supMap[r.c][sn].al++;else supMap[r.c][sn].dn++;});const labels=e==='cer'?['<75%','75-79%','≥80%']:['Bajo','Dentro','Sobre'];const ord=m=>{const pBj=Math.round(m.bj/m.tot*100),pDn=Math.round(m.dn/m.tot*100),pAl=Math.round(m.al/m.tot*100);return e==='cer'?[[pBj,'#9C0006'],[pAl,'#633806'],[pDn,'#0E6655']]:[[pBj,'#9C0006'],[pDn,'#0E6655'],[pAl,'#633806']];};const rows=Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([c,m])=>{const vals=ord(m);const exp=raleoDatMiniExpand[e]===c;const sups=supMap[c]||{};const supRows=Object.entries(sups).sort(([a],[b])=>a.localeCompare(b)).map(([sn,sm])=>{const sv=ord(sm);return`<div style="display:grid;grid-template-columns:1.6fr .6fr .7fr .7fr .7fr;gap:4px;padding:7px 0;border-bottom:1px solid var(--gb2);font-size:11px;font-family:var(--mo);align-items:center"><span style="font-weight:600">${sn}</span><span style="color:var(--tm);text-align:center">${sm.tot}</span><span style="color:${ord(sm)[0][1]};text-align:center;font-weight:600">${ord(sm)[0][0]}%</span><span style="color:${ord(sm)[1][1]};text-align:center;font-weight:600">${ord(sm)[1][0]}%</span><span style="color:${ord(sm)[2][1]};text-align:center;font-weight:600">${ord(sm)[2][0]}%</span></div>`;}).join('');const det=exp?`<tr><td colspan="5" style="background:#f7f7f5;padding:12px 8px;white-space:normal;width:1px"><div style="display:grid;grid-template-columns:1.6fr .6fr .7fr .7fr .7fr;gap:4px;font-size:9px;font-family:var(--mo);color:var(--tm);letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--gb2)"><span>SUPERVISOR</span><span style="text-align:center">N°</span><span style="text-align:center">${labels[0]}</span><span style="text-align:center">${labels[1]}</span><span style="text-align:center">${labels[2]}</span></div>${supRows||'<div style="font-size:11px;color:var(--tm);font-family:var(--mo);padding-top:6px">Sin datos de supervisor</div>'}</td></tr>`:'';return`<tr style="cursor:pointer" onclick="toggleRaleoDatMini('${e}','${c}')"><td style="font-weight:600">${exp?'▾':'▸'} ${c}</td><td style="text-align:center">${m.tot}</td><td style="text-align:center;color:${vals[0][1]}">${vals[0][0]}%</td><td style="text-align:center;color:${vals[1][1]}">${vals[1][0]}%</td><td style="text-align:center;color:${vals[2][1]}">${vals[2][0]}%</td></tr>${det}`;}).join('');return`<hr class="divider" style="margin:18px 0"><div style="font-size:11px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:8px">RESUMEN DE CONTEOS POR CUARTEL</div><div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>${labels[0]}</th><th>${labels[1]}</th><th>${labels[2]}</th></tr></thead><tbody>${rows}</tbody></table></div><div style="text-align:center;font-size:10px;color:var(--tm);font-family:var(--mo);margin-top:8px">Toca un cuartel para ver el detalle por supervisor</div>`;}
-async function loadCCReg(e){const {data,error}=await db.from('control_calidad').select('*').eq('modulo','raleo').eq('especie',e).order('id',{ascending:true}).limit(10000);const key=`CC${e.charAt(0).toUpperCase()+e.slice(1)}Regs`;if(error){window[key]=window[key]||[];rnRaleoCal(e);return;}window[key]=(data||[]).map(r=>({id:r.id,c:String(r.cuartel),h:r.hilera,p:r.planta,sup:r.supervisor,cnt:r.contador,comp:r.contratista,nram:r.n_ramilla,conteo:r.conteo,contram:r.contramuestra,pauta:(typeof r.pauta==='string'?JSON.parse(r.pauta):r.pauta)||[],pct:r.pct_pauta===null||r.pct_pauta===undefined?null:parseFloat(r.pct_pauta),obsOk:r.obs_ok||'',obsFix:r.obs_fix||'',obs:r.obs_extra||'',fotos:(typeof r.fotos==='string'?JSON.parse(r.fotos):r.fotos)||[],ts:r.timestamp}));rnRaleoCal(e);}
+async function loadCCReg(e){
+  const key=`CC${e.charAt(0).toUpperCase()+e.slice(1)}Regs`;
+  let data,error;
+  try{
+    const res=await db.from('control_calidad').select('*').eq('modulo','raleo').eq('especie',e).order('id',{ascending:true}).limit(10000);
+    data=res.data;error=res.error;
+  }catch(ex){
+    console.error('loadCCReg fetch exception:',ex);
+    toast('⚠ Error al conectar con Control de Calidad: '+(ex.message||'desconocido'),'warn');
+    window[key]=window[key]||[];rnRaleoCal(e);return;
+  }
+  if(error){
+    console.error('loadCCReg error:',error);
+    toast('⚠ Error al cargar Control de Calidad: '+(error.message||error.hint||error.code||'desconocido'),'warn');
+    window[key]=window[key]||[];rnRaleoCal(e);return;
+  }
+  const parsed=[];
+  (data||[]).forEach(r=>{
+    try{
+      parsed.push({id:r.id,c:String(r.cuartel),h:r.hilera,p:r.planta,sup:r.supervisor,cnt:r.contador,comp:r.contratista,nram:r.n_ramilla,conteo:r.conteo,contram:r.contramuestra,pauta:(typeof r.pauta==='string'?JSON.parse(r.pauta):r.pauta)||[],pct:r.pct_pauta===null||r.pct_pauta===undefined?null:parseFloat(r.pct_pauta),obsOk:r.obs_ok||'',obsFix:r.obs_fix||'',obs:r.obs_extra||'',fotos:(typeof r.fotos==='string'?JSON.parse(r.fotos):r.fotos)||[],ts:r.timestamp});
+    }catch(rowEx){
+      console.error('loadCCReg: fila con datos inválidos, id=',r&&r.id,rowEx);
+    }
+  });
+  if((data||[]).length&&!parsed.length){
+    toast('⚠ Se encontraron registros de Control de Calidad pero con datos dañados (revisa la consola)','warn');
+  }
+  window[key]=parsed;
+  rnRaleoCal(e);
+}
 function ccBarColor(pct,rango){return pct===null||pct===undefined?'var(--tm)':pct>=rango?'#0E6655':pct>=rango-15?'#B7791F':'#C0392B';}
 function ccBarRow(label,pct,rango,last){const color=ccBarColor(pct,rango);const w=pct!==null&&pct!==undefined?Math.max(2,Math.min(100,pct)):0;return`<div style="margin-bottom:10px${last?'':';padding-bottom:10px;border-bottom:1px solid var(--gb2)'}">
     <div style="font-size:11px;color:var(--tx);margin-bottom:5px;line-height:1.3">${label}</div>
