@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.69.0 -->
+  <!-- v6.70.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2958,12 +2958,15 @@ async function drawDashboardPDF(opts){
     doc.text(vsTxt,startX+90,y+29,{align:'center'});
     y+=kgBoxH+8;
     // Cajas/ha
-    const cBoxH=30,cBoxW=180/3;
+    const cBoxH=37,cBoxW=180/3;
     doc.setFillColor(248,250,249);doc.setDrawColor(r,g,b);doc.setLineWidth(0.5);
     doc.roundedRect(startX,y,180,cBoxH,2.5,2.5,'FD');
+    doc.setLineWidth(0.2);
+    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
+    doc.text(`ESTIMACIÓN DE CAJAS/HA — ${pr.c}`,startX+6,y+7);
     doc.setDrawColor(225,225,220);doc.setLineWidth(0.2);
-    doc.line(startX+cBoxW,y+3,startX+cBoxW,y+cBoxH-3);
-    doc.line(startX+cBoxW*2,y+3,startX+cBoxW*2,y+cBoxH-3);
+    doc.line(startX+cBoxW,y+10,startX+cBoxW,y+cBoxH-3);
+    doc.line(startX+cBoxW*2,y+10,startX+cBoxW*2,y+cBoxH-3);
     const cBoxes=[
       {label:'Cajas año ant.',val:pr.cajasAnioHa,sub:`real 2025 · ${pr.pctExportReal?Math.round(pr.pctExportReal*100)+'%':'—'}`,col:[100,100,95]},
       {label:'Cajas estimadas',val:pr.cajasEstHa,sub:`meta 2026 · ${pr.pctExportMeta?Math.round(pr.pctExportMeta*100)+'%':'—'}`,col:[55,48,163]},
@@ -2972,11 +2975,11 @@ async function drawDashboardPDF(opts){
     cBoxes.forEach((k,i)=>{
       const cx=startX+i*cBoxW;
       doc.setTextColor(k.col[0],k.col[1],k.col[2]);doc.setFont('helvetica','bold');doc.setFontSize(16);
-      doc.text(k.val!==null?k.val.toLocaleString('es-CL'):'—',cx+cBoxW/2,y+14,{align:'center'});
+      doc.text(k.val!==null?k.val.toLocaleString('es-CL'):'—',cx+cBoxW/2,y+21,{align:'center'});
       doc.setTextColor(110,110,105);doc.setFont('helvetica','normal');doc.setFontSize(6.6);
-      doc.text(k.label.toUpperCase(),cx+cBoxW/2,y+21,{align:'center',maxWidth:cBoxW-6});
+      doc.text(k.label.toUpperCase(),cx+cBoxW/2,y+28,{align:'center',maxWidth:cBoxW-6});
       doc.setFontSize(6.1);
-      doc.text(k.sub,cx+cBoxW/2,y+25,{align:'center',maxWidth:cBoxW-6});
+      doc.text(k.sub,cx+cBoxW/2,y+32,{align:'center',maxWidth:cBoxW-6});
     });
     y+=cBoxH+5;
     doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.setTextColor(140,140,135);
