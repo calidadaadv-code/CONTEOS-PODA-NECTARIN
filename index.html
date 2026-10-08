@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.71.0 -->
+  <!-- v6.72.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1571,11 +1571,15 @@ function rnFrutosDat(){
     const fxd=m.sDar?(m.sFrDar/m.sDar).toFixed(2):'-';
     const fxr=m.sRam?(m.sFrRam/m.sRam).toFixed(2):'-';
     const exp=frutosDatExpand===c;
-    const sec1={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0},sec2={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0};
-    m.list.forEach(r=>{const tgt=(r.h!=null&&r.h>=SECTOR_CORTE+1)?sec2:sec1;tgt.sDar+=r.dar;tgt.sFrDar+=r.frdar;tgt.sRam+=r.ram;tgt.sFrRam+=r.frram;tgt.n++;});
-    const s1fxd=sec1.sDar?(sec1.sFrDar/sec1.sDar).toFixed(2):'-',s1fxr=sec1.sRam?(sec1.sFrRam/sec1.sRam).toFixed(2):'-';
-    const s2fxd=sec2.sDar?(sec2.sFrDar/sec2.sDar).toFixed(2):'-',s2fxr=sec2.sRam?(sec2.sFrRam/sec2.sRam).toFixed(2):'-';
-    const secBlk=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+    const aplicaSector=(c==='C-6'); // la diferenciación por sector (raleo de yemas) solo aplica al Cuartel 6
+    let secBlk='';
+    if(aplicaSector){
+      const sec1={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0},sec2={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0};
+      m.list.forEach(r=>{const tgt=(r.h!=null&&r.h>=SECTOR_CORTE+1)?sec2:sec1;tgt.sDar+=r.dar;tgt.sFrDar+=r.frdar;tgt.sRam+=r.ram;tgt.sFrRam+=r.frram;tgt.n++;});
+      const s1fxd=sec1.sDar?(sec1.sFrDar/sec1.sDar).toFixed(2):'-',s1fxr=sec1.sRam?(sec1.sFrRam/sec1.sRam).toFixed(2):'-';
+      const s2fxd=sec2.sDar?(sec2.sFrDar/sec2.sDar).toFixed(2):'-',s2fxr=sec2.sRam?(sec2.sFrRam/sec2.sRam).toFixed(2):'-';
+      secBlk=`<div style="font-size:9px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">COMPARATIVO POR SECTOR — ${c}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
       <div style="background:#fff;border:1px solid var(--gb2);border-radius:8px;padding:8px 10px">
         <div style="font-size:9px;font-family:var(--mo);color:var(--tm);font-weight:700;letter-spacing:.5px;margin-bottom:4px">CON RALEO DE YEMAS · H.1–${SECTOR_CORTE}</div>
         <div style="display:flex;justify-content:space-between;font-size:12px;font-family:var(--mo)"><span>FR/DAR <b style="color:var(--ro)">${s1fxd}</b></span><span>FR/RAM <b style="color:var(--ro)">${s1fxr}</b></span></div>
@@ -1587,16 +1591,18 @@ function rnFrutosDat(){
         <div style="font-size:9px;color:var(--tm);margin-top:3px">${sec2.n} conteo${sec2.n===1?'':'s'}</div>
       </div>
     </div>`;
+    }
     const detRows=[...m.list].sort((a,b)=>(b.ts||'').localeCompare(a.ts||'')).map(r=>{
       const rfxd=r.dar?(r.frdar/r.dar).toFixed(2):'-';
       const rfxr=r.ram?(r.frram/r.ram).toFixed(2):'-';
-      return`<tr style="border-bottom:1px solid var(--gb2)"><td style="padding:6px 4px;font-weight:600">${r.cnt||'—'}</td><td style="padding:6px 4px;color:var(--tm)">${r.sup||'—'}</td><td style="padding:6px 4px;text-align:center">${r.h!=null?r.h:'—'}</td><td style="padding:6px 4px;text-align:center">${r.dar}/${r.frdar}</td><td style="padding:6px 4px;text-align:center;font-weight:700">${rfxd}</td><td style="padding:6px 4px;text-align:center">${r.ram}/${r.frram}</td><td style="padding:6px 4px;text-align:center;font-weight:700">${rfxr}</td></tr>`;
+      const hilCell=aplicaSector?`<td style="padding:6px 4px;text-align:center">${r.h!=null?r.h:'—'}</td>`:'';
+      return`<tr style="border-bottom:1px solid var(--gb2)"><td style="padding:6px 4px;font-weight:600">${r.cnt||'—'}</td><td style="padding:6px 4px;color:var(--tm)">${r.sup||'—'}</td>${hilCell}<td style="padding:6px 4px;text-align:center">${r.dar}/${r.frdar}</td><td style="padding:6px 4px;text-align:center;font-weight:700">${rfxd}</td><td style="padding:6px 4px;text-align:center">${r.ram}/${r.frram}</td><td style="padding:6px 4px;text-align:center;font-weight:700">${rfxr}</td></tr>`;
     }).join('');
+    const hilHead=aplicaSector?'<th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">HIL.</th>':'';
     const det=exp?`<tr><td colspan="4" style="background:#f7f7f5;padding:12px 8px;white-space:normal;width:1px">
-      <div style="font-size:9px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">COMPARATIVO POR SECTOR — ${c}</div>
       ${secBlk}
       <div style="font-size:9px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">DETALLE POR CONTEO</div>
-      <table style="width:100%;border-collapse:collapse;font-family:var(--mo);font-size:11px"><thead><tr style="border-bottom:1px solid var(--gb2)"><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">CONTADOR</th><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">SUPERVISOR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">HIL.</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">DAR/FR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/DAR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">RAM/FR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/RAM</th></tr></thead><tbody>${detRows}</tbody></table></td></tr>`:'';
+      <table style="width:100%;border-collapse:collapse;font-family:var(--mo);font-size:11px"><thead><tr style="border-bottom:1px solid var(--gb2)"><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">CONTADOR</th><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">SUPERVISOR</th>${hilHead}<th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">DAR/FR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/DAR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">RAM/FR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/RAM</th></tr></thead><tbody>${detRows}</tbody></table></td></tr>`:'';
     return`<tr style="cursor:pointer" onclick="toggleFrutosDat('${c}')"><td style="color:var(--ro);font-weight:600">${exp?'▾':'▸'} ${c}</td><td style="text-align:center">${m.n}</td><td style="text-align:center;font-weight:700;color:var(--ro)">${fxd}</td><td style="text-align:center;font-weight:700;color:var(--ro)">${fxr}</td></tr>${det}`;
   }).join('');
   el.innerHTML=fHTML+`<div class="twrap"><table><thead><tr><th>Cuartel</th><th>Conteos</th><th>Fr/Dardo</th><th>Fr/Ramilla</th></tr></thead><tbody>${rows}</tbody></table></div><div style="text-align:center;font-size:10px;color:var(--tm);font-family:var(--mo);margin-top:8px">Toca un cuartel para ver el detalle por conteo</div>`;
