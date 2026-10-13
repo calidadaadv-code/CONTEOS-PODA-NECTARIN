@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.72.0 -->
+  <!-- v6.73.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1566,12 +1566,14 @@ function rnFrutosDat(){
   const fHTML=raleoDatFechaHTML('cer',frutosDatV==='hoy','rcer-ffecha-inp',"raleoDatFechaChangeFrutos(this.value)");
   if(!regs.length){el.innerHTML=fHTML+'<div class="empty"><i class="ti ti-leaf"></i>'+(frutosDatV==='hoy'?`Sin conteos el ${fechaSel} — toca otra fecha o Acumulado.`:'Sin registros aún')+'</div>';return;}
   const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0,list:[]};const m=map[r.c];m.sDar+=r.dar;m.sFrDar+=r.frdar;m.sRam+=r.ram;m.sFrRam+=r.frram;m.n++;m.list.push(r);});
-  const SECTOR_CORTE=22; // hilera 1–22 = con raleo de yemas · 23+ = sin raleo de yemas
+  // Corte por cuartel: hileras 1..corte = con raleo de yemas · corte+1 en adelante = sin raleo de yemas. Cuarteles no listados: sin diferenciación.
+  const SECTORES_RALEO={'C-6':22,'C-10':74};
   const rows=Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([c,m])=>{
     const fxd=m.sDar?(m.sFrDar/m.sDar).toFixed(2):'-';
     const fxr=m.sRam?(m.sFrRam/m.sRam).toFixed(2):'-';
     const exp=frutosDatExpand===c;
-    const aplicaSector=(c==='C-6'); // la diferenciación por sector (raleo de yemas) solo aplica al Cuartel 6
+    const SECTOR_CORTE=SECTORES_RALEO[c];
+    const aplicaSector=SECTOR_CORTE!=null;
     let secBlk='';
     if(aplicaSector){
       const sec1={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0},sec2={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0};
