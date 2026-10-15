@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.73.0 -->
+  <!-- v6.74.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1566,33 +1566,29 @@ function rnFrutosDat(){
   const fHTML=raleoDatFechaHTML('cer',frutosDatV==='hoy','rcer-ffecha-inp',"raleoDatFechaChangeFrutos(this.value)");
   if(!regs.length){el.innerHTML=fHTML+'<div class="empty"><i class="ti ti-leaf"></i>'+(frutosDatV==='hoy'?`Sin conteos el ${fechaSel} — toca otra fecha o Acumulado.`:'Sin registros aún')+'</div>';return;}
   const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0,list:[]};const m=map[r.c];m.sDar+=r.dar;m.sFrDar+=r.frdar;m.sRam+=r.ram;m.sFrRam+=r.frram;m.n++;m.list.push(r);});
-  // Corte por cuartel: hileras 1..corte = con raleo de yemas · corte+1 en adelante = sin raleo de yemas. Cuarteles no listados: sin diferenciación.
-  const SECTORES_RALEO={'C-6':22,'C-10':74};
+  // Corte por cuartel: hileras 1..corte y corte+1 en adelante; bajoConRaleo=true → las hileras bajas llevan raleo de yemas, false → las altas. Cuarteles no listados: sin diferenciación.
+  const SECTORES_RALEO={'C-6':{corte:22,bajoConRaleo:false},'C-10':{corte:74,bajoConRaleo:true}};
   const rows=Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([c,m])=>{
     const fxd=m.sDar?(m.sFrDar/m.sDar).toFixed(2):'-';
     const fxr=m.sRam?(m.sFrRam/m.sRam).toFixed(2):'-';
     const exp=frutosDatExpand===c;
-    const SECTOR_CORTE=SECTORES_RALEO[c];
-    const aplicaSector=SECTOR_CORTE!=null;
+    const SECTOR_CFG=SECTORES_RALEO[c];
+    const SECTOR_CORTE=SECTOR_CFG?SECTOR_CFG.corte:null;
+    const aplicaSector=SECTOR_CFG!=null;
     let secBlk='';
     if(aplicaSector){
+      // sec1 = hileras 1..corte · sec2 = hileras corte+1 en adelante. bajoConRaleo indica cuál de los dos lleva raleo de yemas.
       const sec1={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0},sec2={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0};
       m.list.forEach(r=>{const tgt=(r.h!=null&&r.h>=SECTOR_CORTE+1)?sec2:sec1;tgt.sDar+=r.dar;tgt.sFrDar+=r.frdar;tgt.sRam+=r.ram;tgt.sFrRam+=r.frram;tgt.n++;});
-      const s1fxd=sec1.sDar?(sec1.sFrDar/sec1.sDar).toFixed(2):'-',s1fxr=sec1.sRam?(sec1.sFrRam/sec1.sRam).toFixed(2):'-';
-      const s2fxd=sec2.sDar?(sec2.sFrDar/sec2.sDar).toFixed(2):'-',s2fxr=sec2.sRam?(sec2.sFrRam/sec2.sRam).toFixed(2):'-';
+      const avg=(a,b)=>a?(b/a).toFixed(2):'-';
+      const mk=(sec,rango,conRaleo)=>`<div style="background:#fff;border:1px solid var(--gb2);border-radius:8px;padding:8px 10px">
+        <div style="font-size:9px;font-family:var(--mo);color:var(--tm);font-weight:700;letter-spacing:.5px;margin-bottom:4px">${conRaleo?'CON':'SIN'} RALEO DE YEMAS · ${rango}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:2px 12px;font-size:12px;font-family:var(--mo)"><span>FR/DAR <b style="color:${conRaleo?'var(--ro)':'#555'}">${avg(sec.sDar,sec.sFrDar)}</b></span><span>FR/RAM <b style="color:${conRaleo?'var(--ro)':'#555'}">${avg(sec.sRam,sec.sFrRam)}</b></span></div>
+        <div style="font-size:9px;color:var(--tm);margin-top:3px">${sec.n} conteo${sec.n===1?'':'s'}</div>
+      </div>`;
+      const bajoCon=SECTOR_CFG.bajoConRaleo;
       secBlk=`<div style="font-size:9px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">COMPARATIVO POR SECTOR — ${c}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-      <div style="background:#fff;border:1px solid var(--gb2);border-radius:8px;padding:8px 10px">
-        <div style="font-size:9px;font-family:var(--mo);color:var(--tm);font-weight:700;letter-spacing:.5px;margin-bottom:4px">CON RALEO DE YEMAS · H.1–${SECTOR_CORTE}</div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;font-family:var(--mo)"><span>FR/DAR <b style="color:var(--ro)">${s1fxd}</b></span><span>FR/RAM <b style="color:var(--ro)">${s1fxr}</b></span></div>
-        <div style="font-size:9px;color:var(--tm);margin-top:3px">${sec1.n} conteo${sec1.n===1?'':'s'}</div>
-      </div>
-      <div style="background:#fff;border:1px solid var(--gb2);border-radius:8px;padding:8px 10px">
-        <div style="font-size:9px;font-family:var(--mo);color:var(--tm);font-weight:700;letter-spacing:.5px;margin-bottom:4px">SIN RALEO DE YEMAS · H.${SECTOR_CORTE+1}+</div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;font-family:var(--mo)"><span>FR/DAR <b style="color:#555">${s2fxd}</b></span><span>FR/RAM <b style="color:#555">${s2fxr}</b></span></div>
-        <div style="font-size:9px;color:var(--tm);margin-top:3px">${sec2.n} conteo${sec2.n===1?'':'s'}</div>
-      </div>
-    </div>`;
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">${mk(sec1,`H.1–${SECTOR_CORTE}`,bajoCon)}${mk(sec2,`H.${SECTOR_CORTE+1}+`,!bajoCon)}</div>`;
     }
     const detRows=[...m.list].sort((a,b)=>(b.ts||'').localeCompare(a.ts||'')).map(r=>{
       const rfxd=r.dar?(r.frdar/r.dar).toFixed(2):'-';
