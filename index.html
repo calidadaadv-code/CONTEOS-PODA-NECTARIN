@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.98.0 -->
+  <!-- v6.99.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2978,13 +2978,13 @@ async function drawDashboardPDF(opts){
       const nK=opts.kpis.length;
       const yK=tres?(yl+bH0+4+bH):(yl+Math.ceil(nK/2)*(bH+4)-4);
       const aY=yK+5;
-      const msgs=[`Ideal: 80% dentro del rango y 10% bajo el mínimo / 10% sobre el máximo. Hoy: ${rg.pDn}% dentro, ${rg.pBj}% bajo y ${rg.pAl}% sobre.`];
+      const msgs=[`Hoy: ${rg.pDn}% dentro, ${rg.pBj}% bajo y ${rg.pAl}% sobre.`];
       if(rg.pDn>=80&&rg.pBj<=10&&rg.pAl<=10)msgs.push('La distribución está dentro del ideal: el promedio es representativo y la estimación de kilos es confiable.');
       else{
         const pr2=[];
         if(rg.pDn<80)pr2.push(`faltan ${80-rg.pDn} pts para el 80% dentro del rango`);
-        if(rg.pBj>10)pr2.push(`el ${rg.pBj}% bajo el mínimo (${rg.pBj-10} pts sobre el ideal) arriesga quedar bajo los kilos estimados`);
-        if(rg.pAl>10)pr2.push(`el ${rg.pAl}% sobre el máximo (${rg.pAl-10} pts sobre el ideal) arriesga calibre menor`);
+        if(rg.pBj>10)pr2.push(`el ${rg.pBj}% bajo el mínimo arriesga quedar bajo los kilos estimados`);
+        if(rg.pAl>10)pr2.push(`el ${rg.pAl}% sobre el máximo arriesga calibre menor`);
         if(pr2.length)msgs.push('Atención: '+pr2.join('; ')+'.');
       }
       doc.setFont('helvetica','normal');doc.setFontSize(8.2);doc.setTextColor(0,0,0);
