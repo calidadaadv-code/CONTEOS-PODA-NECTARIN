@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.91.0 -->
+  <!-- v6.92.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -3357,17 +3357,32 @@ async function drawDashboardPDF(opts){
     doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(0,0,0);
     doc.text([vs25!==null?`vs 2025: ${vs25>=0?'+':'-'}${Math.abs(vs25).toFixed(0)}%`:'',vsM!==null?`vs Meta: ${vsM>=0?'+':'-'}${Math.abs(vsM).toFixed(0)}%`:''].filter(Boolean).join('   ·   '),startX+90,y+29.5,{align:'center'});
     y+=kgH+8;
-    // Tarjetas de detalle (3 columnas)
-    const gW=(180-8)/3,gH=22;
-    pc.items.forEach((it,i)=>{
-      const gx=startX+(i%3)*(gW+4),gy=y+Math.floor(i/3)*(gH+4);
-      doc.setFillColor(255,255,255);doc.setDrawColor(200,200,195);doc.setLineWidth(0.3);
-      doc.roundedRect(gx,gy,gW,gH,2,2,'FD');
-      const vc=it.color||[0,0,0];
-      doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(vc[0],vc[1],vc[2]);
-      doc.text(fitText(String(it.val),gW-6),gx+4,gy+9);
-      doc.setFontSize(7);doc.setTextColor(0,0,0);doc.text(fitText(String(it.label).toUpperCase(),gW-6),gx+4,gy+14.5);
-      doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.setTextColor(50,50,50);doc.text(fitText(String(it.sub||''),gW-6),gx+4,gy+19);
+    // Tarjetas de detalle ordenadas por filas (2025 y 2026 lado a lado)
+    const byL={};pc.items.forEach(it=>byL[it.label]=it);
+    const filas=[
+      {t:'RESUMEN',l:['Total conteos','Diferencia dardos','Carg. eliminados 2025']},
+      {t:'DARDOS',l:['Dardos 2025','Dardos/planta 2026','Frutos/Dardo 2025','Frutos/Dardo 2026']},
+      {t:'RAMILLAS',l:['Ramillas 2025','Ramillas/planta 2026','Frutos/Ramilla 2025','Frutos/Ramilla 2026']},
+      {t:'CALIBRE',l:['Calibre 2025','Calibre Meta 2026']}
+    ];
+    const gH=17,gGap=3;
+    filas.forEach(f=>{
+      doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(0,0,0);
+      secBar(startX,y);doc.text(f.t,startX,y);
+      y+=2.5;
+      const n=f.l.length,gW=(180-gGap*(n-1))/n;
+      f.l.forEach((lb,i)=>{
+        const it=byL[lb];if(!it)return;
+        const gx=startX+i*(gW+gGap),gy=y;
+        doc.setFillColor(255,255,255);doc.setDrawColor(200,200,195);doc.setLineWidth(0.3);
+        doc.roundedRect(gx,gy,gW,gH,2,2,'FD');
+        const vc=it.color||[0,0,0];
+        doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(vc[0],vc[1],vc[2]);
+        doc.text(fitText(String(it.val),gW-5),gx+3,gy+7);
+        doc.setFontSize(6.6);doc.setTextColor(0,0,0);doc.text(fitText(String(it.label).toUpperCase(),gW-5),gx+3,gy+11.2);
+        doc.setFont('helvetica','normal');doc.setFontSize(6.2);doc.setTextColor(50,50,50);doc.text(fitText(String(it.sub||''),gW-5),gx+3,gy+15);
+      });
+      y+=gH+6;
     });
   }
   if(opts.obsTemas&&opts.obsTemas.items.length){
