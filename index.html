@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.74.0 -->
+  <!-- v6.76.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1536,8 +1536,36 @@ async function guardarCC(pfx,esp,mod){
   ccAddHilera(pfx);
   loadCCReg(esp);
 }
-function ccLoadAndFix(file,cb){const reader=new FileReader();reader.onload=function(e){const img=new Image();img.onload=function(){const MAX=1600;const sw=img.width,sh=img.height;const scale=Math.min(1,MAX/Math.max(sw,sh));const w=Math.round(sw*scale),h=Math.round(sh*scale);const cv=document.createElement('canvas');cv.width=w;cv.height=h;const ctx=cv.getContext('2d');ctx.drawImage(img,0,0,w,h);cb({url:cv.toDataURL('image/jpeg',0.85),w:cv.width,h:cv.height});};img.onerror=function(){cb({url:e.target.result,w:0,h:0});};img.src=e.target.result;};reader.readAsDataURL(file);}
-function ccAddPhotos(pfx,e){Array.from(e.target.files).forEach(file=>{ccLoadAndFix(file,r=>{ccPhotos[pfx].push(r);ccRenderPhotos(pfx);});});e.target.value='';}
+// Fotos del Control de Calidad: se reducen a ~1280px / JPEG 0.7 (≈100-250 KB c/u) usando una URL de objeto
+// en vez de leer el archivo completo como base64 (en celulares una foto de 12 MP leída así llegaba a ocupar
+// decenas de MB de memoria y el navegador recargaba la app). Se procesan de a una para no saturar la memoria.
+const CC_FOTO_MAX_PX=1280,CC_FOTO_CALIDAD=0.7,CC_FOTO_MAX_N=8;
+function ccLoadAndFix(file,cb){
+  const url=URL.createObjectURL(file);const img=new Image();
+  img.onload=function(){
+    try{
+      const scale=Math.min(1,CC_FOTO_MAX_PX/Math.max(img.naturalWidth,img.naturalHeight));
+      const w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      const out=cv.toDataURL('image/jpeg',CC_FOTO_CALIDAD);
+      cv.width=cv.height=0;URL.revokeObjectURL(url);
+      cb({url:out,w:w,h:h});
+    }catch(err){URL.revokeObjectURL(url);console.error('ccLoadAndFix',err);cb(null);}
+  };
+  img.onerror=function(){URL.revokeObjectURL(url);cb(null);};
+  img.src=url;
+}
+async function ccAddPhotos(pfx,e){
+  const files=Array.from(e.target.files||[]);e.target.value='';
+  for(const file of files){
+    if((ccPhotos[pfx]||[]).length>=CC_FOTO_MAX_N){toast('⚠ Máximo '+CC_FOTO_MAX_N+' fotos por registro','warn');break;}
+    const r=await new Promise(res=>ccLoadAndFix(file,res));
+    if(!r){toast('⚠ No se pudo cargar una foto (formato no compatible)','warn');continue;}
+    ccPhotos[pfx].push(r);ccRenderPhotos(pfx);
+    await new Promise(res=>setTimeout(res,30)); // deja respirar al navegador entre foto y foto
+  }
+}
 function ccRenderPhotos(pfx){const grid=document.getElementById(`${pfx}-cc-photosgrid`);if(!grid)return;const photos=ccPhotos[pfx]||[];grid.innerHTML=photos.map((p,i)=>`
     <div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid ${p.tag==='ok'?'#639922':p.tag==='fix'?'#e24b4a':'var(--gb2)'}">
       <img src="${p.url}" style="width:100%;height:100%;object-fit:cover">
@@ -1567,7 +1595,7 @@ function rnFrutosDat(){
   if(!regs.length){el.innerHTML=fHTML+'<div class="empty"><i class="ti ti-leaf"></i>'+(frutosDatV==='hoy'?`Sin conteos el ${fechaSel} — toca otra fecha o Acumulado.`:'Sin registros aún')+'</div>';return;}
   const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0,list:[]};const m=map[r.c];m.sDar+=r.dar;m.sFrDar+=r.frdar;m.sRam+=r.ram;m.sFrRam+=r.frram;m.n++;m.list.push(r);});
   // Corte por cuartel: hileras 1..corte y corte+1 en adelante; bajoConRaleo=true → las hileras bajas llevan raleo de yemas, false → las altas. Cuarteles no listados: sin diferenciación.
-  const SECTORES_RALEO={'C-6':{corte:22,bajoConRaleo:false},'C-10':{corte:74,bajoConRaleo:true}};
+  const SECTORES_RALEO={'C-6':{corte:22,bajoConRaleo:false},'C-10':{corte:74,bajoConRaleo:true,extra:{desde:48,hasta:66,fecha:'2026-10-15',label:'CON RALEO DE YEMAS + FRUTOS'}}};
   const rows=Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([c,m])=>{
     const fxd=m.sDar?(m.sFrDar/m.sDar).toFixed(2):'-';
     const fxr=m.sRam?(m.sFrRam/m.sRam).toFixed(2):'-';
@@ -1578,17 +1606,18 @@ function rnFrutosDat(){
     let secBlk='';
     if(aplicaSector){
       // sec1 = hileras 1..corte · sec2 = hileras corte+1 en adelante. bajoConRaleo indica cuál de los dos lleva raleo de yemas.
-      const sec1={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0},sec2={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0};
-      m.list.forEach(r=>{const tgt=(r.h!=null&&r.h>=SECTOR_CORTE+1)?sec2:sec1;tgt.sDar+=r.dar;tgt.sFrDar+=r.frdar;tgt.sRam+=r.ram;tgt.sFrRam+=r.frram;tgt.n++;});
+      const sec1={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0},sec2={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0},sec3={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0};
+      const ex=SECTOR_CFG.extra; // conteos separados: rango de hileras + fecha puntual, salen de los otros dos sectores
+      m.list.forEach(r=>{const esEx=ex&&r.h!=null&&r.h>=ex.desde&&r.h<=ex.hasta&&r.ts&&r.ts.includes(ex.fecha);const tgt=esEx?sec3:(r.h!=null&&r.h>=SECTOR_CORTE+1)?sec2:sec1;tgt.sDar+=r.dar;tgt.sFrDar+=r.frdar;tgt.sRam+=r.ram;tgt.sFrRam+=r.frram;tgt.n++;});
       const avg=(a,b)=>a?(b/a).toFixed(2):'-';
-      const mk=(sec,rango,conRaleo)=>`<div style="background:#fff;border:1px solid var(--gb2);border-radius:8px;padding:8px 10px">
-        <div style="font-size:9px;font-family:var(--mo);color:var(--tm);font-weight:700;letter-spacing:.5px;margin-bottom:4px">${conRaleo?'CON':'SIN'} RALEO DE YEMAS · ${rango}</div>
+      const mk=(sec,rango,conRaleo,titulo,full)=>`<div style="background:#fff;border:1px solid var(--gb2);border-radius:8px;padding:8px 10px${full?';grid-column:1/-1':''}">
+        <div style="font-size:9px;font-family:var(--mo);color:var(--tm);font-weight:700;letter-spacing:.5px;margin-bottom:4px">${titulo||((conRaleo?'CON':'SIN')+' RALEO DE YEMAS')} · ${rango}</div>
         <div style="display:flex;flex-wrap:wrap;gap:2px 12px;font-size:12px;font-family:var(--mo)"><span>FR/DAR <b style="color:${conRaleo?'var(--ro)':'#555'}">${avg(sec.sDar,sec.sFrDar)}</b></span><span>FR/RAM <b style="color:${conRaleo?'var(--ro)':'#555'}">${avg(sec.sRam,sec.sFrRam)}</b></span></div>
         <div style="font-size:9px;color:var(--tm);margin-top:3px">${sec.n} conteo${sec.n===1?'':'s'}</div>
       </div>`;
       const bajoCon=SECTOR_CFG.bajoConRaleo;
       secBlk=`<div style="font-size:9px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">COMPARATIVO POR SECTOR — ${c}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">${mk(sec1,`H.1–${SECTOR_CORTE}`,bajoCon)}${mk(sec2,`H.${SECTOR_CORTE+1}+`,!bajoCon)}</div>`;
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">${mk(sec1,`H.1–${SECTOR_CORTE}`,bajoCon)}${mk(sec2,`H.${SECTOR_CORTE+1}+`,!bajoCon)}${ex?mk(sec3,`H.${ex.desde}–${ex.hasta} · ${ex.fecha.split('-').reverse().join('-')}`,true,ex.label,true):''}</div>`;
     }
     const detRows=[...m.list].sort((a,b)=>(b.ts||'').localeCompare(a.ts||'')).map(r=>{
       const rfxd=r.dar?(r.frdar/r.dar).toFixed(2):'-';
