@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.83.0 -->
+  <!-- v6.85.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2982,20 +2982,22 @@ async function drawDashboardPDF(opts){
     doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(70,70,70);
     doc.text('Según observaciones de los contadores en los conteos'+(opts.criterios.base?` — ${opts.criterios.base.n} de ${opts.criterios.base.tot} conteos con observación`:''),startX,y);
     y+=6;
-    const barFullW=180,trackH=2.2;
+    const barFullW=180,trackH=5.5;
+    const nCr=opts.criterios.length;
+    const blockH=Math.max(14,Math.min(56,(288-y)/nCr));
     opts.criterios.forEach((cr,i)=>{
       const pct=cr.pct;
       const col=pct===null?[150,150,145]:pct>=cr.rango?[14,102,85]:pct>=cr.rango-15?[183,121,31]:[192,57,43];
-      doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(0,0,0);
+      doc.setFont('helvetica','normal');doc.setFontSize(12);doc.setTextColor(0,0,0);
       doc.text(`${i+1}. ${cr.label}  (min. ${cr.rango}%)`,startX,y,{maxWidth:barFullW});
-      y+=4.4;
+      const by=y+blockH*0.28;
       doc.setFillColor(238,240,238);
-      doc.roundedRect(startX,y,barFullW-20,trackH,1,1,'F');
-      const w=pct!==null?Math.max(2,Math.min(100,pct))/100*(barFullW-20):0;
-      if(w>0){doc.setFillColor(col[0],col[1],col[2]);doc.roundedRect(startX,y,w,trackH,1,1,'F');}
-      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(col[0],col[1],col[2]);
-      doc.text(pct!==null?`${pct}%`:'—',startX+barFullW,y+1.9,{align:'right'});
-      y+=trackH+4.6;
+      doc.roundedRect(startX,by,barFullW-22,trackH,1.5,1.5,'F');
+      const w=pct!==null?Math.max(2,Math.min(100,pct))/100*(barFullW-22):0;
+      if(w>0){doc.setFillColor(col[0],col[1],col[2]);doc.roundedRect(startX,by,w,trackH,1.5,1.5,'F');}
+      doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(col[0],col[1],col[2]);
+      doc.text(pct!==null?`${pct}%`:'—',startX+barFullW,by+4.4,{align:'right'});
+      y+=blockH;
     });
     if(opts.criterios.every(c=>c.pct===null)){
       doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(70,70,70);
@@ -3003,7 +3005,7 @@ async function drawDashboardPDF(opts){
       y+=5;
     }
     y+=5;
-    if(opts.ccSupList&&opts.ccSupList.length){
+    if(false&&opts.ccSupList&&opts.ccSupList.length){
       const tW3=180,colW3=[tW3*0.30,tW3*0.42,tW3*0.12,tW3*0.16],colX3=[startX,startX+colW3[0],startX+colW3[0]+colW3[1],startX+colW3[0]+colW3[1]+colW3[2]],rowH3=8.5;
       const drawCCHeader=()=>{
         doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(0,0,0);
@@ -3542,6 +3544,217 @@ function abrirDetRev(esp, contador){
   document.getElementById('modal-ov').classList.add('open');
 }
 
+</script>
+<script>
+/* ===== CORRECCIONES: edición propia + solicitudes con aprobación ===== */
+(function(){
+const ESPS={nec:'Nectarín',cer:'Cerezo',cir:'Ciruelo',duz:'Duraznero'};
+const F_RALEO=[{k:'cuartel',l:'Cuartel',t:'cua'},{k:'hilera',l:'Hilera',t:'num'},{k:'planta',l:'Planta',t:'num'},{k:'podador',l:'Podador',t:'txt'},{k:'ramillas',l:'Ramillas',t:'num'},{k:'frutos',l:'Frutos',t:'num'},{k:'calidad',l:'Calidad',t:'cal'},{k:'observaciones',l:'Observaciones',t:'txt'}];
+const F_RALEO_CER=[{k:'cuartel',l:'Cuartel',t:'cua'},{k:'hilera',l:'Hilera',t:'num'},{k:'planta',l:'Planta',t:'num'},{k:'podador',l:'Podador',t:'txt'},{k:'ramillas',l:'Total ramillas',t:'num'},{k:'frutos',l:'Cumplen pauta',t:'num'},{k:'calidad',l:'Calidad',t:'cal'},{k:'observaciones',l:'Observaciones',t:'txt'}];
+const F_FRUT=[{k:'cuartel',l:'Cuartel',t:'cua'},{k:'hilera',l:'Hilera',t:'num'},{k:'planta',l:'Planta',t:'num'},{k:'dardos',l:'N° dardos',t:'num'},{k:'frutos_dardo',l:'Frutos en dardos',t:'num'},{k:'ramillas',l:'N° ramillas',t:'num'},{k:'frutos_ramilla',l:'Frutos en ramillas',t:'num'},{k:'observaciones',l:'Observaciones',t:'txt'}];
+function srcOf(e,key){
+  if(key==='frutos')return{key,tbl:'conteos_frutos_cer',esp:'cer',F:F_FRUT,label:'Conteo de frutos'};
+  return{key:'raleo',tbl:e==='cer'?'conteos_raleo_cer':'conteos_raleo',esp:e,F:e==='cer'?F_RALEO_CER:F_RALEO,label:'Conteo de raleo'};
+}
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const arrCua=e=>e==='nec'?CNEC:e==='cer'?CCER:e==='cir'?CCIR:CDUZ;
+const me=()=>sessionStorage.getItem('raleoIngContador')||'';
+let S={e:'nec',key:'raleo',mode:'mis',rows:[],sel:null,busy:false,fecha:'',cua:'',hil:''};
+
+function derivar(e,src,row){
+  const d={};
+  if(src.key==='frutos')return d;
+  const ram=parseInt(row.ramillas)||0,fru=parseInt(row.frutos)||0;
+  if(e==='cer'){const pct=ram?fru/ram*100:0;d.fuera_rango=pct<75?'bajo':pct<80?'alto':'no';d.frutos_x_ramilla=parseFloat(pct.toFixed(2));}
+  else{const t=e==='nec'?RALEO_NEC:e==='cir'?RALEO_CIR:RALEO_DUZ;const r=t[row.cuartel];d.fuera_rango=(r&&r.mn&&r.mx)?(fru<r.mn?'bajo':fru>r.mx?'alto':'no'):'no';d.frutos_x_ramilla=parseFloat((ram?fru/ram:0).toFixed(2));}
+  return d;
+}
+function resumen(src,r){
+  if(src.key==='frutos')return`Dardos ${r.dardos}/${r.frutos_dardo} · Ramillas ${r.ramillas}/${r.frutos_ramilla}`;
+  return`${r.ramillas} ram · ${r.frutos} fr${r.calidad?' · Cal. '+r.calidad:''}`;
+}
+function ov(){let o=document.getElementById('corr-ov');if(!o){o=document.createElement('div');o.id='corr-ov';o.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;overflow-y:auto';o.innerHTML='<div id="corr-box" style="background:#fff;max-width:520px;margin:0 auto;min-height:100%;padding:16px 16px 40px"></div>';document.body.appendChild(o);}return o;}
+function box(){return document.getElementById('corr-box');}
+const css={b:'border:1px solid var(--gb2);border-radius:10px;padding:10px 12px;margin-bottom:8px',mini:'font-size:11px;font-family:var(--mo);color:var(--tm)'};
+const btn=(t,fn,bg)=>`<button class="sbtn-g" style="${bg?'background:'+bg+';':''}margin-top:8px" onclick="${fn}">${t}</button>`;
+
+window.corrAbrir=function(e){
+  if(!me()){toast('⚠ Ingresa con tu PIN primero','warn');return;}
+  S={e,key:'raleo',mode:'mis',rows:[],sel:null,busy:false,fecha:hoy(),cua:'',hil:''};
+  ov().style.display='block';document.body.style.overflow='hidden';corrCargar();
+};
+window.corrCerrar=function(){ov().style.display='none';document.body.style.overflow='';};
+function cab(){
+  const src=srcOf(S.e,S.key);
+  return`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:700;font-size:16px">Corregir conteos · ${ESPS[S.e]}</div><button onclick="corrCerrar()" style="border:none;background:none;font-size:22px;cursor:pointer">✕</button></div>
+  <div style="${css.mini};margin-bottom:8px">Contador: <b>${esc(me())}</b></div>
+  ${S.e==='cer'?`<div class="tog-row" style="margin-bottom:8px"><button class="tog-btn${S.key==='raleo'?' tog-g':''}" onclick="corrSrc('raleo')">Raleo</button><button class="tog-btn${S.key==='frutos'?' tog-g':''}" onclick="corrSrc('frutos')">Frutos</button></div>`:''}
+  <div class="tog-row" style="margin-bottom:10px"><button class="tog-btn${S.mode==='mis'?' tog-g':''}" onclick="corrModo('mis')">Mis conteos de hoy</button><button class="tog-btn${S.mode==='otros'?' tog-g':''}" onclick="corrModo('otros')">Otros registros</button></div>`;
+}
+window.corrSrc=function(k){S.key=k;S.sel=null;corrCargar();};
+window.corrModo=function(m){S.mode=m;S.sel=null;m==='mis'?corrCargar():corrRender();};
+window.corrCargar=async function(){
+  const src=srcOf(S.e,S.key);
+  S.rows=[];S.sel=null;box().innerHTML=cab()+'<div style="padding:20px;text-align:center;color:var(--tm)">Cargando...</div>';
+  let q=db.from(src.tbl).select('*').order('id',{ascending:false}).limit(60);
+  if(src.key==='raleo'&&src.tbl==='conteos_raleo')q=q.eq('especie',S.e);
+  if(S.mode==='mis'){q=q.eq('contador',me()).like('timestamp',hoy()+'%');}
+  else if(S.cua||S.hil||S.fecha){q=q.like('timestamp',(S.fecha||hoy())+'%');if(S.cua)q=q.eq('cuartel',S.cua);if(S.hil)q=q.eq('hilera',parseInt(S.hil));}
+  else{S.rows=[];corrRender();return;}
+  const {data,error}=await q;
+  if(error){box().innerHTML=cab()+`<div style="padding:16px;color:#9C0006">⚠ No se pudo cargar (${esc(error.message||'error')}).</div>`;return;}
+  S.rows=data||[];corrRender();
+};
+window.corrBuscar=function(){S.fecha=document.getElementById('corr-f').value||hoy();S.cua=document.getElementById('corr-c').value;S.hil=document.getElementById('corr-h').value;corrCargar();};
+function filtros(){
+  const cs=arrCua(S.e).map(c=>`<option value="${c.n}"${S.cua===c.n?' selected':''}>${c.n}${c.v?' · '+c.v:''}</option>`).join('');
+  return`<div style="${css.b};background:#fafaf7"><div style="display:flex;gap:8px;flex-wrap:wrap"><div style="flex:1;min-width:130px"><label class="flbl">Fecha</label><input class="finp" type="date" id="corr-f" value="${S.fecha||hoy()}"></div><div style="flex:1;min-width:130px"><label class="flbl">Cuartel</label><select class="finp" id="corr-c"><option value="">Todos</option>${cs}</select></div><div style="flex:1;min-width:90px"><label class="flbl">Hilera</label><input class="finp" type="number" id="corr-h" value="${esc(S.hil)}" placeholder="opcional"></div></div>${btn('Buscar','corrBuscar()')}</div>`;
+}
+function corrRender(){
+  const src=srcOf(S.e,S.key);
+  let h=cab();
+  if(S.sel!==null){h+=formHtml(src);box().innerHTML=h;return;}
+  if(S.mode==='otros')h+=filtros();
+  if(!S.rows.length)h+=`<div style="padding:18px;text-align:center;color:var(--tm);font-size:13px">${S.mode==='mis'?'No tienes conteos hoy en esta sección.':'Usa los filtros y toca Buscar.'}</div>`;
+  S.rows.forEach((r,i)=>{
+    const propio=r.contador===me()&&String(r.timestamp||'').startsWith(hoy());
+    h+=`<div style="${css.b};display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="min-width:0"><div style="font-weight:700;font-size:14px">${esc(r.cuartel)} · H${esc(r.hilera)} · P${esc(r.planta)}</div><div style="${css.mini}">${esc(resumen(src,r))}</div><div style="${css.mini}">${esc(r.contador||'')} · ${esc(String(r.timestamp||'').slice(11,16))}</div></div><button class="tog-btn tog-g" style="white-space:nowrap" onclick="corrSel(${i})">${propio?'✎ Editar':'Solicitar'}</button></div>`;
+  });
+  h+=`<div id="corr-mias" style="margin-top:14px"></div>`;
+  box().innerHTML=h;corrMias();
+}
+window.corrSel=function(i){S.sel=i;corrRender();window.scrollTo(0,0);};
+window.corrVolver=function(){S.sel=null;corrRender();};
+function formHtml(src){
+  const r=S.rows[S.sel];const propio=r.contador===me()&&String(r.timestamp||'').startsWith(hoy());
+  const cs=arrCua(S.e).map(c=>c.n);if(r.cuartel&&!cs.includes(String(r.cuartel)))cs.push(String(r.cuartel));
+  let h=`<button onclick="corrVolver()" style="border:none;background:none;color:var(--tm);font-size:12px;cursor:pointer;margin-bottom:6px">‹ Volver</button><div style="font-weight:700;margin-bottom:8px">${propio?'Editar registro':'Solicitar corrección'} · ${esc(r.cuartel)} H${esc(r.hilera)} P${esc(r.planta)}</div>`;
+  if(!propio)h+=`<div style="${css.mini};margin-bottom:8px">Este registro no es tuyo o no es de hoy: tu cambio quedará como solicitud y debe ser aprobado.</div>`;
+  src.F.forEach(f=>{
+    const v=r[f.k]==null?'':r[f.k];
+    let inp;
+    if(f.t==='cua')inp=`<select class="finp" id="cf-${f.k}">${cs.map(c=>`<option value="${esc(c)}"${String(v)===c?' selected':''}>${esc(c)}</option>`).join('')}</select>`;
+    else if(f.t==='cal')inp=`<select class="finp" id="cf-${f.k}">${['A','B','C'].map(c=>`<option value="${c}"${v===c?' selected':''}>${c}</option>`).join('')}</select>`;
+    else if(f.t==='num')inp=`<input class="finp" type="number" id="cf-${f.k}" value="${esc(v)}">`;
+    else inp=`<input class="finp" type="text" id="cf-${f.k}" value="${esc(v)}">`;
+    h+=`<div class="fgrp" style="margin-bottom:8px"><label class="flbl">${f.l}</label>${inp}</div>`;
+  });
+  if(!propio)h+=`<div class="fgrp" style="margin-bottom:8px"><label class="flbl">Motivo (obligatorio)</label><input class="finp" type="text" id="cf-motivo" placeholder="Ej: me equivoqué de hilera"></div>`;
+  h+=btn(propio?'Guardar cambios':'Enviar solicitud','corrGuardar()');
+  h+=btn(propio?'Eliminar este registro':'Solicitar eliminar este registro','corrEliminar()','#9C0006');
+  return h;
+}
+function leerCambios(src,r){
+  const c={};
+  src.F.forEach(f=>{const el=document.getElementById('cf-'+f.k);if(!el)return;let v=el.value;if(f.t==='num'){v=v===''?null:parseInt(v);}else v=v.trim();const o=r[f.k]==null?(f.t==='num'?null:''):r[f.k];if(String(v==null?'':v)!==String(o==null?'':o))c[f.k]=v;});
+  return c;
+}
+async function aplicar(e,src,id,cambios){
+  const {data:cur,error:e1}=await db.from(src.tbl).select('*').eq('id',id).maybeSingle();
+  if(e1||!cur)return{error:e1||{message:'El registro ya no existe'}};
+  const merged=Object.assign({},cur,cambios);
+  if(cambios.cuartel!==undefined)cambios.cuartel=String(cambios.cuartel);
+  const patch=Object.assign({},cambios,derivar(e,src,merged));
+  const {error}=await db.from(src.tbl).update(patch).eq('id',id);
+  return{error,antes:cur};
+}
+window.corrGuardar=async function(){
+  if(S.busy)return;const src=srcOf(S.e,S.key);const r=S.rows[S.sel];
+  const propio=r.contador===me()&&String(r.timestamp||'').startsWith(hoy());
+  const cambios=leerCambios(src,r);
+  if(!Object.keys(cambios).length){toast('No hay cambios que guardar','warn');return;}
+  if(src.F.some(f=>f.t==='num'&&['hilera','planta'].includes(f.k)&&cambios[f.k]===null)){toast('⚠ Hilera y planta no pueden quedar vacías','warn');return;}
+  const antes={};Object.keys(cambios).forEach(k=>antes[k]=r[k]);
+  S.busy=true;
+  if(propio){
+    const res=await aplicar(S.e,src,r.id,Object.assign({},cambios));
+    if(res.error){S.busy=false;toast('⚠ Error: '+(res.error.message||'no se pudo guardar'),'warn');return;}
+    await db.from('correcciones').insert([{tabla:src.tbl,especie:S.e,registro_id:r.id,accion:'editar',solicitante:me(),motivo:'Corrección propia',antes,cambios,estado:'aplicada'}]);
+    S.busy=false;toast('✓ Registro corregido');
+    if(typeof loadRaleo==='function')loadRaleo(S.e);
+    S.sel=null;corrCargar();
+  }else{
+    const motivo=(document.getElementById('cf-motivo').value||'').trim();
+    if(!motivo){S.busy=false;toast('⚠ Escribe el motivo','warn');return;}
+    const {error}=await db.from('correcciones').insert([{tabla:src.tbl,especie:S.e,registro_id:r.id,accion:'editar',solicitante:me(),motivo,antes,cambios,estado:'pendiente'}]);
+    S.busy=false;
+    if(error){toast('⚠ Error al enviar la solicitud','warn');return;}
+    toast('✓ Solicitud enviada, queda pendiente de aprobación');S.sel=null;corrRender();
+  }
+};
+window.corrEliminar=async function(){
+  if(S.busy)return;const src=srcOf(S.e,S.key);const r=S.rows[S.sel];
+  const propio=r.contador===me()&&String(r.timestamp||'').startsWith(hoy());
+  if(propio){
+    if(!confirm('¿Eliminar este registro? No se puede deshacer.'))return;
+    S.busy=true;
+    const {error}=await db.from(src.tbl).delete().eq('id',r.id);
+    if(error){S.busy=false;toast('⚠ Error al eliminar','warn');return;}
+    await db.from('correcciones').insert([{tabla:src.tbl,especie:S.e,registro_id:r.id,accion:'eliminar',solicitante:me(),motivo:'Eliminado por el contador',antes:r,cambios:null,estado:'aplicada'}]);
+    S.busy=false;toast('✓ Registro eliminado');if(typeof loadRaleo==='function')loadRaleo(S.e);S.sel=null;corrCargar();
+  }else{
+    const m=(document.getElementById('cf-motivo').value||'').trim();
+    if(!m){toast('⚠ Escribe el motivo','warn');return;}
+    S.busy=true;
+    const {error}=await db.from('correcciones').insert([{tabla:src.tbl,especie:S.e,registro_id:r.id,accion:'eliminar',solicitante:me(),motivo:m,antes:r,cambios:null,estado:'pendiente'}]);
+    S.busy=false;if(error){toast('⚠ Error al enviar la solicitud','warn');return;}
+    toast('✓ Solicitud enviada');S.sel=null;corrRender();
+  }
+};
+async function corrMias(){
+  const el=document.getElementById('corr-mias');if(!el)return;
+  const {data}=await db.from('correcciones').select('*').eq('solicitante',me()).neq('estado','aplicada').order('id',{ascending:false}).limit(8);
+  if(!data||!data.length||!document.getElementById('corr-mias'))return;
+  const col={pendiente:'#B7791F',aprobada:'#0E6655',rechazada:'#9C0006'};
+  el.innerHTML=`<div style="font-weight:700;font-size:13px;margin-bottom:6px">Mis solicitudes</div>`+data.map(c=>`<div style="${css.b}"><div style="font-size:12px"><b>${c.accion==='eliminar'?'Eliminar':'Corregir'}</b> registro #${c.registro_id} <span style="color:${col[c.estado]||'#555'};font-weight:700">· ${esc(c.estado)}</span></div><div style="${css.mini}">${esc(c.motivo||'')}</div></div>`).join('');
+}
+/* ---------- Administrador ---------- */
+window.corrAdmLoad=async function(e){
+  const el=document.getElementById(`r${e}-corr`);if(!el)return;
+  el.innerHTML='<div style="font-size:12px;font-family:var(--mo);color:var(--tm);padding:6px 0">Cargando...</div>';
+  const {data,error}=await db.from('correcciones').select('*').eq('estado','pendiente').eq('especie',e).order('id',{ascending:true}).limit(50);
+  if(error){el.innerHTML='<div style="color:#9C0006;font-size:12px">⚠ No se pudieron cargar las solicitudes</div>';return;}
+  const t=document.getElementById(`r${e}-corr-n`);if(t)t.textContent=(data&&data.length)?`(${data.length})`:'';
+  if(!data.length){el.innerHTML='<div style="font-size:12px;font-family:var(--mo);color:var(--tm);padding:6px 0">Sin solicitudes pendientes</div>';return;}
+  el.innerHTML=data.map(c=>{
+    const a=c.antes||{};const lbl=k=>{const all=F_RALEO_CER.concat(F_FRUT);const f=all.find(x=>x.k===k);return f?f.l:k;};
+    const det=c.accion==='eliminar'?`<b style="color:#9C0006">Eliminar</b> el registro ${esc(a.cuartel||'')} H${esc(a.hilera||'')} P${esc(a.planta||'')}`:Object.keys(c.cambios||{}).map(k=>`${esc(lbl(k))}: <s>${esc(a[k]==null?'—':a[k])}</s> → <b>${esc(c.cambios[k]==null?'—':c.cambios[k])}</b>`).join('<br>');
+    return`<div style="${css.b}"><div style="font-size:12px;font-weight:700">${esc(c.solicitante||'')} <span style="font-weight:400;color:var(--tm)">· ${c.tabla==='conteos_frutos_cer'?'Frutos':'Raleo'} · registro #${c.registro_id}</span></div><div style="font-size:12px;margin:4px 0">${det}</div><div style="${css.mini}">Motivo: ${esc(c.motivo||'')}</div><div style="display:flex;gap:8px;margin-top:8px"><button class="sbtn-g" style="margin:0;flex:1" onclick="corrResolver(${c.id},'${e}',true)">Aprobar</button><button class="sbtn-g" style="margin:0;flex:1;background:#9C0006" onclick="corrResolver(${c.id},'${e}',false)">Rechazar</button></div></div>`;
+  }).join('');
+};
+window.corrResolver=async function(id,e,ok){
+  const {data:c}=await db.from('correcciones').select('*').eq('id',id).maybeSingle();
+  if(!c||c.estado!=='pendiente'){toast('Esa solicitud ya fue resuelta','warn');corrAdmLoad(e);return;}
+  if(ok){
+    const src=c.tabla==='conteos_frutos_cer'?srcOf(e,'frutos'):srcOf(e,'raleo');
+    let error;
+    if(c.accion==='eliminar'){({error}=await db.from(c.tabla).delete().eq('id',c.registro_id));}
+    else{({error}=await aplicar(e,src,c.registro_id,Object.assign({},c.cambios||{})));}
+    if(error){toast('⚠ No se pudo aplicar: '+(error.message||''),'warn');return;}
+  }
+  await db.from('correcciones').update({estado:ok?'aprobada':'rechazada',resuelto_por:'Administrador',resuelto:new Date().toISOString()}).eq('id',id);
+  toast(ok?'✓ Corrección aplicada':'Solicitud rechazada');
+  if(typeof loadRaleo==='function')loadRaleo(e);
+  corrAdmLoad(e);
+};
+/* ---------- Inyección en la interfaz ---------- */
+['nec','cer','cir','duz'].forEach(e=>{
+  const body=document.getElementById(`r${e}-ing-body`);
+  if(body&&!document.getElementById(`r${e}-corr-btn`)){
+    const b=document.createElement('button');b.id=`r${e}-corr-btn`;b.className='tog-btn';b.style.cssText='width:100%;margin-bottom:12px;border:1px dashed var(--tm);background:#fafaf7';
+    b.innerHTML='<i class="ti ti-edit" style="font-size:14px;margin-right:4px"></i>Corregir conteos / solicitar corrección';
+    b.onclick=()=>corrAbrir(e);body.insertBefore(b,body.firstChild);
+  }
+  const adm=document.getElementById(`r${e}-adm`);
+  if(adm&&!document.getElementById(`r${e}-corr`)){
+    const s=document.createElement('div');s.className='cfg-sec';
+    s.innerHTML=`<div class="cfg-title"><i class="ti ti-edit"></i>Correcciones pendientes <span id="r${e}-corr-n" style="margin-left:4px"></span><button onclick="corrAdmLoad('${e}')" style="background:var(--vo);color:#fff;border:none;border-radius:5px;font-size:10px;font-family:var(--mo);padding:3px 8px;cursor:pointer;margin-left:8px"><i class="ti ti-refresh"></i> Actualizar</button></div><div id="r${e}-corr"></div>`;
+    const hdr=adm.querySelector('.adm-hdr');hdr?hdr.after(s):adm.insertBefore(s,adm.firstChild);
+  }
+});
+const _chk=window.chkAdm;
+window.chkAdm=function(e){_chk(e);if(['rnec','rcer','rcir','rduz'].includes(e)&&raleoAdm[e])corrAdmLoad(e.slice(1));};
+})();
 </script>
 </body>
 </html>
