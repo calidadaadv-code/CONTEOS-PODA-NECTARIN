@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.86.0 -->
+  <!-- v6.87.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2676,11 +2676,13 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
   }
   drawDashboardPDF({
     titulo:cfg.label.toUpperCase(),cuartel,variedad,fecha,colorHex:cfg.color,
-    kpis:[
+    kpis:especie==='cer'?[
       {label:'N° Conteos',val:String(n),list:contList},
       {label:`Promedio ${cfg.metricLabel}`,val:avg.toFixed(1)+cfg.unit,list:promList},
       {label:'Conteo Más Alto',val:maxR[cfg.metric]+cfg.unit,list:maxList},
       {label:'Conteo Más Bajo',val:minR[cfg.metric]+cfg.unit,list:minList}
+    ]:[
+      {label:`Promedio ${cfg.metricLabel}`,val:avg.toFixed(1)+cfg.unit}
     ],
     rango:{pBj,pDn,pAl,bj,dn,al},
     criterios,
@@ -2902,7 +2904,7 @@ async function drawDashboardPDF(opts){
     yl+=24;
     secBar(xL,yl);T('RESUMEN DE CONTEOS',xL,yl,11,true);
     yl+=4;
-    const bW=(cW-4)/2,LMAX=3;
+    const bW=opts.kpis.length===1?cW:(cW-4)/2,LMAX=3;
     const lMax=Math.max(0,...opts.kpis.map(k=>k.list?Math.min(k.list.length,LMAX):0));
     const bH=lMax>0?(27+3+lMax*3.3+4):27;
     opts.kpis.forEach((k,i)=>{
