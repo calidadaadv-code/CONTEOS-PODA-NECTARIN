@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.76.0 -->
+  <!-- v6.78.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2718,6 +2718,10 @@ async function drawDashboardPDF(opts){
   if(!window.Chart){toast('⚠ No se pudo cargar el generador de gráficos','warn');}
   const {jsPDF}=window.jspdf;
   const [r,g,b]=hex2rgb(opts.colorHex);
+  // Paleta de la app: color de la especie + su variante oscura + su tono claro, fondo crema (#F5F4F0)
+  const PAL={'#1D9E75':{dk:[8,80,65],tn:[225,245,238]},'#7C3AED':{dk:[76,29,149],tn:[237,233,254]},'#D35400':{dk:[125,60,0],tn:[254,245,231]},'#C0392B':{dk:[123,36,28],tn:[250,219,216]}};
+  const pal=PAL[opts.colorHex]||{dk:[Math.round(r*.45),Math.round(g*.45),Math.round(b*.45)],tn:[245,244,240]};
+  const CREMA=[245,244,240];
   // ── Pre-render charts as images (mientras el doc aún no existe) ──
   let rangoDonutImg=null,bar2Img=null;
   if(opts.rango&&window.Chart){
@@ -2742,6 +2746,11 @@ async function drawDashboardPDF(opts){
     },900,Math.max(340,bc.labels.length*110));
   }
   const doc=new jsPDF({unit:'mm',format:'a4'});
+  const pintarFondo=()=>{doc.setFillColor(CREMA[0],CREMA[1],CREMA[2]);doc.rect(0,0,210,297,'F');};
+  pintarFondo();
+  const _addPage=doc.addPage.bind(doc);
+  doc.addPage=function(){_addPage.apply(doc,arguments);pintarFondo();return doc;};
+  const secBar=(x,yy,h)=>{doc.setFillColor(r,g,b);doc.rect(x-3.4,yy-(h||3.7),1.7,(h||3.7)+1,'F');};
   const fitText=(s,maxW)=>{
     s=String(s);
     if(doc.getTextWidth(s)<=maxW)return s;
@@ -2763,15 +2772,15 @@ async function drawDashboardPDF(opts){
     items.forEach(it=>{
       if(col===0&&rowY+cardH>290){doc.addPage();rowY=20;}
       const cx=startX+col*(cardW+gap);
-      doc.setFillColor(it.bg?it.bg[0]:248,it.bg?it.bg[1]:248,it.bg?it.bg[2]:246);
+      doc.setFillColor(it.bg?it.bg[0]:255,it.bg?it.bg[1]:255,it.bg?it.bg[2]:255);
       doc.setDrawColor(225,225,220);doc.setLineWidth(0.3);
       doc.roundedRect(cx,rowY,cardW,cardH,2,2,'FD');
       const col_=it.color||[60,60,60];
       doc.setTextColor(col_[0],col_[1],col_[2]);doc.setFont('helvetica','bold');doc.setFontSize(11.5);
       doc.text(fitText(String(it.val),cardW-10),cx+6,rowY+9.5);
-      doc.setTextColor(120,120,115);doc.setFont('helvetica','normal');doc.setFontSize(6.1);
+      doc.setTextColor(50,50,50);doc.setFont('helvetica','normal');doc.setFontSize(6.1);
       doc.text(fitText(String(it.label).toUpperCase(),cardW-10),cx+6,rowY+14.3);
-      if(it.sub){doc.setFontSize(5.8);doc.setTextColor(150,150,145);doc.text(fitText(String(it.sub),cardW-10),cx+6,rowY+18.3);}
+      if(it.sub){doc.setFontSize(5.8);doc.setTextColor(70,70,70);doc.text(fitText(String(it.sub),cardW-10),cx+6,rowY+18.3);}
       col++;
       if(col>=cols){col=0;rowY+=cardH+4;}
     });
@@ -2781,6 +2790,8 @@ async function drawDashboardPDF(opts){
   const pageW=210,startX=15;
   doc.setFillColor(r,g,b);
   doc.rect(0,0,pageW,40,'F');
+  doc.setFillColor(pal.dk[0],pal.dk[1],pal.dk[2]);doc.rect(0,40,pageW,3.2,'F');
+  doc.setFillColor(239,159,39);doc.rect(0,43.2,pageW,1.2,'F');
   doc.setFillColor(255,255,255);
   doc.roundedRect(10,9,38,22,2,2,'F');
   try{
@@ -2801,65 +2812,65 @@ async function drawDashboardPDF(opts){
   }
   let y=54;
   if(opts.supCont&&opts.supCont.length){
-    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
-    doc.text('SUPERVISORES Y CONTRATISTAS EN TERRENO',startX,y);
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
+    secBar(startX,y);doc.text('SUPERVISORES Y CONTRATISTAS EN TERRENO',startX,y);
     y+=6;
-    const tW2=180,colW2=[tW2*0.30,tW2*0.40,tW2*0.30],colX2=[startX,startX+colW2[0],startX+colW2[0]+colW2[1]],rowH2=8;
+    const tW2=180,colW2=[tW2*0.28,tW2*0.46,tW2*0.26],colX2=[startX,startX+colW2[0],startX+colW2[0]+colW2[1]],rowH2=9;
     doc.setFillColor(r,g,b);
     doc.rect(startX,y,tW2,6.5,'F');
-    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7.5);
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
     doc.text('SUPERVISOR',colX2[0]+3,y+4.4);
     doc.text('CONTRATISTA',colX2[1]+3,y+4.4);
     doc.text('CONTADOR',colX2[2]+3,y+4.4);
     y+=6.5;
-    doc.setFont('helvetica','normal');doc.setFontSize(8);
+    doc.setFont('helvetica','normal');doc.setFontSize(9.5);
     opts.supCont.forEach((it,i)=>{
-      if(i%2===0){doc.setFillColor(248,248,246);doc.rect(startX,y,tW2,rowH2,'F');}
-      doc.setTextColor(60,60,60);
-      doc.text(fitText(it.sup,colW2[0]-6),colX2[0]+3,y+5.4);
-      doc.text(fitText(it.comp,colW2[1]-6),colX2[1]+3,y+5.4);
-      doc.text(fitText(it.cnt||'—',colW2[2]-6),colX2[2]+3,y+5.4);
+      if(i%2===0){doc.setFillColor(pal.tn[0],pal.tn[1],pal.tn[2]);doc.rect(startX,y,tW2,rowH2,'F');}
+      doc.setTextColor(0,0,0);
+      doc.text(fitText(it.sup,colW2[0]-6),colX2[0]+3,y+6);
+      doc.text(fitText(it.comp,colW2[1]-6),colX2[1]+3,y+6);
+      doc.text(fitText(it.cnt||'—',colW2[2]-6),colX2[2]+3,y+6);
       y+=rowH2;
     });
     y+=8;
   }
   if(opts.criterios&&opts.criterios.length){
-    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
-    doc.text('CONTROL DE CALIDAD DEL RALEO',startX,y);
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    secBar(startX,y);doc.text('CONTROL DE CALIDAD DEL RALEO',startX,y);
     y+=5.5;
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,140,135);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(70,70,70);
     doc.text('Pauta de cumplimiento — promedio del cuartel',startX,y);
     y+=6;
     const barFullW=180,trackH=2.2;
     opts.criterios.forEach((cr,i)=>{
       const pct=cr.pct;
       const col=pct===null?[150,150,145]:pct>=cr.rango?[14,102,85]:pct>=cr.rango-15?[183,121,31]:[192,57,43];
-      doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(60,60,60);
+      doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(0,0,0);
       doc.text(`${i+1}. ${cr.label}  (min. ${cr.rango}%)`,startX,y,{maxWidth:barFullW});
       y+=4.4;
       doc.setFillColor(238,240,238);
       doc.roundedRect(startX,y,barFullW-20,trackH,1,1,'F');
       const w=pct!==null?Math.max(2,Math.min(100,pct))/100*(barFullW-20):0;
       if(w>0){doc.setFillColor(col[0],col[1],col[2]);doc.roundedRect(startX,y,w,trackH,1,1,'F');}
-      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(col[0],col[1],col[2]);
+      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(col[0],col[1],col[2]);
       doc.text(pct!==null?`${pct}%`:'—',startX+barFullW,y+1.9,{align:'right'});
       y+=trackH+4.6;
     });
     if(opts.criterios.every(c=>c.pct===null)){
-      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,140,135);
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(70,70,70);
       doc.text('Sin registros de Control de Calidad para esta fecha.',startX,y);
       y+=5;
     }
     y+=5;
     if(opts.ccSupList&&opts.ccSupList.length){
-      const tW3=180,colW3=[tW3*0.32,tW3*0.36,tW3*0.14,tW3*0.18],colX3=[startX,startX+colW3[0],startX+colW3[0]+colW3[1],startX+colW3[0]+colW3[1]+colW3[2]],rowH3=7.5;
+      const tW3=180,colW3=[tW3*0.30,tW3*0.42,tW3*0.12,tW3*0.16],colX3=[startX,startX+colW3[0],startX+colW3[0]+colW3[1],startX+colW3[0]+colW3[1]+colW3[2]],rowH3=8.5;
       const drawCCHeader=()=>{
-        doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(60,60,60);
-        doc.text('SUPERVISORES Y CONTRATISTAS — % CALIDAD',startX,y);
+        doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(0,0,0);
+        secBar(startX,y);doc.text('SUPERVISORES Y CONTRATISTAS — % CALIDAD',startX,y);
         y+=5.5;
         doc.setFillColor(r,g,b);
         doc.rect(startX,y,tW3,6.5,'F');
-        doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7);
+        doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
         doc.text('SUPERVISOR',colX3[0]+3,y+4.4);
         doc.text('CONTRATISTA',colX3[1]+3,y+4.4);
         doc.text('REVIS.',colX3[2]+colW3[2]/2,y+4.4,{align:'center'});
@@ -2868,35 +2879,170 @@ async function drawDashboardPDF(opts){
       };
       if(y>260){doc.addPage();y=20;}
       drawCCHeader();
-      doc.setFont('helvetica','normal');doc.setFontSize(7.8);
+      doc.setFont('helvetica','normal');doc.setFontSize(9.2);
       opts.ccSupList.forEach((it,i)=>{
         if(y>283){doc.addPage();y=20;drawCCHeader();}
-        if(i%2===0){doc.setFillColor(248,248,246);doc.rect(startX,y,tW3,rowH3,'F');}
-        doc.setTextColor(60,60,60);doc.setFont('helvetica','normal');doc.setFontSize(7.8);
-        doc.text(fitText(it.sup,colW3[0]-6),colX3[0]+3,y+5.1);
-        doc.text(fitText(it.comp,colW3[1]-6),colX3[1]+3,y+5.1);
-        doc.text(String(it.n),colX3[2]+colW3[2]/2,y+5.1,{align:'center'});
+        if(i%2===0){doc.setFillColor(pal.tn[0],pal.tn[1],pal.tn[2]);doc.rect(startX,y,tW3,rowH3,'F');}
+        doc.setTextColor(0,0,0);doc.setFont('helvetica','normal');doc.setFontSize(9.2);
+        doc.text(fitText(it.sup,colW3[0]-6),colX3[0]+3,y+5.9);
+        doc.text(fitText(it.comp,colW3[1]-6),colX3[1]+3,y+5.9);
+        doc.text(String(it.n),colX3[2]+colW3[2]/2,y+5.9,{align:'center'});
         const pcol=it.pct===null?[140,140,135]:it.pct>=85?[14,102,85]:it.pct>=70?[183,121,31]:[192,57,43];
         doc.setFont('helvetica','bold');doc.setTextColor(pcol[0],pcol[1],pcol[2]);
-        doc.text(it.pct!==null?`${it.pct}%`:'—',colX3[3]+colW3[3]/2,y+5.1,{align:'center'});
+        doc.text(it.pct!==null?`${it.pct}%`:'—',colX3[3]+colW3[3]/2,y+5.9,{align:'center'});
         y+=rowH3;
       });
       y+=7;
     }
   }
+  // ── Hoja 2: Rango/Cumplimiento/Resumen (izquierda) + Producción (derecha) en UNA sola hoja ──
+  const twoCol=!!(opts.prod&&opts.rango&&rangoDonutImg);
+  const buildProdItems=(pr)=>{
+    const diffIdeal=(pr.avg!==null&&pr.fIdeal)?(pr.avg/pr.fIdeal*100-100):null;
+    const diff25=(pr.avg!==null&&pr.hist)?(pr.avg/pr.hist.fru*100-100):null;
+    const items=[
+      {label:'Total conteos',val:pr.totCq,sub:`${pr.c}${pr.vr?' · '+pr.vr:''}`},
+      {label:'Prom. Frutos/planta 2026',val:pr.avgTxt,sub:'conteo real · acumulado',color:[r,g,b]},
+      {label:'Frutos Ideal (Objetivo)',val:pr.fIdeal??'—',sub:pr.rangObj?`rango ${pr.rangObj.mn}–${pr.rangObj.mx}`:'sin rango definido',color:[55,48,163]},
+      {label:'Diferencia vs Ideal',val:diffIdeal!==null?`${diffIdeal>=0?'+':'-'}${Math.abs(diffIdeal).toFixed(1)}%`:'—',sub:diffIdeal!==null?`${pr.avgTxt} real vs ${pr.fIdeal} ideal`:'sin datos',color:diffIdeal!==null?(diffIdeal>=0?[14,102,85]:[121,31,31]):[140,140,135],bg:diffIdeal!==null?(diffIdeal>=0?[232,248,245]:[250,235,235]):null},
+      {label:'Frutos/planta 2025',val:pr.hist?pr.hist.fru:'—',sub:'real año anterior'},
+      {label:'Dif. vs 2025',val:diff25!==null?`${diff25>=0?'+':'-'}${Math.abs(diff25).toFixed(1)}%`:'—',sub:diff25!==null?`${pr.avgTxt} este año`:'sin datos suficientes',color:diff25!==null?(diff25>=0?[14,102,85]:[121,31,31]):[140,140,135]},
+      {label:'Calibre obtenido 2025',val:pr.hist?pr.hist.cal:'—',sub:'real año anterior'},
+      {label:'Calibre esperado 2026',val:pr.calEsp??'—',sub:'meta temporada actual',color:[55,48,163]},
+      {label:'Peso fruto 2025',val:pr.hist?pr.hist.peso+' grs':'—',sub:'real año anterior'},
+      {label:'Peso fruto esperado 2026',val:pr.pFruto+' grs',sub:'peso fruto estimado',color:[55,48,163]},
+      {label:'Plantas/ha',val:String(pr.pHa),sub:`densidad · ${pr.ha} ha`},
+      {label:'Peso caja embalada',val:pr.pesoCaja?pr.pesoCaja+' kg':'—',sub:'caja equivalente'}
+    ];
+    return items;
+  };
+  if(twoCol){
+    doc.addPage();
+    const pr=opts.prod;
+    const cW=94,xL=8,xR=108;
+    doc.setDrawColor(r,g,b);doc.setLineWidth(0.5);doc.line(105,14,105,280);
+    const K=[0,0,0];
+    const T=(txt,x,yy,size,bold,col,opt)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);const c=col||K;doc.setTextColor(c[0],c[1],c[2]);doc.text(String(txt),x,yy,opt||{});};
+    // ===== IZQUIERDA =====
+    let yl=20;
+    secBar(xL,yl);T('RANGO OBJETIVO (FRUTOS/PLANTA)',xL,yl,11,true);
+    yl+=4;
+    if(opts.rangoObjetivo){
+      const cardH=26,segW=cW/3;
+      doc.setFillColor(255,255,255);doc.setDrawColor(200,200,195);doc.setLineWidth(0.3);
+      doc.roundedRect(xL,yl,cW,cardH,2.5,2.5,'FD');
+      doc.setFillColor(r,g,b);doc.rect(xL+segW,yl,segW,cardH,'F');
+      T(opts.rangoObjetivo.mn,xL+segW/2,yl+13,20,true,[170,30,20],{align:'center'});
+      T('MÍNIMO',xL+segW/2,yl+21,8.5,true,K,{align:'center'});
+      T(opts.rangoObjetivo.ob,xL+segW*1.5,yl+14,22,true,[255,255,255],{align:'center'});
+      T('OBJETIVO',xL+segW*1.5,yl+21,8.5,true,[255,255,255],{align:'center'});
+      T(opts.rangoObjetivo.mx,xL+segW*2.5,yl+13,20,true,[10,90,70],{align:'center'});
+      T('MÁXIMO',xL+segW*2.5,yl+21,8.5,true,K,{align:'center'});
+      yl+=cardH+10;
+    }
+    secBar(xL,yl);T('CUMPLIMIENTO DE RANGO DE FRUTOS',xL,yl,11,true);
+    yl+=5;
+    const dS=58;
+    try{doc.addImage(rangoDonutImg,'PNG',xL+(cW-dS)/2,yl,dS,dS);}catch(e){}
+    yl+=dS+7;
+    const legW2=cW/3;
+    [['Bajo mínimo',[170,30,20],opts.rango.pBj,opts.rango.bj],['Dentro del rango',[10,90,70],opts.rango.pDn,opts.rango.dn],['Sobre máximo',[110,65,5],opts.rango.pAl,opts.rango.al]].forEach(([lbl,col,pct,cnt],i)=>{
+      const lx=xL+i*legW2+legW2/2;
+      T(pct+'%',lx,yl+5,19,true,col,{align:'center'});
+      T(lbl,lx,yl+11,8,true,K,{align:'center',maxWidth:legW2-2});
+      T(cnt+' conteo'+(cnt===1?'':'s'),lx,yl+15.5,7.5,false,K,{align:'center'});
+    });
+    yl+=24;
+    secBar(xL,yl);T('RESUMEN DE CONTEOS',xL,yl,11,true);
+    yl+=4;
+    const bW=(cW-4)/2,LMAX=4;
+    const lMax=Math.max(0,...opts.kpis.map(k=>k.list?Math.min(k.list.length,LMAX):0));
+    const bH=lMax>0?(27+3+lMax*3.3+4):27;
+    opts.kpis.forEach((k,i)=>{
+      const bx=xL+(i%2)*(bW+4),by=yl+Math.floor(i/2)*(bH+4);
+      const main=i===0;
+      doc.setFillColor(main?r:255,main?g:255,main?b:255);doc.setDrawColor(200,200,195);doc.setLineWidth(0.3);
+      doc.roundedRect(bx,by,bW,bH,2.5,2.5,main?'F':'FD');
+      const tc=main?[255,255,255]:K;
+      T(k.val,bx+bW/2,by+12,main?19:17,true,main?[255,255,255]:[r,g,b],{align:'center',maxWidth:bW-4});
+      T(k.label.toUpperCase(),bx+bW/2,by+19,7.5,true,tc,{align:'center',maxWidth:bW-4});
+      if(k.list&&k.list.length){
+        let ly=by+27;
+        doc.setDrawColor(main?255:200,main?255:200,main?255:195);doc.line(bx+3,ly-3,bx+bW-3,ly-3);
+        k.list.slice(0,LMAX).forEach(it=>{
+          doc.setFont('helvetica','normal');doc.setFontSize(6.6);T(fitText(String(it.label),bW-16),bx+3,ly,6.6,false,tc);
+          T(String(it.val),bx+bW-3,ly,6.6,true,tc,{align:'right'});
+          ly+=3.3;
+        });
+        if(k.list.length>LMAX)T('+'+(k.list.length-LMAX)+' más',bx+bW/2,ly,6.2,false,tc,{align:'center'});
+      }
+    });
+    // ===== DERECHA =====
+    let yr=20;
+    secBar(xR,yr);T('PRODUCCIÓN',xR,yr,12,true);
+    T(`${pr.c}${pr.vr?' · '+pr.vr:''}`,xR+cW,yr,10,true,[r,g,b],{align:'right'});
+    yr+=5;
+    // Kilos/ha
+    const kgH=33;
+    doc.setFillColor(255,255,255);doc.setDrawColor(r,g,b);doc.setLineWidth(0.6);
+    doc.roundedRect(xR,yr,cW,kgH,2.5,2.5,'D');doc.setLineWidth(0.2);
+    T(`ESTIMACIÓN DE KILOS/HA — ${pr.c}`,xR+4,yr+7,9.5,true);
+    const k3=cW/3;
+    const vsC2=(pr.kg26haReal!==null&&pr.kgHa25)?(pr.kg26haReal/pr.kgHa25*100-100):null;
+    const vsM2=(pr.kg26haReal!==null&&pr.kgHaMeta)?(pr.kg26haReal/pr.kgHaMeta*100-100):null;
+    [['Kilos/ha 2025',pr.kgHa25?pr.kgHa25.toLocaleString('es-CL'):'—',[170,30,20]],['Meta 2026',pr.kgHaMeta?pr.kgHaMeta.toLocaleString('es-CL'):'—',[55,48,163]],['Estimado actual',pr.kg26haReal!==null?pr.kg26haReal.toLocaleString('es-CL'):'—',[10,90,70]]].forEach(([lb,v,col],i)=>{
+      const cx=xR+i*k3+k3/2;
+      T(v,cx,yr+17,15,true,col,{align:'center'});
+      T(lb.toUpperCase(),cx,yr+22.5,7.2,true,K,{align:'center',maxWidth:k3-2});
+    });
+    T([vsC2!==null?`vs 2025: ${vsC2>=0?'+':'-'}${Math.abs(vsC2).toFixed(0)}%`:'',vsM2!==null?`vs Meta: ${vsM2>=0?'+':'-'}${Math.abs(vsM2).toFixed(0)}%`:''].filter(Boolean).join('   ·   '),xR+cW/2,yr+29,8,false,K,{align:'center'});
+    yr+=kgH+6;
+    // Cajas/ha
+    const cjH=37;
+    doc.setFillColor(pal.tn[0],pal.tn[1],pal.tn[2]);doc.setDrawColor(r,g,b);doc.setLineWidth(0.6);
+    doc.roundedRect(xR,yr,cW,cjH,2.5,2.5,'FD');doc.setLineWidth(0.2);
+    T(`ESTIMACIÓN DE CAJAS/HA — ${pr.c}`,xR+4,yr+7,9.5,true);
+    doc.setDrawColor(200,200,195);doc.line(xR+k3,yr+10,xR+k3,yr+cjH-3);doc.line(xR+k3*2,yr+10,xR+k3*2,yr+cjH-3);
+    const pE=v=>v?Math.round(v*100)+'%':'—';
+    [['Cajas año ant.',pr.cajasAnioHa,`real 2025 · ${pE(pr.pctExportReal)}`,[40,40,40]],['Cajas estimadas',pr.cajasEstHa,`meta 2026 · ${pE(pr.pctExportMeta)}`,[55,48,163]],['Cajas reales',pr.cajasRealHa,`según raleo · ${pE(pr.pctExportMeta)}`,[r,g,b]]].forEach(([lb,v,sub,col],i)=>{
+      const cx=xR+i*k3+k3/2;
+      T(v!==null&&v!==undefined?v.toLocaleString('es-CL'):'—',cx,yr+20,16,true,col,{align:'center'});
+      T(lb.toUpperCase(),cx,yr+26.5,7.2,true,K,{align:'center',maxWidth:k3-2});
+      T(sub,cx,yr+31,6.8,false,K,{align:'center',maxWidth:k3-2});
+    });
+    yr+=cjH+4;
+    const foot=doc.splitTextToSize(`Cajas por hectárea · año anterior con ${pE(pr.pctExportReal)} exportable real 2025 · estimadas y reales con ${pE(pr.pctExportMeta)} exportable (meta pre-poda)`,cW);
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(0,0,0);doc.text(foot,xR,yr);
+    yr+=foot.length*3.2+3;
+    // Tarjetas de detalle (2 columnas, letra grande y negra)
+    const its=buildProdItems(pr);
+    const gW=(cW-4)/2,gH=21;
+    its.forEach((it,i)=>{
+      const gx=xR+(i%2)*(gW+4),gy=yr+Math.floor(i/2)*(gH+3);
+      doc.setFillColor(it.bg?it.bg[0]:255,it.bg?it.bg[1]:255,it.bg?it.bg[2]:255);doc.setDrawColor(200,200,195);doc.setLineWidth(0.3);
+      doc.roundedRect(gx,gy,gW,gH,2,2,'FD');
+      doc.setFont('helvetica','bold');doc.setFontSize(13);const vTx=fitText(String(it.val),gW-6);
+      doc.setFontSize(6);const lTx=fitText(String(it.label).toUpperCase(),gW-4);
+      doc.setFont('helvetica','normal');doc.setFontSize(6.4);const sTx=it.sub?fitText(String(it.sub),gW-5):'';
+      T(vTx,gx+3.2,gy+8.5,13,true,it.color||K);
+      T(lTx,gx+3.2,gy+13.5,6,true,K);
+      if(sTx)T(sTx,gx+3.2,gy+18,6.4,false,[40,40,40]);
+    });
+  }
+  if(!twoCol){
   if(opts.rango){doc.addPage();y=20;}
   if(opts.rangoObjetivo){
-    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
-    doc.text('RANGO OBJETIVO DEL CUARTEL (FRUTOS/PLANTA)',startX,y);
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
+    secBar(startX,y);doc.text('RANGO OBJETIVO DEL CUARTEL (FRUTOS/PLANTA)',startX,y);
     y+=5;
     const cardW=180,cardH=24,segW=cardW/3;
-    doc.setFillColor(248,248,246);doc.setDrawColor(225,225,220);
+    doc.setFillColor(255,255,255);doc.setDrawColor(225,225,220);
     doc.roundedRect(startX,y,cardW,cardH,2.5,2.5,'FD');
     doc.setFillColor(r,g,b);
     doc.rect(startX+segW,y,segW,cardH,'F');
     doc.setTextColor(192,57,43);doc.setFont('helvetica','bold');doc.setFontSize(19);
     doc.text(String(opts.rangoObjetivo.mn),startX+segW/2,y+13,{align:'center'});
-    doc.setTextColor(120,120,115);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+    doc.setTextColor(50,50,50);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
     doc.text('MÍNIMO',startX+segW/2,y+19.5,{align:'center'});
     doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(22);
     doc.text(String(opts.rangoObjetivo.ob),startX+segW*1.5,y+14,{align:'center'});
@@ -2904,14 +3050,14 @@ async function drawDashboardPDF(opts){
     doc.text('OBJETIVO IDEAL',startX+segW*1.5,y+20.5,{align:'center'});
     doc.setTextColor(14,102,85);doc.setFont('helvetica','bold');doc.setFontSize(19);
     doc.text(String(opts.rangoObjetivo.mx),startX+segW*2.5,y+13,{align:'center'});
-    doc.setTextColor(120,120,115);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+    doc.setTextColor(50,50,50);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
     doc.text('MÁXIMO',startX+segW*2.5,y+19.5,{align:'center'});
     y+=cardH+10;
   }
   if(opts.rango&&rangoDonutImg){
     if(y>210){doc.addPage();y=20;}
-    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
-    doc.text('CUMPLIMIENTO DE RANGO DE FRUTOS',startX,y);
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    secBar(startX,y);doc.text('CUMPLIMIENTO DE RANGO DE FRUTOS',startX,y);
     y+=8;
     const donutSize=55;
     const donutX=startX+(180-donutSize)/2;
@@ -2925,7 +3071,7 @@ async function drawDashboardPDF(opts){
       doc.text(`${pct}%`,lx,y+5,{align:'center'});
       doc.setFillColor(col[0],col[1],col[2]);
       doc.rect(lx-legW/2+10,y+9,3,3,'F');
-      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(120,120,115);
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(50,50,50);
       doc.text(`${lbl} (${cnt})`,lx+3,y+11.8,{align:'center',maxWidth:legW-10});
     });
     y+=24;
@@ -2933,20 +3079,20 @@ async function drawDashboardPDF(opts){
   const listMax=Math.max(0,...opts.kpis.map(k=>k.list?Math.min(k.list.length,8):0));
   const kpiH=listMax>0?(28+3+listMax*2.6+2):28;
   if(y+kpiH+17>287){doc.addPage();y=20;}
-  doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
-  doc.text('RESUMEN DE CONTEOS',startX,y);
+  doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(12);
+  secBar(startX,y);doc.text('RESUMEN DE CONTEOS',startX,y);
   y+=7;
   const boxW=42,gap=4;
   opts.kpis.forEach((k,i)=>{
     const x=startX+i*(boxW+gap);
     const isMain=i===0;
-    doc.setFillColor(isMain?r:248,isMain?g:248,isMain?b:246);
+    doc.setFillColor(isMain?r:255,isMain?g:255,isMain?b:255);
     doc.setDrawColor(225,225,220);
     doc.roundedRect(x,y,boxW,kpiH,2.5,2.5,isMain?'F':'FD');
     doc.setTextColor(isMain?255:r,isMain?255:g,isMain?255:b);
     doc.setFont('helvetica','bold');doc.setFontSize(isMain?20:17);
     doc.text(k.val,x+boxW/2,y+14,{align:'center'});
-    doc.setTextColor(isMain?255:110,isMain?255:110,isMain?255:105);
+    doc.setTextColor(isMain?255:30,isMain?255:30,isMain?255:30);
     doc.setFont('helvetica','normal');doc.setFontSize(7);
     doc.text(k.label.toUpperCase(),x+boxW/2,y+20,{align:'center',maxWidth:boxW-4});
     if(k.sub){doc.setFontSize(6.5);doc.text(String(k.sub),x+boxW/2,y+25,{align:'center',maxWidth:boxW-4});}
@@ -2957,7 +3103,7 @@ async function drawDashboardPDF(opts){
       doc.setFont('helvetica','normal');doc.setFontSize(5.3);
       const rows=k.list.slice(0,8);
       rows.forEach(it=>{
-        doc.setTextColor(isMain?255:70,isMain?255:70,isMain?255:65);
+        doc.setTextColor(isMain?255:0,isMain?255:0,isMain?255:0);
         doc.text(String(it.label),x+3,ly,{maxWidth:boxW-14});
         doc.setFont('helvetica','bold');
         doc.text(String(it.val),x+boxW-3,ly,{align:'right'});
@@ -2976,10 +3122,10 @@ async function drawDashboardPDF(opts){
     const pr=opts.prod;
     // La sección de Producción siempre arranca en una hoja nueva, nunca pegada al Resumen de Conteos.
     doc.addPage();y=20;
-    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
-    doc.text('PRODUCCIÓN',startX,y);
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    secBar(startX,y);doc.text('PRODUCCIÓN',startX,y);
     y+=3;
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,140,135);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(70,70,70);
     doc.text(`${pr.c}${pr.vr?' · '+pr.vr:''} — mismos datos que la tab Producción`,startX,y+3.5);
     y+=10;
     // Estimación de kilos/ha (arriba, antes del detalle)
@@ -2987,7 +3133,7 @@ async function drawDashboardPDF(opts){
     const kgBoxH=32;
     doc.roundedRect(startX,y,180,kgBoxH,2.5,2.5,'D');
     doc.setLineWidth(0.2);
-    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
     doc.text(`ESTIMACIÓN DE KILOS/HA — ${pr.c}`,startX+6,y+7);
     const kW=180/3;
     const vsC=(pr.kg26haReal!==null&&pr.kgHa25)?(pr.kg26haReal/pr.kgHa25*100-100):null;
@@ -3001,10 +3147,10 @@ async function drawDashboardPDF(opts){
       const cx=startX+i*kW;
       doc.setTextColor(k.col[0],k.col[1],k.col[2]);doc.setFont('helvetica','bold');doc.setFontSize(13);
       doc.text(k.val,cx+kW/2,y+18,{align:'center'});
-      doc.setTextColor(110,110,105);doc.setFont('helvetica','normal');doc.setFontSize(6.2);
+      doc.setTextColor(40,40,40);doc.setFont('helvetica','normal');doc.setFontSize(6.2);
       doc.text(k.label.toUpperCase(),cx+kW/2,y+24,{align:'center',maxWidth:kW-8});
     });
-    doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(140,140,135);
+    doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(70,70,70);
     const vsTxt=[
       vsC!==null?`vs 2025: ${vsC>=0?'+':'-'}${Math.abs(vsC).toFixed(0)}%`:'',
       vsM!==null?`vs Meta 2026: ${vsM>=0?'+':'-'}${Math.abs(vsM).toFixed(0)}%`:''
@@ -3013,10 +3159,10 @@ async function drawDashboardPDF(opts){
     y+=kgBoxH+8;
     // Cajas/ha
     const cBoxH=37,cBoxW=180/3;
-    doc.setFillColor(248,250,249);doc.setDrawColor(r,g,b);doc.setLineWidth(0.5);
+    doc.setFillColor(pal.tn[0],pal.tn[1],pal.tn[2]);doc.setDrawColor(r,g,b);doc.setLineWidth(0.5);
     doc.roundedRect(startX,y,180,cBoxH,2.5,2.5,'FD');
     doc.setLineWidth(0.2);
-    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
     doc.text(`ESTIMACIÓN DE CAJAS/HA — ${pr.c}`,startX+6,y+7);
     doc.setDrawColor(225,225,220);doc.setLineWidth(0.2);
     doc.line(startX+cBoxW,y+10,startX+cBoxW,y+cBoxH-3);
@@ -3030,37 +3176,23 @@ async function drawDashboardPDF(opts){
       const cx=startX+i*cBoxW;
       doc.setTextColor(k.col[0],k.col[1],k.col[2]);doc.setFont('helvetica','bold');doc.setFontSize(16);
       doc.text(k.val!==null?k.val.toLocaleString('es-CL'):'—',cx+cBoxW/2,y+21,{align:'center'});
-      doc.setTextColor(110,110,105);doc.setFont('helvetica','normal');doc.setFontSize(6.6);
+      doc.setTextColor(40,40,40);doc.setFont('helvetica','normal');doc.setFontSize(6.6);
       doc.text(k.label.toUpperCase(),cx+cBoxW/2,y+28,{align:'center',maxWidth:cBoxW-6});
       doc.setFontSize(6.1);
       doc.text(k.sub,cx+cBoxW/2,y+32,{align:'center',maxWidth:cBoxW-6});
     });
     y+=cBoxH+5;
-    doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.setTextColor(140,140,135);
+    doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.setTextColor(70,70,70);
     doc.text(`Cajas por hectárea · año anterior con ${pr.pctExportReal?Math.round(pr.pctExportReal*100)+'%':'—'} exportable real 2025 · estimadas y reales con ${pr.pctExportMeta?Math.round(pr.pctExportMeta*100)+'%':'—'} exportable (meta pre-poda)`,startX,y,{maxWidth:180});
     y+=11;
     // Detalle de producción (debajo de kilos/cajas)
-    const diffIdeal=(pr.avg!==null&&pr.fIdeal)?(pr.avg/pr.fIdeal*100-100):null;
-    const diff25=(pr.avg!==null&&pr.hist)?(pr.avg/pr.hist.fru*100-100):null;
-    const items=[
-      {label:'Total conteos',val:pr.totCq,sub:`${pr.c}${pr.vr?' · '+pr.vr:''}`},
-      {label:'Prom. Frutos/planta 2026',val:pr.avgTxt,sub:'conteo real · acumulado',color:[r,g,b]},
-      {label:'Frutos Ideal (Objetivo)',val:pr.fIdeal??'—',sub:pr.rangObj?`rango ${pr.rangObj.mn}–${pr.rangObj.mx}`:'sin rango definido',color:[55,48,163]},
-      {label:'Diferencia vs Ideal',val:diffIdeal!==null?`${diffIdeal>=0?'+':'-'}${Math.abs(diffIdeal).toFixed(1)}%`:'—',sub:diffIdeal!==null?`${pr.avgTxt} real vs ${pr.fIdeal} ideal`:'sin datos',color:diffIdeal!==null?(diffIdeal>=0?[14,102,85]:[121,31,31]):[140,140,135],bg:diffIdeal!==null?(diffIdeal>=0?[232,248,245]:[250,235,235]):null},
-      {label:'Frutos/planta 2025',val:pr.hist?pr.hist.fru:'—',sub:'real año anterior'},
-      {label:'Dif. vs 2025',val:diff25!==null?`${diff25>=0?'+':'-'}${Math.abs(diff25).toFixed(1)}%`:'—',sub:diff25!==null?`${pr.avgTxt} este año`:'sin datos suficientes',color:diff25!==null?(diff25>=0?[14,102,85]:[121,31,31]):[140,140,135]},
-      {label:'Calibre obtenido 2025',val:pr.hist?pr.hist.cal:'—',sub:'real año anterior'},
-      {label:'Calibre esperado 2026',val:pr.calEsp??'—',sub:'meta temporada actual',color:[55,48,163]},
-      {label:'Peso fruto 2025',val:pr.hist?pr.hist.peso+' grs':'—',sub:'real año anterior'},
-      {label:'Peso fruto esperado 2026',val:pr.pFruto+' grs',sub:'peso fruto estimado',color:[55,48,163]},
-      {label:'Plantas/ha',val:String(pr.pHa),sub:`densidad · ${pr.ha} ha`},
-      {label:'Peso caja embalada',val:pr.pesoCaja?pr.pesoCaja+' kg':'—',sub:'caja equivalente'}
-    ];
+    const items=buildProdItems(pr);
     y=drawCardGrid(items,y,2,20);
     y+=3;
   }
+  }
   if(!opts.rango&&opts.barChart2&&bar2Img){
-    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(12);
     doc.text(opts.barChart2.titulo,startX,y,{maxWidth:180});
     y+=6;
     const bH=Math.min(78,Math.max(45,opts.barChart2.labels.length*10));
@@ -3069,9 +3201,9 @@ async function drawDashboardPDF(opts){
   }
   if(opts.tablaRows&&opts.tablaRows.length){
     if(y>190){doc.addPage();y=20;}
-    doc.setTextColor(60,60,60);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(12);
     doc.text(opts.tablaTitulo,startX,y);
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,140,135);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(70,70,70);
     doc.text('Detalle completo de todos los conteos registrados',startX,y+4.5);
     y+=10;
     const cols=opts.tablaCols;
@@ -3102,8 +3234,8 @@ async function drawDashboardPDF(opts){
     const rowH=9;
     opts.tablaRows.forEach((row,ri)=>{
       if(y>265){doc.addPage();y=20;drawTableHeader();doc.setFont('helvetica','normal');doc.setFontSize(8);}
-      if(ri%2===0){doc.setFillColor(248,248,246);doc.rect(startX,y,tableW,rowH,'F');}
-      doc.setTextColor(60,60,60);
+      if(ri%2===0){doc.setFillColor(pal.tn[0],pal.tn[1],pal.tn[2]);doc.rect(startX,y,tableW,rowH,'F');}
+      doc.setTextColor(0,0,0);
       row.forEach((cell,ci)=>{
         const cx=align[ci]==='left'?colX[ci]+2:colX[ci]+colWs[ci]/2;
         doc.text(fitText(cell,colWs[ci]-4),cx,y+5.7,{align:align[ci]==='left'?'left':'center'});
@@ -3111,7 +3243,7 @@ async function drawDashboardPDF(opts){
       y+=rowH;
     });
   }
-  doc.setFontSize(7.5);doc.setTextColor(150,150,150);
+  doc.setFontSize(7.5);doc.setTextColor(70,70,70);
   doc.text(`Generado el ${ts()} · App Conteos de Poda — AADV 2026`,pageW/2,290,{align:'center'});
   doc.save(opts.fileName);
   toast('✓ Dashboard PDF descargado');
