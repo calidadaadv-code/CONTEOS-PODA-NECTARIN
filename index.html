@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.92.0 -->
+  <!-- v6.98.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2580,7 +2580,7 @@ function genDashboardDesdeAdmin(e){
 const DASH_CFG={
   nec:{label:'Raleo — Nectarín',color:'#1D9E75',metric:'fru',metricLabel:'Frutos',unit:''},
   cir:{label:'Raleo — Ciruelo',color:'#7C3AED',metric:'fru',metricLabel:'Frutos',unit:''},
-  duz:{label:'Raleo — Duraznero',color:'#D35400',metric:'fru',metricLabel:'Frutos',unit:''},
+  duz:{label:'Raleo — Durazno',color:'#D35400',metric:'fru',metricLabel:'Frutos',unit:''},
   cerY:{label:'Raleo de Yemas — Cerezo',color:'#C0392B',metric:'fxr',metricLabel:'% Cumplimiento',unit:'%'}
 };
 function hex2rgb(h){h=h.replace('#','');const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];}
@@ -2934,9 +2934,9 @@ async function drawDashboardPDF(opts){
     }
     secBar(xL,yl);T('CUMPLIMIENTO DE RANGO DE FRUTOS',xL,yl,11,true);
     yl+=5;
-    const dS=50;
+    const dS=opts.kpis.length===3?38:50;
     try{doc.addImage(rangoDonutImg,'PNG',xL+(cW-dS)/2,yl,dS,dS);}catch(e){}
-    yl+=dS+7;
+    yl+=dS+(opts.kpis.length===3?5:7);
     const legW2=cW/3;
     [['Bajo mínimo',[170,30,20],opts.rango.pBj,opts.rango.bj],['Dentro del rango',[10,90,70],opts.rango.pDn,opts.rango.dn],['Sobre máximo',[110,65,5],opts.rango.pAl,opts.rango.al]].forEach(([lbl,col,pct,cnt],i)=>{
       const lx=xL+i*legW2+legW2/2;
@@ -2949,8 +2949,9 @@ async function drawDashboardPDF(opts){
     yl+=4;
     const bW=(cW-4)/2,LMAX=3,tres=opts.kpis.length===3;
     const lMax=Math.max(0,...opts.kpis.map(k=>k.list?Math.min(k.list.length,LMAX):0));
-    const bH=lMax>0?(27+3+lMax*3.3+4):27;
-    const bH0=tres?27:bH;
+    const hd=tres?22:27;
+    const bH=lMax>0?(hd+3+lMax*3.3+4):hd;
+    const bH0=tres?21:bH;
     opts.kpis.forEach((k,i)=>{
       let bx=xL+(i%2)*(bW+4),by=yl+Math.floor(i/2)*(bH+4),bw=bW,bh=bH;
       if(tres){if(i===0){bx=xL;by=yl;bw=cW;bh=bH0;}else{bx=xL+((i-1)%2)*(bW+4);by=yl+bH0+4;}}
@@ -2958,10 +2959,10 @@ async function drawDashboardPDF(opts){
       doc.setFillColor(main?r:255,main?g:255,main?b:255);doc.setDrawColor(200,200,195);doc.setLineWidth(0.3);
       doc.roundedRect(bx,by,bw,bh,2.5,2.5,main?'F':'FD');
       const tc=main?[255,255,255]:K;
-      T(k.val,bx+bw/2,by+12,main?19:17,true,main?[255,255,255]:[r,g,b],{align:'center',maxWidth:bw-4});
-      T(k.label.toUpperCase(),bx+bw/2,by+19,7.5,true,tc,{align:'center',maxWidth:bw-4});
+      T(k.val,bx+bw/2,by+(tres?10:12),main?19:17,true,main?[255,255,255]:[r,g,b],{align:'center',maxWidth:bw-4});
+      T(k.label.toUpperCase(),bx+bw/2,by+(tres?16.5:19),7.5,true,tc,{align:'center',maxWidth:bw-4});
       if(k.list&&k.list.length){
-        let ly=by+27;
+        let ly=by+hd;
         doc.setDrawColor(main?255:200,main?255:200,main?255:195);doc.line(bx+3,ly-3,bx+bw-3,ly-3);
         k.list.slice(0,LMAX).forEach(it=>{
           doc.setFont('helvetica','normal');doc.setFontSize(6.6);T(fitText(String(it.label),bw-16),bx+3,ly,6.6,false,tc);
@@ -2971,6 +2972,30 @@ async function drawDashboardPDF(opts){
         if(k.list.length>LMAX)T('+'+(k.list.length-LMAX)+' más',bx+bw/2,ly,6.2,false,tc,{align:'center'});
       }
     });
+    // ── Análisis de distribución vs ideal (texto breve): ideal 10% bajo · 80% dentro · 10% sobre ──
+    if(opts.rango){
+      const rg=opts.rango;
+      const nK=opts.kpis.length;
+      const yK=tres?(yl+bH0+4+bH):(yl+Math.ceil(nK/2)*(bH+4)-4);
+      const aY=yK+5;
+      const msgs=[`Ideal: 80% dentro del rango y 10% bajo el mínimo / 10% sobre el máximo. Hoy: ${rg.pDn}% dentro, ${rg.pBj}% bajo y ${rg.pAl}% sobre.`];
+      if(rg.pDn>=80&&rg.pBj<=10&&rg.pAl<=10)msgs.push('La distribución está dentro del ideal: el promedio es representativo y la estimación de kilos es confiable.');
+      else{
+        const pr2=[];
+        if(rg.pDn<80)pr2.push(`faltan ${80-rg.pDn} pts para el 80% dentro del rango`);
+        if(rg.pBj>10)pr2.push(`el ${rg.pBj}% bajo el mínimo (${rg.pBj-10} pts sobre el ideal) arriesga quedar bajo los kilos estimados`);
+        if(rg.pAl>10)pr2.push(`el ${rg.pAl}% sobre el máximo (${rg.pAl-10} pts sobre el ideal) arriesga calibre menor`);
+        if(pr2.length)msgs.push('Atención: '+pr2.join('; ')+'.');
+      }
+      doc.setFont('helvetica','normal');doc.setFontSize(8.2);doc.setTextColor(0,0,0);
+      const lines=doc.splitTextToSize(msgs.join(' '),cW-9);
+      const aH=Math.min(286-aY,lines.length*3.7+14);
+      doc.setFillColor(255,255,255);doc.setDrawColor(200,200,195);doc.setLineWidth(0.3);
+      doc.roundedRect(xL,aY,cW,aH,2.5,2.5,'FD');
+      T('ANÁLISIS DE LA DISTRIBUCIÓN',xL+4.5,aY+6.5,9,true);
+      doc.setFont('helvetica','normal');doc.setFontSize(8.2);doc.setTextColor(0,0,0);
+      doc.text(lines,xL+4.5,aY+12);
+    }
     // ===== DERECHA =====
     let yr=TOP;
     secBar(xR,yr);T('PRODUCCIÓN',xR,yr,12,true);
@@ -3722,7 +3747,7 @@ function abrirDetRev(esp, contador){
 <script>
 /* ===== CORRECCIONES: edición propia + solicitudes con aprobación ===== */
 (function(){
-const ESPS={nec:'Nectarín',cer:'Cerezo',cir:'Ciruelo',duz:'Duraznero'};
+const ESPS={nec:'Nectarín',cer:'Cerezo',cir:'Ciruelo',duz:'Durazno'};
 const F_RALEO=[{k:'cuartel',l:'Cuartel',t:'cua'},{k:'hilera',l:'Hilera',t:'num'},{k:'planta',l:'Planta',t:'num'},{k:'podador',l:'Podador',t:'txt'},{k:'ramillas',l:'Ramillas',t:'num'},{k:'frutos',l:'Frutos',t:'num'},{k:'calidad',l:'Calidad',t:'cal'},{k:'observaciones',l:'Observaciones',t:'txt'}];
 const F_RALEO_CER=[{k:'cuartel',l:'Cuartel',t:'cua'},{k:'hilera',l:'Hilera',t:'num'},{k:'planta',l:'Planta',t:'num'},{k:'podador',l:'Podador',t:'txt'},{k:'ramillas',l:'Total ramillas',t:'num'},{k:'frutos',l:'Cumplen pauta',t:'num'},{k:'calidad',l:'Calidad',t:'cal'},{k:'observaciones',l:'Observaciones',t:'txt'}];
 const F_FRUT=[{k:'cuartel',l:'Cuartel',t:'cua'},{k:'hilera',l:'Hilera',t:'num'},{k:'planta',l:'Planta',t:'num'},{k:'dardos',l:'N° dardos',t:'num'},{k:'frutos_dardo',l:'Frutos en dardos',t:'num'},{k:'ramillas',l:'N° ramillas',t:'num'},{k:'frutos_ramilla',l:'Frutos en ramillas',t:'num'},{k:'observaciones',l:'Observaciones',t:'txt'}];
