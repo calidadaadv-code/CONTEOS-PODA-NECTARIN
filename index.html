@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.85.0 -->
+  <!-- v6.86.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2706,6 +2706,19 @@ function genFrutosDashboardPDF(cuartel,fecha){
   regs.forEach(r=>{const k=r.sup||'Sin supervisor';if(!supMap[k])supMap[k]={sup:k,n:0,sDar:0,sFrDar:0,sRam:0,sFrRam:0};const s=supMap[k];s.n++;s.sDar+=r.dar;s.sFrDar+=r.frdar;s.sRam+=r.ram;s.sFrRam+=r.frram;});
   const supRows=Object.values(supMap).sort((a,b)=>b.n-a.n);
   const chartSupTop=supRows.slice(0,8);
+  const nrmF=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const TEMAS=[
+    {label:'Frutos contados en parte baja de la planta',re:/frut\w*[^,.;]*parte\s+baja|fruta[^,.;]*parte\s+baja/,tipo:'info',pre:/ramilla[^,.;]*parte\s+baja$/},
+    {label:'Frutos contados en parte media de la planta',re:/frut\w*[^,.;]*parte\s+media|fruta[^,.;]*parte\s+media/,tipo:'info'},
+    {label:'Ramilla contada en parte baja',re:/ramilla[^,.;]*parte\s+baja/,tipo:'info'},
+    {label:'Ramilla contada en parte media',re:/ramilla[^,.;]*parte\s+media/,tipo:'info'},
+    {label:'Cargador corto',re:/cargador\s+corto/,tipo:'alerta'},
+    {label:'Bajo porcentaje de raleo / poca fruta',re:/bajo\s+porcentaje|poca\s+fruta|sin\s+ralear|falta\w*\s+(mas\s+)?ralear|mal\s+ralead|no\s+(se\s+)?ralea/,tipo:'alerta'},
+    {label:'Planta cambiada o no representativa',re:/modific\w+|cambia\w*\s+(la\s+)?planta|no\s+representativa/,tipo:'alerta'},
+    {label:'Se repauta / se informa a supervisión',re:/repauta|se\s+avisa|retroaliment|se\s+informa|se\s+habla|se\s+comenta/,tipo:'accion'}
+  ];
+  const conObsF=regs.filter(r=>nrmF(r.obs).trim().length>2);
+  const obsTemas={base:{n:conObsF.length,tot:regs.length},items:TEMAS.map(t=>{const k=conObsF.filter(r=>t.re.test(nrmF(r.obs))).length;return{label:t.label,tipo:t.tipo,n:k,pct:conObsF.length?Math.round(k/conObsF.length*100):0};}).filter(x=>x.n>0).sort((a,b)=>b.n-a.n)};
   drawDashboardPDF({
     titulo:'CONTEO DE FRUTOS — CEREZO',cuartel,fecha,colorHex:'#C0392B',
     kpis:[
@@ -2715,6 +2728,7 @@ function genFrutosDashboardPDF(cuartel,fecha){
       {label:'Conteo Más Alto',val:String(metricTot(maxR)),sub:maxR.cnt||''}
     ],
     rango:null,
+    obsTemas,
     barChart2:{
       titulo:'FRUTOS/DARDO Y FRUTOS/RAMILLA POR SUPERVISOR',
       labels:chartSupTop.map(s=>s.sup),
@@ -3251,6 +3265,47 @@ async function drawDashboardPDF(opts){
       });
       y+=rowH;
     });
+  }
+  if(opts.obsTemas){
+    const ot=opts.obsTemas;
+    doc.addPage();
+    doc.setFillColor(r,g,b);doc.rect(0,0,pageW,22,'F');
+    doc.setFillColor(pal.dk[0],pal.dk[1],pal.dk[2]);doc.rect(0,22,pageW,2.4,'F');
+    doc.setFillColor(239,159,39);doc.rect(0,24.4,pageW,0.9,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
+    doc.text(opts.titulo,10,10.5,{maxWidth:130});
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+    doc.text(`OBSERVACIONES DE LOS CONTEOS · DEPARTAMENTO DE CALIDAD · ${opts.fecha}`,10,16.5,{maxWidth:140});
+    doc.setFont('helvetica','bold');doc.setFontSize(22);
+    doc.text(String(opts.cuartel),200,12,{align:'right'});
+    y=36;
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    secBar(startX,y);doc.text('OBSERVACIONES DE LOS CONTADORES',startX,y);
+    y+=5.5;
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(70,70,70);
+    doc.text(`% de los conteos con observación que mencionan cada tema — ${ot.base.n} de ${ot.base.tot} conteos con observación`,startX,y);
+    y+=8;
+    if(!ot.items.length){
+      doc.setFontSize(11);doc.setTextColor(0,0,0);
+      doc.text('Sin observaciones en los conteos de esta fecha.',startX,y+6);
+    }else{
+      const barFullW=180,trackH=5.5;
+      const blockH=Math.max(14,Math.min(34,(285-y)/ot.items.length));
+      ot.items.forEach(it=>{
+        const col=it.tipo==='alerta'?[183,121,31]:it.tipo==='accion'?[14,102,85]:[r,g,b];
+        doc.setFont('helvetica','normal');doc.setFontSize(12);doc.setTextColor(0,0,0);
+        doc.text(it.label,startX,y,{maxWidth:barFullW});
+        const by=y+blockH*0.28;
+        doc.setFillColor(238,240,238);doc.roundedRect(startX,by,barFullW-30,trackH,1.5,1.5,'F');
+        const w=Math.max(2,Math.min(100,it.pct))/100*(barFullW-30);
+        doc.setFillColor(col[0],col[1],col[2]);doc.roundedRect(startX,by,w,trackH,1.5,1.5,'F');
+        doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(col[0],col[1],col[2]);
+        doc.text(`${it.pct}%`,startX+barFullW,by+4.4,{align:'right'});
+        doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(70,70,70);
+        doc.text(`${it.n} conteo${it.n===1?'':'s'}`,startX+barFullW,by+9.6,{align:'right'});
+        y+=blockH;
+      });
+    }
   }
   doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(70,70,70);
   doc.text(`Generado el ${ts()} · App Conteos de Poda — AADV 2026`,pageW/2,290,{align:'center'});
