@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.87.0 -->
+  <!-- v6.89.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2682,7 +2682,9 @@ function genRaleoDashboardPDF(key,cuartel,fecha){
       {label:'Conteo Más Alto',val:maxR[cfg.metric]+cfg.unit,list:maxList},
       {label:'Conteo Más Bajo',val:minR[cfg.metric]+cfg.unit,list:minList}
     ]:[
-      {label:`Promedio ${cfg.metricLabel}`,val:avg.toFixed(1)+cfg.unit}
+      {label:`Promedio ${cfg.metricLabel}`,val:avg.toFixed(1)+cfg.unit},
+      {label:'Conteo Más Alto',val:maxR[cfg.metric]+cfg.unit,list:maxList},
+      {label:'Conteo Más Bajo',val:minR[cfg.metric]+cfg.unit,list:minList}
     ],
     rango:{pBj,pDn,pAl,bj,dn,al},
     criterios,
@@ -2904,26 +2906,28 @@ async function drawDashboardPDF(opts){
     yl+=24;
     secBar(xL,yl);T('RESUMEN DE CONTEOS',xL,yl,11,true);
     yl+=4;
-    const bW=opts.kpis.length===1?cW:(cW-4)/2,LMAX=3;
+    const bW=(cW-4)/2,LMAX=3,tres=opts.kpis.length===3;
     const lMax=Math.max(0,...opts.kpis.map(k=>k.list?Math.min(k.list.length,LMAX):0));
     const bH=lMax>0?(27+3+lMax*3.3+4):27;
+    const bH0=tres?27:bH;
     opts.kpis.forEach((k,i)=>{
-      const bx=xL+(i%2)*(bW+4),by=yl+Math.floor(i/2)*(bH+4);
+      let bx=xL+(i%2)*(bW+4),by=yl+Math.floor(i/2)*(bH+4),bw=bW,bh=bH;
+      if(tres){if(i===0){bx=xL;by=yl;bw=cW;bh=bH0;}else{bx=xL+((i-1)%2)*(bW+4);by=yl+bH0+4;}}
       const main=i===0;
       doc.setFillColor(main?r:255,main?g:255,main?b:255);doc.setDrawColor(200,200,195);doc.setLineWidth(0.3);
-      doc.roundedRect(bx,by,bW,bH,2.5,2.5,main?'F':'FD');
+      doc.roundedRect(bx,by,bw,bh,2.5,2.5,main?'F':'FD');
       const tc=main?[255,255,255]:K;
-      T(k.val,bx+bW/2,by+12,main?19:17,true,main?[255,255,255]:[r,g,b],{align:'center',maxWidth:bW-4});
-      T(k.label.toUpperCase(),bx+bW/2,by+19,7.5,true,tc,{align:'center',maxWidth:bW-4});
+      T(k.val,bx+bw/2,by+12,main?19:17,true,main?[255,255,255]:[r,g,b],{align:'center',maxWidth:bw-4});
+      T(k.label.toUpperCase(),bx+bw/2,by+19,7.5,true,tc,{align:'center',maxWidth:bw-4});
       if(k.list&&k.list.length){
         let ly=by+27;
-        doc.setDrawColor(main?255:200,main?255:200,main?255:195);doc.line(bx+3,ly-3,bx+bW-3,ly-3);
+        doc.setDrawColor(main?255:200,main?255:200,main?255:195);doc.line(bx+3,ly-3,bx+bw-3,ly-3);
         k.list.slice(0,LMAX).forEach(it=>{
-          doc.setFont('helvetica','normal');doc.setFontSize(6.6);T(fitText(String(it.label),bW-16),bx+3,ly,6.6,false,tc);
-          T(String(it.val),bx+bW-3,ly,6.6,true,tc,{align:'right'});
+          doc.setFont('helvetica','normal');doc.setFontSize(6.6);T(fitText(String(it.label),bw-16),bx+3,ly,6.6,false,tc);
+          T(String(it.val),bx+bw-3,ly,6.6,true,tc,{align:'right'});
           ly+=3.3;
         });
-        if(k.list.length>LMAX)T('+'+(k.list.length-LMAX)+' más',bx+bW/2,ly,6.2,false,tc,{align:'center'});
+        if(k.list.length>LMAX)T('+'+(k.list.length-LMAX)+' más',bx+bw/2,ly,6.2,false,tc,{align:'center'});
       }
     });
     // ===== DERECHA =====
@@ -2933,8 +2937,11 @@ async function drawDashboardPDF(opts){
     yr+=5;
     // Kilos/ha
     const kgH=33;
-    doc.setFillColor(255,255,255);doc.setDrawColor(r,g,b);doc.setLineWidth(0.6);
-    doc.roundedRect(xR,yr,cW,kgH,2.5,2.5,'D');doc.setLineWidth(0.2);
+    const kgBajo=(pr.kg26haReal!==null&&pr.kg26haReal!==undefined&&pr.kgHaMeta&&pr.kg26haReal<pr.kgHaMeta);
+    if(kgBajo){doc.setFillColor(250,232,230);doc.setDrawColor(192,57,43);}
+    else{doc.setFillColor(255,255,255);doc.setDrawColor(r,g,b);}
+    doc.setLineWidth(0.6);
+    doc.roundedRect(xR,yr,cW,kgH,2.5,2.5,kgBajo?'FD':'D');doc.setLineWidth(0.2);
     T(`ESTIMACIÓN DE KILOS/HA — ${pr.c}`,xR+4,yr+7,9.5,true);
     const k3=cW/3;
     const vsC2=(pr.kg26haReal!==null&&pr.kgHa25)?(pr.kg26haReal/pr.kgHa25*100-100):null;
@@ -2948,7 +2955,9 @@ async function drawDashboardPDF(opts){
     yr+=kgH+6;
     // Cajas/ha
     const cjH=37;
-    doc.setFillColor(pal.tn[0],pal.tn[1],pal.tn[2]);doc.setDrawColor(r,g,b);doc.setLineWidth(0.6);
+    const cjBajo=(pr.cajasRealHa!==null&&pr.cajasRealHa!==undefined&&pr.cajasEstHa&&pr.cajasRealHa<pr.cajasEstHa);
+    if(cjBajo){doc.setFillColor(250,232,230);doc.setDrawColor(192,57,43);}else{doc.setFillColor(pal.tn[0],pal.tn[1],pal.tn[2]);doc.setDrawColor(r,g,b);}
+    doc.setLineWidth(0.6);
     doc.roundedRect(xR,yr,cW,cjH,2.5,2.5,'FD');doc.setLineWidth(0.2);
     T(`ESTIMACIÓN DE CAJAS/HA — ${pr.c}`,xR+4,yr+7,9.5,true);
     doc.setDrawColor(200,200,195);doc.line(xR+k3,yr+10,xR+k3,yr+cjH-3);doc.line(xR+k3*2,yr+10,xR+k3*2,yr+cjH-3);
@@ -3154,9 +3163,11 @@ async function drawDashboardPDF(opts){
     doc.text(`${pr.c}${pr.vr?' · '+pr.vr:''} — mismos datos que la tab Producción`,startX,y+3.5);
     y+=10;
     // Estimación de kilos/ha (arriba, antes del detalle)
-    doc.setFillColor(255,255,255);doc.setDrawColor(r,g,b);doc.setLineWidth(0.5);
+    const kgBajo2=(pr.kg26haReal!==null&&pr.kg26haReal!==undefined&&pr.kgHaMeta&&pr.kg26haReal<pr.kgHaMeta);
+    if(kgBajo2){doc.setFillColor(250,232,230);doc.setDrawColor(192,57,43);}else{doc.setFillColor(255,255,255);doc.setDrawColor(r,g,b);}
+    doc.setLineWidth(0.5);
     const kgBoxH=32;
-    doc.roundedRect(startX,y,180,kgBoxH,2.5,2.5,'D');
+    doc.roundedRect(startX,y,180,kgBoxH,2.5,2.5,kgBajo2?'FD':'D');
     doc.setLineWidth(0.2);
     doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
     doc.text(`ESTIMACIÓN DE KILOS/HA — ${pr.c}`,startX+6,y+7);
@@ -3184,7 +3195,9 @@ async function drawDashboardPDF(opts){
     y+=kgBoxH+8;
     // Cajas/ha
     const cBoxH=37,cBoxW=180/3;
-    doc.setFillColor(pal.tn[0],pal.tn[1],pal.tn[2]);doc.setDrawColor(r,g,b);doc.setLineWidth(0.5);
+    const cjBajo2=(pr.cajasRealHa!==null&&pr.cajasRealHa!==undefined&&pr.cajasEstHa&&pr.cajasRealHa<pr.cajasEstHa);
+    if(cjBajo2){doc.setFillColor(250,232,230);doc.setDrawColor(192,57,43);}else{doc.setFillColor(pal.tn[0],pal.tn[1],pal.tn[2]);doc.setDrawColor(r,g,b);}
+    doc.setLineWidth(0.5);
     doc.roundedRect(startX,y,180,cBoxH,2.5,2.5,'FD');
     doc.setLineWidth(0.2);
     doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
