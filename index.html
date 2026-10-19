@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.89.0 -->
+  <!-- v6.91.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2494,12 +2494,16 @@ function cerPodaAvgDardosRamillas(cuartel){
   const sRam=usar.reduce((s,r)=>s+(r.ram||0),0);
   return{avgDar:sDar/usar.length,avgRam:sRam/usar.length,n:usar.length};
 }
+// Cerezo: en estos cuarteles ya se ralearon frutos, así que Producción usa solo los conteos desde esa fecha
+const CER_PROD_DESDE={'C-6':'2026-10-15','C-10':'2026-10-15'};
+const cerDesdeTxt=c=>CER_PROD_DESDE[c]?'desde '+CER_PROD_DESDE[c].slice(8)+'/'+CER_PROD_DESDE[c].slice(5,7):null;
+const cerProdOk=r=>!CER_PROD_DESDE[r.c]||String(r.ts||'').slice(0,10)>=CER_PROD_DESDE[r.c];
 function rnRaleoProdCer(){
   const el=document.getElementById('rcer-dprod');if(!el)return;
   const st=RALEO_PROD_STYLE.cer;
   const v=raleoVProd.cer;
   const allRegs=rCerFrutosRegs||[];
-  const regs=v==='hoy'?allRegs.filter(r=>r.ts&&r.ts.includes(hoy())):allRegs;
+  const regs=(v==='hoy'?allRegs.filter(r=>r.ts&&r.ts.includes(hoy())):allRegs).filter(cerProdOk);
   if(!regs.length){el.innerHTML='<div class="empty"><i class="ti ti-trending-up"></i>'+(v==='hoy'?'Sin conteos hoy — toca Acumulado.':'Sin registros.')+'</div>';return;}
   const map={};regs.forEach(r=>{if(!map[r.c])map[r.c]={sFrDar:0,sFrRam:0,sDarCnt:0,sRamCnt:0,n:0};const m=map[r.c];m.sFrDar+=r.frdar;m.sFrRam+=r.frram;m.sDarCnt+=r.dar;m.sRamCnt+=r.ram;m.n++;});
   const stats={};Object.keys(map).forEach(c=>{const m=map[c];stats[c]={fxd:m.sDarCnt?m.sFrDar/m.sDarCnt:null,fxr:m.sRamCnt?m.sFrRam/m.sRamCnt:null,n:m.n};});
@@ -2532,11 +2536,11 @@ function rnRaleoProdCer(){
     <div class="scard"><div class="slbl">Dardos 2025</div><div class="sval" style="color:#555">${dar25??'—'}</div><div class="ssub">año anterior</div></div>
     <div class="scard"><div class="slbl">Dardos/planta 2026</div><div class="sval" style="color:${st.text}">${darTxt}</div><div class="ssub">promedio real que quedó (Poda)</div></div>
     <div class="scard"><div class="slbl">Frutos/Dardo 2025</div><div class="sval" style="color:#555">${fDar25??'—'}</div><div class="ssub">real año anterior</div></div>
-    <div class="scard"><div class="slbl">Frutos/Dardo 2026</div><div class="sval" style="color:${st.text}">${s.fxd!==null?s.fxd.toFixed(1):'-'}</div><div class="ssub">real · ${v==='hoy'?'hoy':'acumulado'}</div></div>
+    <div class="scard"><div class="slbl">Frutos/Dardo 2026</div><div class="sval" style="color:${st.text}">${s.fxd!==null?s.fxd.toFixed(1):'-'}</div><div class="ssub">real · ${cerDesdeTxt(c)||(v==='hoy'?'hoy':'acumulado')}</div></div>
     <div class="scard"><div class="slbl">Ramillas 2025</div><div class="sval" style="color:#555">${ram25??'—'}</div><div class="ssub">año anterior</div></div>
     <div class="scard"><div class="slbl">Ramillas/planta 2026</div><div class="sval" style="color:${st.text}">${ramTxt}</div><div class="ssub">promedio real que quedó (Poda)</div></div>
     <div class="scard"><div class="slbl">Frutos/Ramilla 2025</div><div class="sval" style="color:#555">${fxr25??'—'}</div><div class="ssub">real año anterior</div></div>
-    <div class="scard"><div class="slbl">Frutos/Ramilla 2026</div><div class="sval" style="color:${st.text}">${s.fxr!==null?s.fxr.toFixed(1):'-'}</div><div class="ssub">real · ${v==='hoy'?'hoy':'acumulado'}</div></div>
+    <div class="scard"><div class="slbl">Frutos/Ramilla 2026</div><div class="sval" style="color:${st.text}">${s.fxr!==null?s.fxr.toFixed(1):'-'}</div><div class="ssub">real · ${cerDesdeTxt(c)||(v==='hoy'?'hoy':'acumulado')}</div></div>
     <div class="scard"><div class="slbl">Carg. eliminados 2025</div><div class="sval" style="color:#555">${cargElim25??'—'}</div><div class="ssub">real año anterior</div></div>
     <div class="scard"><div class="slbl">Carg. eliminados 2026</div><div class="sval" style="color:var(--tm)">—</div><div class="ssub">no se registra en Raleo</div></div>
     <div class="scard"><div class="slbl">Calibre 2025</div><div class="sval" style="color:#555">${pFruto25??'—'}</div><div class="ssub">peso fruto (grs) real</div></div>
@@ -2567,7 +2571,7 @@ function genDashboardDesdeAdmin(e){
   if(e==='cer'){
     const tipoEl=document.getElementById('rcer-dash-tipo');
     const tipo=tipoEl?tipoEl.value:'cerY';
-    if(tipo==='frutos'){loadFrutosCer().then(()=>genFrutosDashboardPDF(cua,fecha));}
+    if(tipo==='frutos'){Promise.all([loadFrutosCer(),loadCer()]).then(()=>genFrutosDashboardPDF(cua,fecha));}
     else{Promise.all([loadRaleo('cer'),loadCCReg('cer')]).then(()=>genRaleoDashboardPDF('cerY',cua,fecha));}
   }else{
     Promise.all([loadRaleo(e),loadCCReg(e)]).then(()=>genRaleoDashboardPDF(e,cua,fecha));
@@ -2723,6 +2727,42 @@ function genFrutosDashboardPDF(cuartel,fecha){
   ];
   const conObsF=regs.filter(r=>nrmF(r.obs).trim().length>2);
   const obsTemas={base:{n:conObsF.length,tot:regs.length},items:TEMAS.map(t=>{const k=conObsF.filter(r=>t.re.test(nrmF(r.obs))).length;return{label:t.label,tipo:t.tipo,n:k,pct:conObsF.length?Math.round(k/conObsF.length*100):0};}).filter(x=>x.n>0).sort((a,b)=>b.n-a.n)};
+  // Producción: promedio de TODOS los conteos del cuartel (acumulado), igual que la pestaña Producción
+  let prodCer=null;
+  try{
+    const rd=PROD_CER.find(x=>x[0]===cuartel);
+    if(rd){
+      const acum=all.filter(x=>x.c===cuartel&&cerProdOk(x));
+      const sD=acum.reduce((a,x)=>a+x.dar,0),sFD=acum.reduce((a,x)=>a+x.frdar,0),sR=acum.reduce((a,x)=>a+x.ram,0),sFR=acum.reduce((a,x)=>a+x.frram,0);
+      const fxd=sD?sFD/sD:null,fxr=sR?sFR/sR:null;
+      const vr=rd[1],ha=rd[2],kgHa25=rd[3],kgHaMeta=rd[5],pFruto=rd[8],pHa=rd[9],dar25=rd[10],fDar25=rd[11],ram25=rd[15],fxr25=rd[16],cargElim25=rd[17],pFruto25=rd[18];
+      const pod=cerPodaAvgDardosRamillas(cuartel);
+      const darU=pod.avgDar||0,ramU=pod.avgRam||0;
+      const hay=(fxd!==null&&darU)||(fxr!==null&&ramU);
+      const frPl=darU*(fxd||0)+ramU*(fxr||0);
+      const kgReal=hay?Math.round(frPl*pFruto*pHa/1000):null;
+      const dif=(a,b)=>(a!==null&&b)?(a/b*100-100):null;
+      const fmtD=d=>d===null?'—':`${d>=0?'+':'-'}${Math.abs(d).toFixed(1)}%`;
+      const colD=d=>d===null?[140,140,135]:(d>=0?[14,102,85]:[121,31,31]);
+      const dDar=dif(pod.avgDar,dar25);
+      prodCer={c:cuartel,vr,kgHa25,kgHaMeta,kgReal,
+        items:[
+          {label:'Total conteos',val:String(acum.length),sub:`${cuartel}${vr?' · '+vr:''} · ${cerDesdeTxt(cuartel)||'acumulado'}`},
+          {label:'Diferencia dardos',val:fmtD(dDar),sub:'2026 vs 2025',color:colD(dDar)},
+          {label:'Dardos 2025',val:String(dar25??'—'),sub:'año anterior'},
+          {label:'Dardos/planta 2026',val:pod.avgDar!==null?pod.avgDar.toFixed(1):'—',sub:'promedio real que quedó (Poda)',color:[192,57,43]},
+          {label:'Frutos/Dardo 2025',val:String(fDar25??'—'),sub:'real año anterior'},
+          {label:'Frutos/Dardo 2026',val:fxd!==null?fxd.toFixed(1):'—',sub:'real · '+(cerDesdeTxt(cuartel)||'acumulado'),color:[192,57,43]},
+          {label:'Ramillas 2025',val:String(ram25??'—'),sub:'año anterior'},
+          {label:'Ramillas/planta 2026',val:pod.avgRam!==null?pod.avgRam.toFixed(1):'—',sub:'promedio real que quedó (Poda)',color:[192,57,43]},
+          {label:'Frutos/Ramilla 2025',val:String(fxr25??'—'),sub:'real año anterior'},
+          {label:'Frutos/Ramilla 2026',val:fxr!==null?fxr.toFixed(1):'—',sub:'real · '+(cerDesdeTxt(cuartel)||'acumulado'),color:[192,57,43]},
+          {label:'Carg. eliminados 2025',val:String(cargElim25??'—'),sub:'real año anterior'},
+          {label:'Calibre 2025',val:String(pFruto25??'—'),sub:'peso fruto (grs) real'},
+          {label:'Calibre Meta 2026',val:String(pFruto),sub:'peso fruto (grs) esperado',color:[55,48,163]}
+        ]};
+    }
+  }catch(err){console.error('prodCer',err);prodCer=null;}
   drawDashboardPDF({
     titulo:'CONTEO DE FRUTOS — CEREZO',cuartel,fecha,colorHex:'#C0392B',
     kpis:[
@@ -2732,6 +2772,7 @@ function genFrutosDashboardPDF(cuartel,fecha){
       {label:'Conteo Más Alto',val:String(metricTot(maxR)),sub:maxR.cnt||''}
     ],
     rango:null,
+    prodCer,
     obsTemas,
     barChart2:{
       titulo:'FRUTOS/DARDO Y FRUTOS/RAMILLA POR SUPERVISOR',
@@ -3281,7 +3322,55 @@ async function drawDashboardPDF(opts){
       y+=rowH;
     });
   }
-  if(opts.obsTemas){
+  if(opts.prodCer){
+    const pc=opts.prodCer;
+    doc.addPage();
+    doc.setFillColor(r,g,b);doc.rect(0,0,pageW,22,'F');
+    doc.setFillColor(pal.dk[0],pal.dk[1],pal.dk[2]);doc.rect(0,22,pageW,2.4,'F');
+    doc.setFillColor(239,159,39);doc.rect(0,24.4,pageW,0.9,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
+    doc.text(opts.titulo,10,10.5,{maxWidth:130});
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+    doc.text(`PRODUCCIÓN · DEPARTAMENTO DE CALIDAD · ${opts.fecha}`,10,16.5,{maxWidth:140});
+    doc.setFont('helvetica','bold');doc.setFontSize(22);
+    doc.text(String(opts.cuartel),200,12,{align:'right'});
+    y=36;
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    secBar(startX,y);doc.text('PRODUCCIÓN',startX,y);
+    doc.setFontSize(10);doc.setTextColor(r,g,b);
+    doc.text(`${pc.c}${pc.vr?' · '+pc.vr:''}`,startX+180,y,{align:'right'});
+    y+=5;
+    // Kilos/ha (rojo si el estimado queda bajo la meta)
+    const kgH=33,kgBajo=(pc.kgReal!==null&&pc.kgHaMeta&&pc.kgReal<pc.kgHaMeta);
+    if(kgBajo){doc.setFillColor(250,232,230);doc.setDrawColor(192,57,43);}else{doc.setFillColor(255,255,255);doc.setDrawColor(r,g,b);}
+    doc.setLineWidth(0.6);doc.roundedRect(startX,y,180,kgH,2.5,2.5,kgBajo?'FD':'D');doc.setLineWidth(0.2);
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(10);
+    doc.text(`ESTIMACIÓN DE KILOS/HA — ${pc.c}`,startX+5,y+7.5);
+    const k3=180/3;
+    const vs25=(pc.kgReal!==null&&pc.kgHa25)?(pc.kgReal/pc.kgHa25*100-100):null;
+    const vsM=(pc.kgReal!==null&&pc.kgHaMeta)?(pc.kgReal/pc.kgHaMeta*100-100):null;
+    [['Kilos/ha 2025',pc.kgHa25?pc.kgHa25.toLocaleString('es-CL'):'—',[170,30,20]],['Meta 2026',pc.kgHaMeta?pc.kgHaMeta.toLocaleString('es-CL'):'—',[55,48,163]],['Estimado actual',pc.kgReal!==null?pc.kgReal.toLocaleString('es-CL'):'—',[14,102,85]]].forEach(([lb,v,col],i)=>{
+      const cx=startX+i*k3+k3/2;
+      doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(col[0],col[1],col[2]);doc.text(v,cx,y+18,{align:'center'});
+      doc.setFontSize(7.5);doc.setTextColor(0,0,0);doc.text(lb.toUpperCase(),cx,y+23.5,{align:'center'});
+    });
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(0,0,0);
+    doc.text([vs25!==null?`vs 2025: ${vs25>=0?'+':'-'}${Math.abs(vs25).toFixed(0)}%`:'',vsM!==null?`vs Meta: ${vsM>=0?'+':'-'}${Math.abs(vsM).toFixed(0)}%`:''].filter(Boolean).join('   ·   '),startX+90,y+29.5,{align:'center'});
+    y+=kgH+8;
+    // Tarjetas de detalle (3 columnas)
+    const gW=(180-8)/3,gH=22;
+    pc.items.forEach((it,i)=>{
+      const gx=startX+(i%3)*(gW+4),gy=y+Math.floor(i/3)*(gH+4);
+      doc.setFillColor(255,255,255);doc.setDrawColor(200,200,195);doc.setLineWidth(0.3);
+      doc.roundedRect(gx,gy,gW,gH,2,2,'FD');
+      const vc=it.color||[0,0,0];
+      doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(vc[0],vc[1],vc[2]);
+      doc.text(fitText(String(it.val),gW-6),gx+4,gy+9);
+      doc.setFontSize(7);doc.setTextColor(0,0,0);doc.text(fitText(String(it.label).toUpperCase(),gW-6),gx+4,gy+14.5);
+      doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.setTextColor(50,50,50);doc.text(fitText(String(it.sub||''),gW-6),gx+4,gy+19);
+    });
+  }
+  if(opts.obsTemas&&opts.obsTemas.items.length){
     const ot=opts.obsTemas;
     doc.addPage();
     doc.setFillColor(r,g,b);doc.rect(0,0,pageW,22,'F');
