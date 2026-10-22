@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v6.99.0 -->
+  <!-- v7.01.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2714,6 +2714,10 @@ function genFrutosDashboardPDF(cuartel,fecha){
   regs.forEach(r=>{const k=r.sup||'Sin supervisor';if(!supMap[k])supMap[k]={sup:k,n:0,sDar:0,sFrDar:0,sRam:0,sFrRam:0};const s=supMap[k];s.n++;s.sDar+=r.dar;s.sFrDar+=r.frdar;s.sRam+=r.ram;s.sFrRam+=r.frram;});
   const supRows=Object.values(supMap).sort((a,b)=>b.n-a.n);
   const chartSupTop=supRows.slice(0,8);
+  // Promedio acumulado (todos los conteos del cuartel; en C-6 y C-10 solo desde el raleo de frutos)
+  const acR=all.filter(x=>x.c===cuartel&&cerProdOk(x));
+  const acSD=acR.reduce((a,x)=>a+x.dar,0),acSFD=acR.reduce((a,x)=>a+x.frdar,0),acSR=acR.reduce((a,x)=>a+x.ram,0),acSFR=acR.reduce((a,x)=>a+x.frram,0);
+  const acFxd=acSD?acSFD/acSD:null,acFxr=acSR?acSFR/acSR:null;
   const nrmF=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const TEMAS=[
     {label:'Frutos contados en parte baja de la planta',re:/frut\w*[^,.;]*parte\s+baja|fruta[^,.;]*parte\s+baja/,tipo:'info',pre:/ramilla[^,.;]*parte\s+baja$/},
@@ -2767,9 +2771,10 @@ function genFrutosDashboardPDF(cuartel,fecha){
     titulo:'CONTEO DE FRUTOS — CEREZO',cuartel,fecha,colorHex:'#C0392B',
     kpis:[
       {label:'N° Conteos',val:String(n)},
-      {label:'Frutos/Dardo',val:avgFxd.toFixed(2)},
-      {label:'Frutos/Ramilla',val:avgFxr.toFixed(2)},
-      {label:'Conteo Más Alto',val:String(metricTot(maxR)),sub:maxR.cnt||''}
+      {label:'Fr/Dardo del día',val:avgFxd.toFixed(2)},
+      {label:'Fr/Ramilla del día',val:avgFxr.toFixed(2)},
+      {label:'Fr/Dardo acum.',val:acFxd!==null?acFxd.toFixed(2):'—',sub:cerDesdeTxt(cuartel)||'todos los conteos'},
+      {label:'Fr/Ramilla acum.',val:acFxr!==null?acFxr.toFixed(2):'—',sub:cerDesdeTxt(cuartel)||'todos los conteos'}
     ],
     rango:null,
     prodCer,
@@ -3182,7 +3187,7 @@ async function drawDashboardPDF(opts){
   doc.setTextColor(0,0,0);doc.setFont('helvetica','bold');doc.setFontSize(12);
   secBar(startX,y);doc.text('RESUMEN DE CONTEOS',startX,y);
   y+=7;
-  const boxW=42,gap=4;
+  const gap=4,boxW=opts.kpis.length>4?(180-gap*(opts.kpis.length-1))/opts.kpis.length:42;
   opts.kpis.forEach((k,i)=>{
     const x=startX+i*(boxW+gap);
     const isMain=i===0;
@@ -3772,6 +3777,7 @@ function resumen(src,r){
   if(src.key==='frutos')return`Dardos ${r.dardos}/${r.frutos_dardo} · Ramillas ${r.ramillas}/${r.frutos_ramilla}`;
   return`${r.ramillas} ram · ${r.frutos} fr${r.calidad?' · Cal. '+r.calidad:''}`;
 }
+function corrRango(q,fecha){const d=new Date(fecha+'T12:00:00');d.setDate(d.getDate()+1);const p=n=>String(n).padStart(2,'0');const sig=`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;return q.gte('timestamp',fecha+' 00:00:00').lt('timestamp',sig+' 00:00:00');}
 function ov(){let o=document.getElementById('corr-ov');if(!o){o=document.createElement('div');o.id='corr-ov';o.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;overflow-y:auto';o.innerHTML='<div id="corr-box" style="background:#fff;max-width:520px;margin:0 auto;min-height:100%;padding:16px 16px 40px"></div>';document.body.appendChild(o);}return o;}
 function box(){return document.getElementById('corr-box');}
 const css={b:'border:1px solid var(--gb2);border-radius:10px;padding:10px 12px;margin-bottom:8px',mini:'font-size:11px;font-family:var(--mo);color:var(--tm)'};
@@ -3797,8 +3803,8 @@ window.corrCargar=async function(){
   S.rows=[];S.sel=null;box().innerHTML=cab()+'<div style="padding:20px;text-align:center;color:var(--tm)">Cargando...</div>';
   let q=db.from(src.tbl).select('*').order('id',{ascending:false}).limit(60);
   if(src.key==='raleo'&&src.tbl==='conteos_raleo')q=q.eq('especie',S.e);
-  if(S.mode==='mis'){q=q.eq('contador',me()).like('timestamp',hoy()+'%');}
-  else if(S.cua||S.hil||S.fecha){q=q.like('timestamp',(S.fecha||hoy())+'%');if(S.cua)q=q.eq('cuartel',S.cua);if(S.hil)q=q.eq('hilera',parseInt(S.hil));}
+  if(S.mode==='mis'){q=corrRango(q.eq('contador',me()),hoy());}
+  else if(S.cua||S.hil||S.fecha){q=corrRango(q,S.fecha||hoy());if(S.cua)q=q.eq('cuartel',S.cua);if(S.hil)q=q.eq('hilera',parseInt(S.hil));}
   else{S.rows=[];corrRender();return;}
   const {data,error}=await q;
   if(error){box().innerHTML=cab()+`<div style="padding:16px;color:#9C0006">⚠ No se pudo cargar (${esc(error.message||'error')}).</div>`;return;}
