@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.01.0 -->
+  <!-- v7.03.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -273,7 +273,7 @@
     .ref-p{background:var(--po)}.ref-p:hover{background:var(--pd)}
     .empty{text-align:center;padding:30px 20px;color:var(--tm);font-size:13px;font-family:var(--mo)}
     .empty i{font-size:32px;display:block;margin-bottom:8px;opacity:.3}
-    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);padding:10px 20px;border-radius:8px;font-size:13px;font-family:var(--mo);opacity:0;transition:all .3s;z-index:300;white-space:nowrap}
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);padding:10px 20px;border-radius:8px;font-size:13px;font-family:var(--mo);opacity:0;transition:all .3s;z-index:700;white-space:normal;max-width:92vw;text-align:center}
     .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
     .toast.ok{background:var(--vo);color:#fff}
     .toast.warn{background:#791F1F;color:#fff}
@@ -3778,6 +3778,7 @@ function resumen(src,r){
   return`${r.ramillas} ram · ${r.frutos} fr${r.calidad?' · Cal. '+r.calidad:''}`;
 }
 function corrRango(q,fecha){const d=new Date(fecha+'T12:00:00');d.setDate(d.getDate()+1);const p=n=>String(n).padStart(2,'0');const sig=`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;return q.gte('timestamp',fecha+' 00:00:00').lt('timestamp',sig+' 00:00:00');}
+function corrFaltaMotivo(){const el=document.getElementById('cf-motivo');if(el){el.style.borderColor='#9C0006';el.style.background='#FDECEA';el.focus();try{el.scrollIntoView({block:'center'});}catch(e){}}toast('⚠ Escribe el motivo para enviar la solicitud','warn');}
 function ov(){let o=document.getElementById('corr-ov');if(!o){o=document.createElement('div');o.id='corr-ov';o.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;overflow-y:auto';o.innerHTML='<div id="corr-box" style="background:#fff;max-width:520px;margin:0 auto;min-height:100%;padding:16px 16px 40px"></div>';document.body.appendChild(o);}return o;}
 function box(){return document.getElementById('corr-box');}
 const css={b:'border:1px solid var(--gb2);border-radius:10px;padding:10px 12px;margin-bottom:8px',mini:'font-size:11px;font-family:var(--mo);color:var(--tm)'};
@@ -3867,7 +3868,7 @@ window.corrGuardar=async function(){
   if(S.busy)return;const src=srcOf(S.e,S.key);const r=S.rows[S.sel];
   const propio=r.contador===me()&&String(r.timestamp||'').startsWith(hoy());
   const cambios=leerCambios(src,r);
-  if(!Object.keys(cambios).length){toast('No hay cambios que guardar','warn');return;}
+  if(!Object.keys(cambios).length){toast('⚠ No hay cambios: modifica algún dato primero','warn');return;}
   if(src.F.some(f=>f.t==='num'&&['hilera','planta'].includes(f.k)&&cambios[f.k]===null)){toast('⚠ Hilera y planta no pueden quedar vacías','warn');return;}
   const antes={};Object.keys(cambios).forEach(k=>antes[k]=r[k]);
   S.busy=true;
@@ -3880,11 +3881,11 @@ window.corrGuardar=async function(){
     S.sel=null;corrCargar();
   }else{
     const motivo=(document.getElementById('cf-motivo').value||'').trim();
-    if(!motivo){S.busy=false;toast('⚠ Escribe el motivo','warn');return;}
+    if(!motivo){S.busy=false;corrFaltaMotivo();return;}
     const {error}=await db.from('correcciones').insert([{tabla:src.tbl,especie:S.e,registro_id:r.id,accion:'editar',solicitante:me(),motivo,antes,cambios,estado:'pendiente'}]);
     S.busy=false;
     if(error){toast('⚠ Error al enviar la solicitud','warn');return;}
-    toast('✓ Solicitud enviada, queda pendiente de aprobación');S.sel=null;corrRender();
+    toast('✓ Solicitud enviada, queda pendiente de aprobación');S.sel=null;corrRender();corrBadgeUpdate();
   }
 };
 window.corrEliminar=async function(){
@@ -3899,11 +3900,11 @@ window.corrEliminar=async function(){
     S.busy=false;toast('✓ Registro eliminado');if(typeof loadRaleo==='function')loadRaleo(S.e);S.sel=null;corrCargar();
   }else{
     const m=(document.getElementById('cf-motivo').value||'').trim();
-    if(!m){toast('⚠ Escribe el motivo','warn');return;}
+    if(!m){corrFaltaMotivo();return;}
     S.busy=true;
     const {error}=await db.from('correcciones').insert([{tabla:src.tbl,especie:S.e,registro_id:r.id,accion:'eliminar',solicitante:me(),motivo:m,antes:r,cambios:null,estado:'pendiente'}]);
     S.busy=false;if(error){toast('⚠ Error al enviar la solicitud','warn');return;}
-    toast('✓ Solicitud enviada');S.sel=null;corrRender();
+    toast('✓ Solicitud enviada');S.sel=null;corrRender();corrBadgeUpdate();
   }
 };
 async function corrMias(){
@@ -3940,7 +3941,7 @@ window.corrResolver=async function(id,e,ok){
   await db.from('correcciones').update({estado:ok?'aprobada':'rechazada',resuelto_por:'Administrador',resuelto:new Date().toISOString()}).eq('id',id);
   toast(ok?'✓ Corrección aplicada':'Solicitud rechazada');
   if(typeof loadRaleo==='function')loadRaleo(e);
-  corrAdmLoad(e);
+  corrAdmLoad(e);corrBadgeUpdate();
 };
 /* ---------- Inyección en la interfaz ---------- */
 ['nec','cer','cir','duz'].forEach(e=>{
@@ -3957,6 +3958,31 @@ window.corrResolver=async function(id,e,ok){
     const hdr=adm.querySelector('.adm-hdr');hdr?hdr.after(s):adm.insertBefore(s,adm.firstChild);
   }
 });
+/* ---------- Globo con solicitudes pendientes ---------- */
+function corrBadgeSet(host,n,extraStyle){
+  if(!host)return;
+  let b=host.querySelector('.corr-badge');
+  if(!n){if(b)b.remove();return;}
+  if(!b){b=document.createElement('span');b.className='corr-badge';b.style.cssText='background:#C0392B;color:#fff;border-radius:10px;min-width:18px;height:18px;padding:0 5px;font-size:11px;font-weight:700;font-family:var(--mo);display:inline-flex;align-items:center;justify-content:center;line-height:1;'+(extraStyle||'');host.appendChild(b);}
+  b.textContent=n;
+}
+window.corrBadgeUpdate=async function(){
+  try{
+    const {data,error}=await db.from('correcciones').select('id,especie').eq('estado','pendiente').limit(500);
+    if(error)return;
+    const cnt={nec:0,cer:0,cir:0,duz:0};
+    (data||[]).forEach(r=>{if(cnt[r.especie]!==undefined)cnt[r.especie]++;});
+    ['nec','cer','cir','duz'].forEach(e=>{
+      corrBadgeSet(document.querySelector(`#view-raleo-${e} .tab-${e}[data-t="cfg"]`),cnt[e],'margin-left:4px;');
+      const card=document.querySelector(`.esp-card[onclick="entrarRaleo('${e}')"]`);
+      if(card){if(getComputedStyle(card).position==='static')card.style.position='relative';corrBadgeSet(card,cnt[e],'position:absolute;top:8px;right:8px;min-width:22px;height:22px;font-size:12px;');}
+      const t=document.getElementById(`r${e}-corr-n`);if(t)t.textContent=cnt[e]?`(${cnt[e]})`:'';
+    });
+  }catch(e){}
+};
+setTimeout(corrBadgeUpdate,1500);
+setInterval(()=>{if(document.visibilityState==='visible')corrBadgeUpdate();},60000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')corrBadgeUpdate();});
 const _chk=window.chkAdm;
 window.chkAdm=function(e){_chk(e);if(['rnec','rcer','rcir','rduz'].includes(e)&&raleoAdm[e])corrAdmLoad(e.slice(1));};
 })();
