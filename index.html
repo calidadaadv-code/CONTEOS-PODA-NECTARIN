@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.04.0 -->
+  <!-- v7.05.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -3765,9 +3765,9 @@ function abrirDetRev(esp, contador){
 /* ===== CORRECCIONES: edición propia + solicitudes con aprobación ===== */
 (function(){
 const ESPS={nec:'Nectarín',cer:'Cerezo',cir:'Ciruelo',duz:'Durazno'};
-const F_RALEO=[{k:'cuartel',l:'Cuartel',t:'cua'},{k:'hilera',l:'Hilera',t:'num'},{k:'planta',l:'Planta',t:'num'},{k:'podador',l:'Podador',t:'txt'},{k:'ramillas',l:'Ramillas',t:'num'},{k:'frutos',l:'Frutos',t:'num'},{k:'calidad',l:'Calidad',t:'cal'},{k:'observaciones',l:'Observaciones',t:'txt'}];
-const F_RALEO_CER=[{k:'cuartel',l:'Cuartel',t:'cua'},{k:'hilera',l:'Hilera',t:'num'},{k:'planta',l:'Planta',t:'num'},{k:'podador',l:'Podador',t:'txt'},{k:'ramillas',l:'Total ramillas',t:'num'},{k:'frutos',l:'Cumplen pauta',t:'num'},{k:'calidad',l:'Calidad',t:'cal'},{k:'observaciones',l:'Observaciones',t:'txt'}];
-const F_FRUT=[{k:'cuartel',l:'Cuartel',t:'cua'},{k:'hilera',l:'Hilera',t:'num'},{k:'planta',l:'Planta',t:'num'},{k:'dardos',l:'N° dardos',t:'num'},{k:'frutos_dardo',l:'Frutos en dardos',t:'num'},{k:'ramillas',l:'N° ramillas',t:'num'},{k:'frutos_ramilla',l:'Frutos en ramillas',t:'num'},{k:'observaciones',l:'Observaciones',t:'txt'}];
+const F_RALEO=[{k:'cuartel',l:'Cuartel',t:'cua'},{k:'hilera',l:'Hilera',t:'num'},{k:'planta',l:'Planta',t:'num'},{k:'podador',l:'Podador',t:'txt'},{k:'supervisor',l:'Supervisor',t:'txt'},{k:'contratista',l:'Contratista',t:'txt'},{k:'ramillas',l:'Ramillas',t:'num'},{k:'frutos',l:'Frutos',t:'num'},{k:'calidad',l:'Calidad',t:'cal'},{k:'observaciones',l:'Observaciones',t:'txt'}];
+const F_RALEO_CER=[{k:'cuartel',l:'Cuartel',t:'cua'},{k:'hilera',l:'Hilera',t:'num'},{k:'planta',l:'Planta',t:'num'},{k:'podador',l:'Podador',t:'txt'},{k:'supervisor',l:'Supervisor',t:'txt'},{k:'contratista',l:'Contratista',t:'txt'},{k:'ramillas',l:'Total ramillas',t:'num'},{k:'frutos',l:'Cumplen pauta',t:'num'},{k:'calidad',l:'Calidad',t:'cal'},{k:'observaciones',l:'Observaciones',t:'txt'}];
+const F_FRUT=[{k:'cuartel',l:'Cuartel',t:'cua'},{k:'hilera',l:'Hilera',t:'num'},{k:'planta',l:'Planta',t:'num'},{k:'supervisor',l:'Supervisor',t:'txt'},{k:'contratista',l:'Contratista',t:'txt'},{k:'dardos',l:'N° dardos',t:'num'},{k:'frutos_dardo',l:'Frutos en dardos',t:'num'},{k:'ramillas',l:'N° ramillas',t:'num'},{k:'frutos_ramilla',l:'Frutos en ramillas',t:'num'},{k:'observaciones',l:'Observaciones',t:'txt'}];
 function srcOf(e,key){
   if(key==='frutos')return{key,tbl:'conteos_frutos_cer',esp:'cer',F:F_FRUT,label:'Conteo de frutos'};
   return{key:'raleo',tbl:e==='cer'?'conteos_raleo_cer':'conteos_raleo',esp:e,F:e==='cer'?F_RALEO_CER:F_RALEO,label:'Conteo de raleo'};
@@ -3836,7 +3836,7 @@ function corrRender(){
   if(!S.rows.length)h+=`<div style="padding:18px;text-align:center;color:var(--tm);font-size:13px">${S.mode==='mis'?'No tienes conteos hoy en esta sección.':'Usa los filtros y toca Buscar.'}</div>`;
   S.rows.forEach((r,i)=>{
     const propio=r.contador===me()&&String(r.timestamp||'').startsWith(hoy());
-    h+=`<div style="${css.b};display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="min-width:0"><div style="font-weight:700;font-size:14px">${esc(r.cuartel)} · H${esc(r.hilera)} · P${esc(r.planta)}</div><div style="${css.mini}">${esc(resumen(src,r))}</div><div style="${css.mini}">${esc(r.contador||'')} · ${esc(String(r.timestamp||'').slice(11,16))}</div></div><button class="tog-btn tog-g" style="white-space:nowrap" onclick="corrSel(${i})">${propio?'✎ Editar':'Solicitar'}</button></div>`;
+    h+=`<div style="${css.b};display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="min-width:0"><div style="font-weight:700;font-size:14px">${esc(r.cuartel)} · H${esc(r.hilera)} · P${esc(r.planta)}</div><div style="${css.mini}">${esc(resumen(src,r))}</div><div style="${css.mini}">${esc(r.contador||'')} · ${esc(String(r.timestamp||'').slice(11,16))}</div><div style="${css.mini}">Sup: ${esc(r.supervisor||'—')} · Contr: ${esc(r.contratista||'—')}</div></div><button class="tog-btn tog-g" style="white-space:nowrap" onclick="corrSel(${i})">${propio?'✎ Editar':'Solicitar'}</button></div>`;
   });
   h+=`<div id="corr-mias" style="margin-top:14px"></div>`;
   box().innerHTML=h;corrMias();
