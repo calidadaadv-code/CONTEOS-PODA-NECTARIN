@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.06.0 -->
+  <!-- v7.07.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1631,6 +1631,17 @@ function rnFrutosDat(){
       secBlk=`<div style="font-size:9px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">COMPARATIVO POR SECTOR — ${c}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">${mk(sec1,`H.1–${SECTOR_CORTE}`,bajoCon)}${mk(sec2,`H.${SECTOR_CORTE+1}+`,!bajoCon)}${ex?mk(sec3,`H.${ex.desde}–${ex.hasta} · ${ex.fecha.split('-').reverse().join('-')}`,true,ex.label,true):''}</div>`;
     }
+    // Antes / desde el raleo de frutos (cuarteles con fecha en CER_PROD_DESDE): usa todos los conteos del cuartel
+    let fruBlk='';
+    const fDesde=CER_PROD_DESDE[c];
+    if(fDesde){
+      const ant={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0},des={sDar:0,sFrDar:0,sRam:0,sFrRam:0,n:0};
+      allRegs.filter(r=>r.c===c).forEach(r=>{const t=(String(r.ts||'').slice(0,10)>=fDesde)?des:ant;t.sDar+=r.dar;t.sFrDar+=r.frdar;t.sRam+=r.ram;t.sFrRam+=r.frram;t.n++;});
+      const av=(a,b)=>a?(b/a).toFixed(2):'-';
+      const fd=fDesde.split('-').reverse().join('-');
+      const mkF=(t,titulo,con)=>`<div style="background:#fff;border:1px solid var(--gb2);border-radius:8px;padding:8px 10px"><div style="font-size:9px;font-family:var(--mo);color:var(--tm);font-weight:700;letter-spacing:.5px;margin-bottom:4px">${titulo}</div><div style="display:flex;flex-wrap:wrap;gap:2px 12px;font-size:12px;font-family:var(--mo)"><span>FR/DAR <b style="color:${con?'var(--ro)':'#555'}">${av(t.sDar,t.sFrDar)}</b></span><span>FR/RAM <b style="color:${con?'var(--ro)':'#555'}">${av(t.sRam,t.sFrRam)}</b></span></div><div style="font-size:9px;color:var(--tm);margin-top:3px">${t.n} conteo${t.n===1?'':'s'}</div></div>`;
+      fruBlk=`<div style="font-size:9px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">RALEO DE FRUTOS — ${c} · ANTES Y DESDE ${fd}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">${mkF(ant,'ANTES DEL '+fd,false)}${mkF(des,'DESDE '+fd+' (CON RALEO)',true)}</div>`;
+    }
     const detRows=[...m.list].sort((a,b)=>(b.ts||'').localeCompare(a.ts||'')).map(r=>{
       const rfxd=r.dar?(r.frdar/r.dar).toFixed(2):'-';
       const rfxr=r.ram?(r.frram/r.ram).toFixed(2):'-';
@@ -1639,7 +1650,7 @@ function rnFrutosDat(){
     }).join('');
     const hilHead=aplicaSector?'<th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">HIL.</th>':'';
     const det=exp?`<tr><td colspan="4" style="background:#f7f7f5;padding:12px 8px;white-space:normal;width:1px">
-      ${secBlk}
+      ${fruBlk}${secBlk}
       <div style="font-size:9px;font-weight:700;color:var(--tm);font-family:var(--mo);letter-spacing:.5px;margin-bottom:6px">DETALLE POR CONTEO</div>
       <table style="width:100%;border-collapse:collapse;font-family:var(--mo);font-size:11px"><thead><tr style="border-bottom:1px solid var(--gb2)"><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">CONTADOR</th><th style="text-align:left;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">SUPERVISOR</th>${hilHead}<th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">DAR/FR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/DAR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">RAM/FR</th><th style="text-align:center;padding:6px 4px;color:var(--tm);font-weight:600;font-size:9px">FR/RAM</th></tr></thead><tbody>${detRows}</tbody></table></td></tr>`:'';
     return`<tr style="cursor:pointer" onclick="toggleFrutosDat('${c}')"><td style="color:var(--ro);font-weight:600">${exp?'▾':'▸'} ${c}</td><td style="text-align:center">${m.n}</td><td style="text-align:center;font-weight:700;color:var(--ro)">${fxd}</td><td style="text-align:center;font-weight:700;color:var(--ro)">${fxr}</td></tr>${det}`;
