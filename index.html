@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.05.0 -->
+  <!-- v7.06.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2507,7 +2507,7 @@ function cerPodaAvgDardosRamillas(cuartel){
   return{avgDar:sDar/usar.length,avgRam:sRam/usar.length,n:usar.length};
 }
 // Cerezo: en estos cuarteles ya se ralearon frutos, así que Producción usa solo los conteos desde esa fecha
-const CER_PROD_DESDE={'C-6':'2026-10-15','C-10':'2026-10-15'};
+const CER_PROD_DESDE={'C-6':'2026-10-15','C-10':'2026-10-15','C-18':'2026-10-26','C-22':'2026-10-28','C-19':'2026-10-29'};
 const cerDesdeTxt=c=>CER_PROD_DESDE[c]?'desde '+CER_PROD_DESDE[c].slice(8)+'/'+CER_PROD_DESDE[c].slice(5,7):null;
 const cerProdOk=r=>!CER_PROD_DESDE[r.c]||String(r.ts||'').slice(0,10)>=CER_PROD_DESDE[r.c];
 function rnRaleoProdCer(){
