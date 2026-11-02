@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.08.0 -->
+  <!-- v7.09.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1139,7 +1139,7 @@ const PESO_FRUTO={'C-6':11.7,'C-10':11.7,'C-11':10.9,'C-12':10.9,'C-15':11.7,'C-
 const PLANTAS_HA_CER=1316;
 const PLANTAS_HA_CER_ESP={'C-10':1429,'C-11':1429};
 let cDashCuartel=null;
-const CCIR=[{n:'C-28',v:'Angeleno',mn:14.6,ob:17.5,mx:21.0,ap:16.6},{n:'C-7A',v:'Sweet Pekeetah',mn:15.3,ob:18.3,mx:22.0,ap:18.3}];
+const CCIR=[{n:'C-28',v:'Angeleno',mn:14.6,ob:17.5,mx:21.0,ap:16.6},{n:'C-7A',v:'Sweet Pekeetah',mn:15.3,ob:18.3,mx:22.0,ap:18.3},{n:'C-33',v:'Sweet Pekeetah',mn:15.3,ob:18.3,mx:22.0,ap:18.3}];
 const CDUZ=[{n:'C-27',v:'Soledora',mn:21,ob:25,mx:30}];
 const RM=54,RX=78,RI=65;
 let nIdx=0,nCal=null,nRegs=[],nVR='hoy',nVC='hoy',nPass='poda2024',nAdm=false;
@@ -1273,7 +1273,7 @@ const RALEO_NEC={
   'C-31':{mn:148,ob:164,mx:182},'C-32':{mn:177,ob:197,mx:219},'C-7B':{mn:96,ob:107,mx:119},
 };
 const RALEO_CER={};CCER.forEach(c=>RALEO_CER[c.n]={mn:0,ob:0,mx:0});
-const RALEO_CIR={'C-28':{mn:237,ob:263,mx:292},'C-7A':{mn:198,ob:220,mx:244}};
+const RALEO_CIR={'C-28':{mn:237,ob:263,mx:292},'C-7A':{mn:198,ob:220,mx:244},'C-33':{mn:198,ob:220,mx:244}};
 const RALEO_DUZ={'C-27':{mn:41,ob:45,mx:50}};
 // Histórico 2025 (planilla "Resultados 2025-2026"): calibre obtenido, peso fruto grs y frutos/planta reales
 const RALEO_HIST_NEC={
@@ -1281,14 +1281,14 @@ const RALEO_HIST_NEC={
   'C-02':{cal:53,peso:151,fru:130},'C-09':{cal:50,peso:160,fru:104},'C-13':{cal:49,peso:163,fru:113},'C-30':{cal:52,peso:154,fru:119},
   'C-7B':{cal:47,peso:170,fru:98},'C-01':{cal:45,peso:178,fru:122},'C-08':{cal:49,peso:163,fru:174},'C-31':{cal:49,peso:163,fru:104},
 };
-const RALEO_HIST_CIR={'C-28':{cal:76,peso:92,fru:199},'C-7A':{cal:63,peso:111,fru:216}};
+const RALEO_HIST_CIR={'C-28':{cal:76,peso:92,fru:199},'C-7A':{cal:63,peso:111,fru:216},'C-33':{cal:63,peso:111,fru:216}};
 const RALEO_HIST_DUZ={};
 // Estimación 2026-2027 pre-poda: calibre esperado (número de calibre, no gramos)
 const RALEO_CAL_ESP_NEC={
   'C-32':46,'C-03':46,'C-04':46,'C-05':46,'C-02':50,'C-09':50,'C-13':48,'C-30':48,
   'C-7B':50,'C-01':48,'C-08':48,'C-31':46,
 };
-const RALEO_CAL_ESP_CIR={'C-28':68,'C-7A':48};
+const RALEO_CAL_ESP_CIR={'C-28':68,'C-7A':48,'C-33':48};
 const RALEO_CAL_ESP_DUZ={'C-27':50};
 // Peso caja equivalente embalada (Kg), planilla "Estimación 2026-2027"
 const RALEO_PESO_CAJA={nec:8,cer:null,cir:7,duz:8};
