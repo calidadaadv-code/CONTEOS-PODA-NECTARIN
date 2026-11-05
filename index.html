@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.15.0 -->
+  <!-- v7.16.1 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4040,7 +4040,7 @@ const f0=n=>n===null||n===undefined||isNaN(n)?'—':Math.round(n).toLocaleString
 let S={tab:'ing',tipo:'cal',dtipo:'cal',dv:'hoy',calif:'A',busy:false,data:{},load:false};
 const root=()=>document.getElementById('cos-root');
 const vari=c=>{const x=CCER.find(k=>k.n===c);return x?x.v:null;};
-const btn=(on,fn,txt)=>`<button class="tog-btn" style="${on?`background:${P};color:#fff;border-color:${P}`:''}" onclick="${fn}">${txt}</button>`;
+const btn=(on,fn,txt)=>`<button class="tog-btn" style="padding:10px 4px;${on?`background:${P};color:#fff;border-color:${P}`:''}" onclick="${fn}">${txt}</button>`;
 const fld=(l,id,type,ph,extra)=>`<div class="fgrp" style="margin-bottom:10px"><label class="flbl">${l}</label><input class="finp" id="${id}" type="${type}" ${type==='number'?'inputmode="decimal" step="any" min="0"':''} placeholder="${ph||''}" ${extra||''}></div>`;
 const hoyTxt=()=>hoy();
 
@@ -4064,17 +4064,18 @@ window.cosStart=async function(){
   if(!Object.keys(contadorPins||{}).length){try{await loadContadorPins();}catch(e){}}
   cosRender();
 };
-window.cosTab=function(t){S.tab=t;cosRender();if(t==='dat'||t==='av')cosCargar();if(t==='viv')cosFeedInit();};
+window.cosTab=function(t){S.tab=t;cosRender();if(t==='dat'||t==='av')cosCargar();if(t==='viv')cosFeedInit();if(t==='res')cosResCargar();};
 window.cosTipo=function(t){S.tipo=t;cosRender();};
 window.cosDTipo=function(t){S.dtipo=t;cosRender();};
 window.cosDV=function(v){S.dv=v;cosRender();};
 
-function tabs(){return`<div class="tog-row" style="margin-bottom:12px">${btn(S.tab==='ing',"cosTab('ing')",'Ingresar')}${btn(S.tab==='viv',"cosTab('viv')",'En vivo')}${btn(S.tab==='dat',"cosTab('dat')",'Datos')}${btn(S.tab==='av',"cosTab('av')",'Avance')}</div>`;}
+function tabs(){return`<div class="tog-row" style="margin-bottom:12px">${btn(S.tab==='ing',"cosTab('ing')",'Ingresar')}${btn(S.tab==='viv',"cosTab('viv')",'En vivo')}${btn(S.tab==='res',"cosTab('res')",'Resumen')}${btn(S.tab==='dat',"cosTab('dat')",'Datos')}${btn(S.tab==='av',"cosTab('av')",'Avance')}</div>`;}
 function cosRender(){
   const r=root();if(!r)return;
   let h=tabs();
   if(S.tab==='ing')h+=cosIngHtml();
   else if(S.tab==='viv')h+=cosFeedHtml();
+  else if(S.tab==='res')h+=cosResHtml();
   else if(S.tab==='dat')h+=cosDatHtml();
   else h+=cosAvHtml();
   r.innerHTML=h;
@@ -4157,29 +4158,139 @@ function cosCard(r,nuevo){
   const chips=DEF.map(([k,l])=>{const v=r[k]||0;return`<span style="font-size:11px;font-family:var(--mo);padding:3px 7px;border-radius:6px;${v?'background:#FADBD8;color:#791F1F;font-weight:600':'background:#f1f1ee;color:var(--tm)'}">${l} ${pcs(v,n)}%</span>`;}).join('');
   const cc=(l,v)=>v?`<span style="font-size:11px;font-family:var(--mo);padding:3px 7px;border-radius:6px;${v==='Cumple'?'background:#E1F5EE;color:#085041':'background:#FADBD8;color:#791F1F'};font-weight:600">${l}: ${E(v)}</span>`:'';
   const ph=r.foto_mini?`<img src="${r.foto_mini}" onclick="cosVerFoto(${r.id})" style="width:100%;max-height:260px;object-fit:cover;border-radius:10px;margin-bottom:8px;cursor:pointer">`:(r.con_foto?`<button class="tog-btn" style="margin-bottom:8px" onclick="cosVerFoto(${r.id})">📷 Ver foto</button>`:'');
-  return`<div style="border:1px solid ${nuevo?P:'var(--gb2)'};border-radius:12px;padding:10px 12px;margin-bottom:10px;background:#fff"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><b style="font-size:14px">${E(r.cuartel)} <span style="font-weight:400;color:var(--tm);font-size:11px">${E(r.variedad||'')}</span></b><span style="font-family:var(--mo);font-size:11px;color:var(--tm)">${E(String(r.timestamp).slice(5,10).split('-').reverse().join('/'))} ${E(String(r.timestamp).slice(11,16))}</span></div><div style="font-size:11px;font-family:var(--mo);color:var(--tm);margin:3px 0 8px;line-height:1.5">Cosechero: <b>${E(r.cosechador||'—')}</b> · Contratista: ${E(r.contratista||'—')}<br>Supervisor: ${E(r.supervisor||'—')} · Manipulador: ${E(r.unidad_control||'—')}<br>Control de calidad: ${E(r.contador||'—')}</div>${ph}<div style="font-family:var(--mo);font-size:12px;margin-bottom:6px">Muestra: <b>${n}</b> frutos · Defectos: <b style="color:${pt>0?'#9C0006':PD};font-size:15px">${pt}%</b></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px">${chips}${cc('Materia vegetal',r.materia_vegetal)}${cc('Llenado bandeja',r.llenado_bandeja)}</div>${r.observaciones?`<div style="font-size:12px;color:var(--tx);font-style:italic">“${E(r.observaciones)}”</div>`:''}</div>`;
+  return`<div style="border:1px solid ${nuevo?P:'var(--gb2)'};border-radius:12px;padding:10px 12px;margin-bottom:10px;background:#fff"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><b style="font-size:14px">${E(r.cuartel)} <span style="font-weight:400;color:var(--tm);font-size:11px">${E(r.variedad||'')}</span></b><span style="font-family:var(--mo);font-size:11px;color:var(--tm)">${E(String(r.timestamp).slice(5,10).split('-').reverse().join('/'))} ${E(String(r.timestamp).slice(11,16))}</span></div><div style="font-size:11px;font-family:var(--mo);color:var(--tm);margin:3px 0 8px;line-height:1.5">Cosechero: <b>${E(r.cosechador||'—')}</b> · Contratista: ${E(r.contratista||'—')}<br>Supervisor: ${E(r.supervisor||'—')} · Manipulador: ${E(r.unidad_control||'—')}<br>Control de calidad: ${E(r.contador||'—')}</div>${ph}<div style="font-family:var(--mo);font-size:12px;margin-bottom:6px">Muestra: <b>${n}</b> frutos · Defectos (con partidura): <b style="color:${pt>0?'#9C0006':PD};font-size:15px">${pt}%</b></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px">${chips}${cc('Materia vegetal',r.materia_vegetal)}${cc('Llenado bandeja',r.llenado_bandeja)}</div>${r.observaciones?`<div style="font-size:12px;color:var(--tx);font-style:italic">“${E(r.observaciones)}”</div>`:''}</div>`;
+}
+/* ---------- RESUMEN DE CUADRILLAS (imagen) ---------- */
+const RD=[['machucon',['% MACHUCÓN']],['herida_abierta',['% HERIDA','ABIERTA']],['pudricion',['% PUDRICIÓN']],['sin_pedicelo',['% FRUTO SIN','PEDICELO']],['fuera_color',['% FUERA DE','COLOR']]];
+const UMB={machucon:[1.5,5],herida_abierta:[1.5,5],pudricion:[1.5,5],sin_pedicelo:[1.5,5],fuera_color:[2.5,5],suma:[3,5]};
+const CV='#D9EAD3',CA='#FFF2CC',CR='#F4CCCC';
+const colorDe=(k,v)=>{const u=UMB[k];return v<=u[0]?CV:v<=u[1]?CA:CR;};
+const pf=v=>(Math.round(v*100)/100).toFixed(2).replace('.',',')+'%';
+S.imgs={};S.snapCache={};S.newIds=new Set();S.todayAll=[];S.resFecha='';S.resKey=null;
+function resAgg(rows){
+  const m={};
+  rows.forEach(r=>{
+    const v=(r.variedad||vari(r.cuartel)||'—');const key=r.cuartel+'|'+(r.supervisor||'')+'|'+(r.contratista||'');
+    const o=m[key]||(m[key]={v,c:r.cuartel,sup:r.supervisor||'—',comp:r.contratista||'—',n:0,d:{}});
+    o.n+=r.n_frutos||0;RD.forEach(([k])=>{o.d[k]=(o.d[k]||0)+(r[k]||0);});
+  });
+  const vars={};
+  Object.values(m).forEach(o=>{((vars[o.v]=vars[o.v]||{})[o.c]=vars[o.v][o.c]||[]).push(o);});
+  return Object.keys(vars).sort().map(v=>({v,cuarteles:Object.keys(vars[v]).sort((a,b)=>a.localeCompare(b,'es',{numeric:true})).map(c=>({c,filas:vars[v][c].sort((a,b)=>a.sup.localeCompare(b.sup,'es')||a.comp.localeCompare(b.comp,'es'))}))}));
+}
+function cosImgResumen(rows,fecha,hora){
+  const g=resAgg(rows);if(!g.length)return null;
+  const S2=2,CW=[120,210,220,96,96,96,96,96,100],W=CW.reduce((a,b)=>a+b,0)+24,RH=28,HH=44,BH=28;
+  let H=54+24;g.forEach(x=>{H+=BH+HH+x.cuarteles.reduce((s,c)=>s+c.filas.length*RH,0)+14;});
+  const cv=document.createElement('canvas');cv.width=W*S2;cv.height=H*S2;const x=cv.getContext('2d');x.scale(S2,S2);
+  x.fillStyle='#fff';x.fillRect(0,0,W,H);
+  const fit=(t,w)=>{t=String(t);if(x.measureText(t).width<=w-8)return t;while(t.length>1&&x.measureText(t+'…').width>w-8)t=t.slice(0,-1);return t+'…';};
+  const cell=(t,px,y,w,h,bg,o)=>{o=o||{};x.fillStyle=bg||'#fff';x.fillRect(px,y,w,h);x.strokeStyle='#c9ccd3';x.lineWidth=1;x.strokeRect(px+.5,y+.5,w-1,h-1);x.fillStyle=o.col||'#111';x.font=(o.font||'13px Arial, sans-serif');x.textBaseline='middle';x.textAlign=o.al||'center';const tx=o.al==='left'?px+6:px+w/2;if(Array.isArray(t)){t.forEach((l,i)=>x.fillText(l,tx,y+h/2+(i-(t.length-1)/2)*15));}else x.fillText(o.nofit?t:fit(t,w),tx,y+h/2);};
+  x.strokeStyle='#111';x.lineWidth=1;x.strokeRect(12.5,6.5,W-25,42);
+  x.fillStyle='#111';x.font='bold 18px Arial, sans-serif';x.textAlign='left';x.textBaseline='middle';
+  x.fillText('CONTROL DE CALIDAD EN COSECHA',24,28);x.textAlign='right';x.fillText(fecha.split('-').reverse().join('-')+'  ·  '+hora,W-24,28);
+  let y=54;
+  g.forEach(vg=>{
+    x.fillStyle='#EDE7FB';x.fillRect(12,y,W-24,BH);x.fillStyle='#3B1A8A';x.font='bold 15px Arial, sans-serif';x.textAlign='left';x.textBaseline='middle';x.fillText(vg.v.toUpperCase(),20,y+BH/2);y+=BH;
+    let px=12;
+    [['CUARTEL /','VARIEDAD'],'SUPERVISOR','CONTRATISTA (razón social)'].forEach((t,i)=>{cell(t,px,y,CW[i],HH,'#E9ECF1',{font:'italic 12px Arial, sans-serif'});px+=CW[i];});
+    RD.forEach(([k,l],i)=>{cell(l,px,y,CW[3+i],HH,'#7F8FB1',{col:'#fff',font:'12px Arial, sans-serif'});px+=CW[3+i];});
+    cell(['% SUMATORIA','DEFECTOS'],px,y,CW[8],HH,'#FFF2CC',{font:'bold 12px Arial, sans-serif'});y+=HH;
+    vg.cuarteles.forEach(cg=>{
+      cg.filas.forEach((f,i)=>{
+        px=12;cell(i===0?cg.c+' - '+vg.v.toUpperCase():'',px,y,CW[0],RH,'#F4F5F7',{al:'left',font:'bold 12px Arial, sans-serif'});px+=CW[0];
+        cell(f.sup,px,y,CW[1],RH,'#fff');px+=CW[1];cell(f.comp,px,y,CW[2],RH,'#fff');px+=CW[2];
+        let sum=0;RD.forEach(([k],j)=>{const v=f.n?f.d[k]/f.n*100:0;sum+=v;cell(pf(v),px,y,CW[3+j],RH,colorDe(k,v));px+=CW[3+j];});
+        cell(pf(sum),px,y,CW[8],RH,colorDe('suma',sum),{font:'bold 13px Arial, sans-serif'});y+=RH;
+      });
+    });
+    y+=14;
+  });
+  x.fillStyle='#666';x.font='11px Arial, sans-serif';x.textAlign='left';x.textBaseline='middle';
+  x.fillText('Acumulado de las muestras revisadas por cuadrilla. Verde: bajo · Amarillo: atención · Rojo: alto. Sumatoria = machucón + herida abierta + pudrición + sin pedicelo + fuera de color.',14,H-12);
+  return cv.toDataURL('image/png');
+}
+window.cosVerImg=function(key){
+  const u=S.imgs[key];if(!u)return;
+  const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:800;overflow:auto;padding:10px';
+  o.innerHTML=`<div style="position:sticky;left:0;color:#fff;font-family:var(--mo);font-size:12px;margin-bottom:8px">Desliza para ver la tabla completa · toca ✕ para cerrar <button style="float:right;border:none;background:#fff;border-radius:6px;font-size:16px;padding:2px 10px" id="cos-vi-x">✕</button></div><img src="${u}" style="max-width:none;width:1158px;background:#fff">`;
+  document.body.appendChild(o);o.querySelector('#cos-vi-x').onclick=()=>o.remove();
+};
+window.cosShareImg=async function(key,nombre){
+  const u=S.imgs[key];if(!u)return;
+  try{
+    const b=await (await fetch(u)).blob();const f=new File([b],nombre+'.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:nombre});return;}
+  }catch(e){if(e&&e.name==='AbortError')return;}
+  const l=document.createElement('a');l.href=u;l.download=nombre+'.png';document.body.appendChild(l);l.click();l.remove();
+};
+function snapCard(sl,nuevo){
+  const key='s'+sl.key+'|'+sl.cnt;
+  if(!S.imgs[key]){const rows=S.todayAll.filter(r=>String(r.timestamp)<=sl.key);S.imgs[key]=cosImgResumen(rows,hoyTxt(),sl.key.slice(11,16));}
+  if(!S.imgs[key])return'';
+  return`<div style="border:1px solid ${nuevo?P:'#c9b8f0'};border-radius:12px;padding:10px 12px;margin-bottom:10px;background:${PC}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:13px;color:${PD}">📊 Resumen de cuadrillas · ${sl.key.slice(11,16)}</b><span style="font-size:10px;font-family:var(--mo);color:var(--tm)">acumulado del día</span></div><img src="${S.imgs[key]}" onclick="cosVerImg('${key}')" style="width:100%;border-radius:8px;background:#fff;cursor:pointer"><button class="tog-btn" style="margin-top:8px;padding:7px" onclick="cosShareImg('${key}','resumen-cosecha-${sl.key.slice(11,16).replace(':','')}')">Compartir / descargar imagen</button></div>`;
+}
+function cosSlots(){
+  const rows=S.todayAll;if(!rows.length)return[];
+  const hd=hoyTxt(),p=n=>String(n).padStart(2,'0'),now=new Date();
+  const ts=rows.map(r=>String(r.timestamp)).sort();
+  const m0=(parseInt(ts[0].slice(11,13))*60+parseInt(ts[0].slice(14,16)));
+  const lastM=Math.floor((now.getHours()*60+now.getMinutes())/15)*15;
+  const out=[];let prev=0;
+  for(let t=(Math.floor(m0/15)+1)*15;t<=lastM;t+=15){
+    const key=`${hd} ${p(Math.floor(t/60))}:${p(t%60)}:00`;const cnt=ts.filter(z=>z<=key).length;
+    if(cnt>prev){out.push({key,cnt});prev=cnt;}
+  }
+  return out;
+}
+function cosFeedItems(){
+  const it=S.feed.map(r=>({t:String(r.timestamp),r}));
+  cosSlots().slice(-12).forEach(s=>it.push({t:s.key,s}));
+  it.sort((a,b)=>a.t<b.t?1:a.t>b.t?-1:0);
+  return it;
+}
+function cosFeedInner(){
+  if(!S.feedOk)return'<div class="empty">Cargando...</div>';
+  const it=cosFeedItems();if(!it.length)return'<div class="empty"><i class="ti ti-camera"></i><br>Aún no hay registros de calidad.</div>';
+  return it.map(x=>x.s?snapCard(x.s,S.newIds.has('s'+x.s.key)):cosCard(x.r,S.newIds.has(x.r.id))).join('');
 }
 function cosFeedHtml(){
-  let h=`<div style="font-size:11px;font-family:var(--mo);color:var(--tm);margin-bottom:10px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#1D9E75;display:inline-block"></span>En vivo · se actualiza solo cada 15 segundos · más reciente primero</div><div id="cos-feed">`;
-  if(!S.feedOk)h+='<div class="empty">Cargando...</div>';
-  else if(!S.feed.length)h+='<div class="empty"><i class="ti ti-camera"></i><br>Aún no hay registros de calidad.</div>';
-  else h+=S.feed.map(r=>cosCard(r,false)).join('');
-  return h+'</div>';
+  return`<div style="font-size:11px;font-family:var(--mo);color:var(--tm);margin-bottom:10px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#1D9E75;display:inline-block"></span>En vivo · se actualiza solo · resumen de cuadrillas cada 15 min</div><div id="cos-feed">${cosFeedInner()}</div>`;
 }
 window.cosFeedInit=async function(){
   if(S.feedOk){cosFeedPoll();return;}
-  const {data,error}=await db.from('cosecha_calidad').select(feedCols).order('id',{ascending:false}).limit(30);
-  if(error){toast('⚠ No se pudo cargar el en vivo','warn');return;}
-  S.feed=data||[];S.feedMax=S.feed.length?S.feed[0].id:0;S.feedOk=true;
+  const [a,b]=await Promise.all([db.from('cosecha_calidad').select(feedCols).order('id',{ascending:false}).limit(30),db.from('cosecha_calidad').select(COLS_CAL).like('timestamp',hoyTxt()+'%').order('id',{ascending:true}).limit(5000)]);
+  if(a.error||b.error){toast('⚠ No se pudo cargar el en vivo','warn');return;}
+  S.feed=a.data||[];S.feedMax=S.feed.length?S.feed[0].id:0;S.todayAll=b.data||[];S.feedOk=true;S.lastSlot=(cosSlots().slice(-1)[0]||{}).key||'';
   if(S.tab==='viv')cosRender();
 };
 async function cosFeedPoll(){
   if(!S.feedOk||S.tab!=='viv'||document.hidden)return;
   const {data,error}=await db.from('cosecha_calidad').select(feedCols).gt('id',S.feedMax).order('id',{ascending:false}).limit(30);
-  if(error||!data||!data.length)return;
-  S.feed=data.concat(S.feed).slice(0,60);S.feedMax=data[0].id;
-  const el=document.getElementById('cos-feed');
-  if(el){el.innerHTML=data.map(r=>cosCard(r,true)).join('')+el.innerHTML;toast('📷 '+data.length+' registro'+(data.length>1?'s':'')+' nuevo'+(data.length>1?'s':''));}
+  let cambio=false;
+  if(!error&&data&&data.length){
+    S.feed=data.concat(S.feed).slice(0,60);S.feedMax=data[0].id;cambio=true;
+    S.newIds=new Set(data.map(r=>r.id));
+    const ya=new Set(S.todayAll.map(r=>r.id));data.forEach(r=>{if(String(r.timestamp).startsWith(hoyTxt())&&!ya.has(r.id)){const c=Object.assign({},r);delete c.foto_mini;S.todayAll.push(c);}});
+    toast('📷 '+data.length+' registro'+(data.length>1?'s':'')+' nuevo'+(data.length>1?'s':''));
+  }
+  const ls=(cosSlots().slice(-1)[0]||{}).key||'';
+  if(ls!==S.lastSlot){S.lastSlot=ls;cambio=true;if(ls)S.newIds.add('s'+ls);}
+  if(cambio){const el=document.getElementById('cos-feed');if(el)el.innerHTML=cosFeedInner();}
+}
+/* pestaña Resumen */
+window.cosResCargar=async function(){
+  const f=val('cos-res-f')||S.resFecha||hoyTxt();S.resFecha=f;
+  const el=document.getElementById('cos-res-img');if(el)el.innerHTML='<div class="empty">Cargando...</div>';
+  const {data,error}=await db.from('cosecha_calidad').select(COLS_CAL).like('timestamp',f+'%').order('id',{ascending:true}).limit(5000);
+  if(error){toast('⚠ No se pudo cargar','warn');return;}
+  const d=new Date();const hh=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  const u=cosImgResumen(data||[],f,f===hoyTxt()?hh:'día completo');
+  S.resKey='res'+f;S.imgs[S.resKey]=u;
+  if(el)el.innerHTML=u?`<img src="${u}" onclick="cosVerImg('${S.resKey}')" style="width:100%;border:1px solid var(--gb2);border-radius:8px;cursor:pointer"><button class="sbtn-g" style="background:${P};margin-top:10px" onclick="cosShareImg('${S.resKey}','resumen-cosecha-${f}')"><i class="ti ti-share"></i> Compartir / descargar imagen</button><div style="font-size:11px;font-family:var(--mo);color:var(--tm);text-align:center;margin-top:8px">${(data||[]).length} muestras · toca la imagen para verla completa</div>`:'<div class="empty"><i class="ti ti-basket"></i><br>Sin muestras de calidad en esta fecha.</div>';
+};
+function cosResHtml(){
+  return`<div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px"><div class="fgrp" style="flex:1"><label class="flbl">Fecha</label><input class="finp" type="date" id="cos-res-f" value="${S.resFecha||hoyTxt()}" onchange="cosResCargar()"></div><button class="tog-btn" style="flex:none;padding:10px 14px" onclick="cosResCargar()">Actualizar</button></div><div id="cos-res-img"></div>`;
 }
 setInterval(cosFeedPoll,15000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)cosFeedPoll();});
