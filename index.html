@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.14.0 -->
+  <!-- v7.15.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -352,11 +352,25 @@
 <div id="pantalla-cosecha" style="display:none">
   <div class="ini-hdr" style="background:linear-gradient(135deg,#7C3AED,#A855F7)">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-      <button class="ini-back-btn" onclick="volverInicio()">← Volver</button>
-      <div><div class="ini-title">Cosecha</div><div class="ini-sub">Cerezo · Temporada 2026</div></div>
+      <button class="ini-back-btn" onclick="cosVolver()">← Volver</button>
+      <div><div class="ini-title">Cosecha 2026</div><div class="ini-sub" id="cos-sub">Selecciona la especie</div></div>
     </div>
   </div>
-  <div id="cos-root" style="padding:12px 14px 40px;max-width:560px;margin:0 auto"></div>
+  <div class="ini-cards" id="cos-esp">
+    <div class="esp-card esp-cer" onclick="cosEntrar('cer')">
+      <div class="esp-icon">🍒</div><div><div class="esp-name">Cerezo</div><div class="esp-desc">Calidad, rendimiento y avance</div></div><div class="esp-arr">›</div>
+    </div>
+    <div class="esp-card" style="background:linear-gradient(135deg,#085041,#1D9E75);opacity:.6" onclick="cosEntrar('nec')">
+      <div class="esp-icon">🍑</div><div><div class="esp-name">Nectarín</div><div class="esp-desc">Próximamente</div></div><div class="esp-arr">›</div>
+    </div>
+    <div class="esp-card esp-cir" style="opacity:.6" onclick="cosEntrar('cir')">
+      <div class="esp-icon">🟣</div><div><div class="esp-name">Ciruelo</div><div class="esp-desc">Próximamente</div></div><div class="esp-arr">›</div>
+    </div>
+    <div class="esp-card esp-duz" style="opacity:.6" onclick="cosEntrar('duz')">
+      <div class="esp-icon">🍑</div><div><div class="esp-name">Durazno</div><div class="esp-desc">Próximamente</div></div><div class="esp-arr">›</div>
+    </div>
+  </div>
+  <div id="cos-root" style="display:none" style="padding:12px 14px 40px;max-width:560px;margin:0 auto"></div>
 </div>
 
 <div id="pantalla-poda" style="display:none">
@@ -4030,7 +4044,22 @@ const btn=(on,fn,txt)=>`<button class="tog-btn" style="${on?`background:${P};col
 const fld=(l,id,type,ph,extra)=>`<div class="fgrp" style="margin-bottom:10px"><label class="flbl">${l}</label><input class="finp" id="${id}" type="${type}" ${type==='number'?'inputmode="decimal" step="any" min="0"':''} placeholder="${ph||''}" ${extra||''}></div>`;
 const hoyTxt=()=>hoy();
 
-window.cosInit=async function(){
+window.cosInit=function(){
+  const e=document.getElementById('cos-esp'),r=document.getElementById('cos-root'),t=document.getElementById('cos-sub');
+  if(e)e.style.display='flex';if(r)r.style.display='none';if(t)t.textContent='Selecciona la especie';
+};
+window.cosVolver=function(){
+  const r=document.getElementById('cos-root');
+  if(r&&r.style.display!=='none'){cosInit();return;}
+  volverInicio();
+};
+window.cosEntrar=function(esp){
+  if(esp!=='cer'){toast('Cosecha de '+({nec:'Nectarín',cir:'Ciruelo',duz:'Durazno'}[esp])+': próximamente');return;}
+  document.getElementById('cos-esp').style.display='none';document.getElementById('cos-root').style.display='block';
+  document.getElementById('cos-sub').textContent='Cerezo · Temporada 2026';
+  cosStart();
+};
+window.cosStart=async function(){
   if(typeof listasLoaded!=='undefined'&&!listasLoaded){try{await loadListas();}catch(e){}}
   if(!Object.keys(contadorPins||{}).length){try{await loadContadorPins();}catch(e){}}
   cosRender();
