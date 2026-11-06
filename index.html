@@ -169,6 +169,32 @@
   .option-card--vivid .option-sub{ color:rgba(255,255,255,0.82); position:relative; z-index:1; }
   .option-card--vivid .option-chev{ color:rgba(255,255,255,0.85); position:relative; z-index:1; }
   .card-stk{ background: linear-gradient(135deg, #4FA65B 0%, #235A34 100%); }
+  .paso-title{ display:flex; align-items:center; gap:9px; margin:22px 0 2px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; letter-spacing:0.06em; text-transform:uppercase; color:#8FD39B; }
+  .paso-title--card{ margin:12px 0 0; color:var(--teal-mid); }
+  .paso-n{ flex:none; width:24px; height:24px; border-radius:50%; background:#62C46E; color:#0E2A17; display:flex; align-items:center; justify-content:center; font-size:13px; letter-spacing:0; }
+  .paso-title--card .paso-n{ background:var(--teal-mid); color:#fff; }
+  .paso-hecho{ opacity:0.55; }
+  .card-sol{ background: linear-gradient(135deg, #3E5C76 0%, #1B2E40 100%); }
+  /* ---------- Contraseña ---------- */
+  .clave-overlay{ position:fixed; inset:0; z-index:50; background:rgba(8,20,26,0.72); display:none; align-items:center; justify-content:center; padding:24px; }
+  .clave-overlay.is-on{ display:flex; }
+  .clave-box{ width:100%; max-width:340px; background:var(--paper); color:var(--ink); border-radius:18px; padding:22px 20px; box-shadow:0 20px 40px -16px rgba(0,0,0,0.6); }
+  .clave-box h3{ margin:0 0 4px; font-family:'Space Grotesk',sans-serif; font-size:19px; }
+  .clave-box p{ margin:0 0 14px; font-size:13.5px; color:var(--ink-soft); }
+  .clave-box input{ width:100%; border:1.4px solid rgba(20,33,28,0.18); border-radius:11px; padding:13px; font-size:20px; text-align:center; letter-spacing:0.3em; font-family:'Space Grotesk',sans-serif; }
+  .clave-box input:focus{ outline:none; border-color:var(--leaf); }
+  .clave-err{ display:none; margin-top:8px; color:#C2452A; font-size:13px; text-align:center; }
+  .clave-err.is-on{ display:block; }
+  .clave-recordar{ display:flex; align-items:center; gap:8px; margin-top:12px; font-size:13px; color:var(--ink-soft); }
+  .clave-box .btn-ghost{ color:var(--ink); border-color:rgba(20,33,28,0.15); background:transparent; }
+  /* ---------- Aviso en vivo ---------- */
+  .toast{ position:fixed; left:50%; bottom:22px; transform:translate(-50%, 140%); z-index:60; width:calc(100% - 32px); max-width:480px;
+    background:#0E2A17; color:#fff; border:1px solid rgba(98,196,110,0.6); border-radius:14px; padding:13px 16px;
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14.5px; box-shadow:0 16px 32px -12px rgba(0,0,0,0.6);
+    transition:transform .3s ease; cursor:pointer; }
+  .toast.is-on{ transform:translate(-50%, 0); }
+  .toast small{ display:block; font-family:'Inter',sans-serif; font-weight:400; font-size:12.5px; color:rgba(255,255,255,0.75); margin-top:2px; }
+  .estado.apro{ background:#DCEAF1; color:#1F6E8C; }
   .card-dev{ background: linear-gradient(135deg, #D9534F 0%, #8C2A22 100%); }
   #view-devolucion .content, #view-dev-lista .content{ padding:12px 20px 28px; display:flex; flex-direction:column; }
 
@@ -373,8 +399,13 @@
       <p class="sel-sub">Elige un módulo para continuar.</p>
 
       <div class="option-list">
-        <button class="option-card option-card--vivid card-ofm" type="button" onclick="abrirDespacho()">
+        <button class="option-card option-card--vivid card-sol" type="button" onclick="abrirHoy()">
           <span class="pend-pill" id="pend-pill"></span>
+          <span class="option-icon-vivid">🔒</span>
+          <span class="option-text"><p class="option-title">Solicitudes de guía</p><p class="option-sub">Aprobar, agregar N° de guía y enviar al grupo (con contraseña)</p></span>
+          <span class="option-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </button>
+        <button class="option-card option-card--vivid card-ofm" type="button" onclick="abrirDespacho()">
           <span class="option-icon-vivid">🚚</span>
           <span class="option-text"><p class="option-title">Despacho de bins</p><p class="option-sub">Salida de bins con fruta a packing / planta</p></span>
           <span class="option-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
@@ -418,7 +449,7 @@
     <div class="content">
       <h2 class="sel-heading" id="h-desp">Solicitud de guía de despacho</h2>
       <p class="sel-sub" style="margin-bottom:0">Fruta que sale del campo hacia la exportadora.</p>
-      <button class="link-hoy" type="button" onclick="abrirHoy()">Ver solicitudes de guía →</button>
+      <button class="link-hoy" type="button" onclick="abrirHoy()">🔒 Ver solicitudes de guía →</button>
 
       <form id="form-despacho" autocomplete="off" novalidate>
         <div class="form-card">
@@ -546,33 +577,56 @@
     <div class="content">
       <div class="ok-badge">✓</div>
       <h2 class="ok-title" id="ok-title">Solicitud guardada</h2>
-      <p class="ok-sub">Datos para emitir la guía de despacho</p>
+      <p class="ok-sub" id="ok-sub-desp">Datos para emitir la guía de despacho</p>
       <div class="guia-card" id="guia-card"></div>
-            <div id="wsp-botones"></div>
-      <div class="form-card" id="emitir-card">
-        <p class="form-card-title"><span>🧾</span>Guía SII</p>
+      <div id="paso1">
+        <p class="paso-title"><span class="paso-n">1</span>Encargado: enviar solicitud</p>
+        <div id="wsp-botones"></div>
+      </div>
+      <div class="form-card" id="aprobar-card">
+        <p class="paso-title paso-title--card"><span class="paso-n">2</span>Aprobar solicitud</p>
+        <p class="stk-note" style="margin-top:6px">Revisa los datos. Al aprobar, la solicitud queda con ✓ y lista para agregar el N° de guía.</p>
         <div class="field">
-          <label for="d-nguia">N° de guía emitida en el SII</label>
+          <label for="d-aprobador">Aprobado por</label>
+          <input type="text" id="d-aprobador" value="Camilo Espinoza">
+        </div>
+        <button class="btn-save" type="button" id="btn-aprobar" onclick="aprobarSolicitud()">✓ Aprobar solicitud</button>
+      </div>
+      <div class="form-card" id="emitir-card">
+        <p class="paso-title paso-title--card"><span class="paso-n">3</span>Agregar N° de guía emitida (SII)</p>
+        <div class="field">
+          <label for="d-nguia">N° de guía emitida <span class="req">*</span></label>
           <input type="text" id="d-nguia" inputmode="numeric">
         </div>
-        <button class="btn-save" type="button" id="btn-emitir" onclick="marcarEmitida()">Marcar guía como emitida</button>
+        <div class="field">
+          <label>Archivo de la guía <span class="hint">(PDF o foto)</span></label>
+          <label class="foto-picker" for="d-guia-file"><span class="foto-picker-plus">+</span><span id="d-guia-file-txt">Adjuntar guía</span></label>
+          <input type="file" id="d-guia-file" accept="application/pdf,image/*" style="display:none">
+        </div>
+        <button class="btn-save" type="button" id="btn-emitir" onclick="marcarEmitida()">Guardar guía emitida</button>
+      </div>
+      <div id="paso3" style="display:none">
+        <p class="paso-title"><span class="paso-n">4</span>Enviar guía al grupo de despacho</p>
+        <button class="btn-save btn-wsp" type="button" style="margin-top:10px" onclick="enviarGuiaGrupo()">📲 Enviar guía al grupo de despacho</button>
+        <p class="draft-note" id="paso3-nota"></p>
       </div>
       <button class="btn-ghost" type="button" onclick="editarDespacho()">✏️ Editar solicitud</button>
       <button class="btn-ghost" type="button" onclick="nuevoDespacho()">Nuevo despacho</button>
-      <button class="btn-ghost" type="button" onclick="abrirHoy()">Ver solicitudes</button>
+      <button class="btn-ghost" type="button" onclick="abrirHoy()">🔒 Ver solicitudes</button>
     </div>
   </section>
 
   <!-- ---------- PANTALLA: DESPACHOS DEL DÍA ---------- -->
   <section class="view" id="view-despacho-hoy">
     <div class="topbar">
-      <button class="btn-back" type="button" onclick="goTo('view-despacho')" aria-label="Volver">
+      <button class="btn-back" type="button" onclick="goTo('view-seleccion')" aria-label="Volver">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
       <span class="topbar-label">Solicitudes</span>
     </div>
     <div class="content">
-      <h2 class="sel-heading">Solicitudes de guía</h2>
+      <h2 class="sel-heading">🔒 Solicitudes de guía</h2>
+      <button class="link-hoy" type="button" style="color:rgba(246,244,236,0.6)" onclick="cerrarClave()">Cerrar sesión en este equipo</button>
       <div class="tabs2"><button type="button" id="tab-pend" class="is-on" onclick="cargarLista('pend')">Pendientes <span id="tab-pend-n"></span></button><button type="button" id="tab-hoy" onclick="cargarLista('hoy')">Hoy</button></div>
       <div class="hoy-totales">
         <div class="hoy-tot"><b id="tot-camiones">0</b><small>Camiones</small></div>
@@ -964,6 +1018,18 @@
   </section>
 </div>
 
+<div class="clave-overlay" id="clave-overlay">
+  <form class="clave-box" id="clave-form" autocomplete="off">
+    <h3>🔒 Solicitudes de guía</h3>
+    <p>Ingresa la contraseña para aprobar solicitudes y agregar N° de guía.</p>
+    <input type="password" id="clave-input" inputmode="numeric" autocomplete="off">
+    <div class="clave-err" id="clave-err">Contraseña incorrecta</div>
+    <label class="clave-recordar"><input type="checkbox" id="clave-recordar" checked style="width:auto"> Recordar en este equipo</label>
+    <button class="btn-save" type="submit">Entrar</button>
+    <button class="btn-ghost" type="button" onclick="cerrarOverlayClave()">Cancelar</button>
+  </form>
+</div>
+<div class="toast" id="toast" onclick="this.classList.remove('is-on')"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
   function goTo(id){
@@ -1149,21 +1215,25 @@
       // limpiar borrador dejando los datos que se repiten
       var nb = {}; RECORDAR.forEach(function(id){ nb[id] = $(id).value; }); lsSet(BORRADOR_KEY, nb);
       CAMPOS_DESP.forEach(function(id){ if(RECORDAR.indexOf(id) < 0) $(id).value = ($(id).type==='number' && id!=='d-kg') ? '0' : ''; });
-      mostrarDespacho(res.data);
+      mostrarDespacho(res.data, 'nuevo');
       actualizarPendientes();
     });
   }
 
   // ---- Resumen de la solicitud ----
   function fila(k, v){ return (v===null || v===undefined || v==='') ? '' : '<div class="guia-row"><span>'+k+'</span><span>'+esc(v)+'</span></div>'; }
-  function mostrarDespacho(d){
+  var despachoModo = 'gestion';
+  function mostrarDespacho(d, modo){
+    if(modo) despachoModo = modo; else if(!despachoActual || despachoActual.id !== d.id) despachoModo = 'gestion';
     despachoActual = d;
-    var emitida = d.estado === 'emitida';
-    $('ok-title').textContent = emitida ? 'Guía emitida' : 'Solicitud N° ' + d.id;
+    var emitida = d.estado === 'emitida', aprobada = d.estado === 'aprobada';
+    $('ok-title').textContent = emitida ? 'Guía emitida' : aprobada ? '✓ Solicitud N° ' + d.id + ' aprobada' : 'Solicitud N° ' + d.id;
     $('guia-card').innerHTML =
       '<div class="guia-head"><b>Solicitud de guía N° '+d.id+'</b><span>'+fmtFecha(d.fecha)+' · '+fmtHora(d.created_at)+'</span></div>' +
       fila('Solicitado por', d.solicitante) +
+      (d.aprobada_at ? fila('Aprobada por', (d.aprobado_por || '') + ' · ' + fmtFecha(d.aprobada_at) + ' ' + fmtHora(d.aprobada_at)) : '') +
       (emitida ? fila('N° guía SII', d.numero_guia) : '') +
+      (d.guia_archivo_url ? '<div class="guia-row"><span>Archivo guía</span><span><a href="'+esc(d.guia_archivo_url)+'" target="_blank" rel="noopener">Ver guía ↗</a></span></div>' : '') +
       '<p class="guia-sec">Origen</p>' +
       fila('Especie', d.especie) + fila('Cuartel', d.cuartel) + fila('Variedad', d.variedad) +
       fila('CSG', d.csg) + fila('SDP', d.sdp) +
@@ -1176,7 +1246,24 @@
       '<p class="guia-sec">Destino</p>' +
       fila('Planta', d.planta) + fila('Exportadora', d.exportadora) + fila('Observaciones', d.observaciones);
     $('d-nguia').value = d.numero_guia || '';
-    $('btn-emitir').textContent = emitida ? 'Actualizar N° de guía' : 'Marcar guía como emitida';
+    $('btn-emitir').textContent = emitida ? 'Actualizar guía emitida' : 'Guardar guía emitida';
+    guiaFile = null; $('d-guia-file').value = '';
+    $('d-guia-file-txt').textContent = d.guia_archivo_url ? 'Cambiar archivo (ya hay uno adjunto)' : 'Adjuntar guía';
+    var nuevo = despachoModo === 'nuevo';
+    $('paso1').classList.toggle('paso-hecho', emitida || aprobada);
+    $('paso1').style.display = (nuevo || !emitida) ? '' : 'none';
+    var pendiente = !emitida && !aprobada;
+    $('aprobar-card').style.display = (!nuevo && pendiente) ? '' : 'none';
+    $('emitir-card').style.display = (!nuevo && !pendiente) ? '' : 'none';
+    $('paso3').style.display = (emitida && !nuevo) ? '' : 'none';
+    $('ok-sub-desp').textContent = nuevo ?
+        (emitida ? '✓ Guía N° ' + d.numero_guia + ' emitida' :
+         aprobada ? '✓ Aprobada por ' + (d.aprobado_por || '') + ' · esperando N° de guía' :
+         'Envía la solicitud · aquí verás cuando sea aprobada') :
+      emitida ? 'Guía emitida · puedes enviarla al grupo' :
+      aprobada ? 'Aprobada · falta agregar el N° de guía emitida' : 'Pendiente de aprobación';
+    $('paso3-nota').textContent = 'Se abre WhatsApp: elige el grupo de despacho y envía.' +
+      (d.guia_archivo_url ? '' : ' (No hay archivo de guía adjunto: se enviarán solo los datos.)');
     pintarBotonesWsp();
     goTo('view-despacho-ok');
   }
@@ -1206,6 +1293,9 @@
     L.push('Planta: ' + d.planta);
     L.push('Exportadora: ' + d.exportadora);
     if(d.observaciones){ L.push(''); L.push('Obs.: ' + d.observaciones); }
+    L.push('');
+    L.push('👉 Abrir solicitud para emitir la guía:');
+    L.push(linkSolicitud(d.id));
     return L.join('\n');
   }
   function compartirGuia(numero){
@@ -1214,41 +1304,144 @@
     window.open(url, '_blank');
   }
   function pintarBotonesWsp(){
-    var h = '<button class="btn-save btn-wsp" type="button" style="margin-top:10px" onclick="compartirGuia(\'\')">📲 1 · Enviar al grupo de despacho</button>';
-    h += WSP_GUIAS.map(function(c, i){
-      return '<button class="btn-save btn-wsp" type="button" style="margin-top:10px" onclick="compartirGuia(\''+c.numero+'\')">📲 '+(i+2)+' · Enviar a '+esc(c.nombre)+'</button>';
+    var nombres = WSP_GUIAS.map(function(c){ return c.nombre; }).join(' / ');
+    var h = WSP_GUIAS.map(function(c){
+      return '<button class="btn-save btn-wsp" type="button" style="margin-top:10px" onclick="compartirGuia(\''+c.numero+'\')">📲 Enviar solicitud a '+esc(c.nombre)+'</button>';
     }).join('');
-    h += '<p class="draft-note">En el grupo: se abre WhatsApp, elige el grupo de despacho y envía. Luego envíalo también a '+esc(WSP_GUIAS.map(function(c){return c.nombre;}).join(', '))+'.</p>';
+    h += '<p class="draft-note">'+esc(nombres)+' recibe los datos y un link para abrir esta solicitud, emitir la guía y enviarla al grupo.</p>';
     $('wsp-botones').innerHTML = h;
   }
 
+
+  var guiaFile = null;
+  function enfocarGuia(){
+    setTimeout(function(){
+      var d = despachoActual; if(!d) return;
+      var el = d.estado === 'emitida' ? $('paso3') : d.estado === 'aprobada' ? $('emitir-card') : $('aprobar-card');
+      el.scrollIntoView({behavior:'smooth', block:'center'});
+      if(d.estado === 'aprobada') $('d-nguia').focus({preventScroll:true});
+    }, 80);
+  }
+  function linkSolicitud(id){ return location.origin + location.pathname + '?guia=' + id; }
+
+  function aprobarSolicitud(){
+    if(!despachoActual || !sb) return;
+    var quien = $('d-aprobador').value.trim();
+    if(!quien){ alert('Indica quién aprueba.'); $('d-aprobador').focus(); return; }
+    var btn = $('btn-aprobar'); btn.disabled = true; btn.textContent = 'Aprobando…';
+    sb.from('despachos_bins').update({ estado:'aprobada', aprobada_at:new Date().toISOString(), aprobado_por:quien })
+      .eq('id', despachoActual.id).select().single().then(function(res){
+        btn.disabled = false; btn.textContent = '✓ Aprobar solicitud';
+        if(res.error){ alert('No se pudo aprobar: ' + res.error.message); return; }
+        mostrarDespacho(res.data, 'gestion');
+        actualizarPendientes();
+        enfocarGuia();
+      });
+  }
 
   function marcarEmitida(){
     if(!despachoActual || !sb) return;
     var n = $('d-nguia').value.trim();
     if(!n){ alert('Ingresa el N° de la guía emitida en el SII.'); $('d-nguia').focus(); return; }
-    var btn = $('btn-emitir'); btn.disabled = true;
-    sb.from('despachos_bins')
-      .update({ estado:'emitida', numero_guia:n, emitida_at:new Date().toISOString() })
-      .eq('id', despachoActual.id).select().single()
-      .then(function(res){
-        btn.disabled = false;
-        if(res.error){ alert('No se pudo actualizar: ' + res.error.message); return; }
-        mostrarDespacho(res.data);
-        actualizarPendientes();
+    var btn = $('btn-emitir'); btn.disabled = true; btn.textContent = guiaFile ? 'Subiendo guía…' : 'Guardando…';
+    var subir = Promise.resolve(null);
+    if(guiaFile){
+      var ext = (guiaFile.name.split('.').pop() || 'pdf').toLowerCase().replace(/[^a-z0-9]/g,'');
+      var path = 'sii/' + hoyStr() + '/guia-' + n.replace(/[^0-9A-Za-z]/g,'') + '-' + Date.now() + '.' + ext;
+      subir = sb.storage.from(FOTO_BUCKET).upload(path, guiaFile, {contentType: guiaFile.type || 'application/pdf'}).then(function(r){
+        if(r.error) throw r.error;
+        return sb.storage.from(FOTO_BUCKET).getPublicUrl(path).data.publicUrl;
       });
+    }
+    var archivoLocal = guiaFile;
+    subir.then(function(url){
+      var upd = { estado:'emitida', numero_guia:n, emitida_at: despachoActual.emitida_at || new Date().toISOString() };
+      if(!despachoActual.aprobada_at){ upd.aprobada_at = upd.emitida_at; upd.aprobado_por = $('d-aprobador').value.trim() || null; }
+      if(url) upd.guia_archivo_url = url;
+      return sb.from('despachos_bins').update(upd).eq('id', despachoActual.id).select().single();
+    }).then(function(res){
+      if(res.error) throw res.error;
+      mostrarDespacho(res.data);
+      guiaFile = archivoLocal;   // se mantiene para poder compartir el archivo directo en WhatsApp
+      actualizarPendientes();
+      setTimeout(function(){ $('paso3').scrollIntoView({behavior:'smooth', block:'center'}); }, 50);
+    }).catch(function(e){
+      alert('No se pudo guardar: ' + (e.message || e));
+    }).then(function(){ btn.disabled = false; btn.textContent = despachoActual && despachoActual.estado==='emitida' ? 'Actualizar guía emitida' : 'Guardar guía emitida'; });
+  }
+
+  function textoGuiaEmitida(d){
+    var L = [];
+    L.push('✅ *GUÍA DE DESPACHO EMITIDA N° ' + d.numero_guia + '*');
+    L.push('Fundo Lo Ovalle · Solicitud N° ' + d.id + ' · ' + fmtFecha(d.fecha));
+    L.push('');
+    L.push(d.especie + ' · ' + d.variedad + ' · Cuartel ' + d.cuartel);
+    L.push('Bins: ' + d.bins + ' · Totes: ' + d.totes + (d.kg_aprox != null ? ' · Kg aprox.: ' + fmtNum(d.kg_aprox) : ''));
+    L.push('Chofer: ' + d.chofer_nombre + ' · Patente ' + d.patente + (d.sello ? ' · Sello ' + d.sello : ''));
+    L.push('Destino: ' + d.planta + ' · ' + d.exportadora);
+    if(d.guia_archivo_url){ L.push(''); L.push('📄 Guía: ' + d.guia_archivo_url); }
+    return L.join('\n');
+  }
+  function enviarGuiaGrupo(){
+    var d = despachoActual; if(!d) return;
+    var txt = textoGuiaEmitida(d);
+    if(guiaFile && navigator.canShare && navigator.canShare({files:[guiaFile]})){
+      navigator.share({ files:[guiaFile], text: txt }).catch(function(e){
+        if(e && e.name === 'AbortError') return;
+        window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
+      });
+      return;
+    }
+    window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
   }
 
   // ---- Lista de solicitudes ----
   var LISTA_CACHE = {};
-  function abrirHoy(){ goTo('view-despacho-hoy'); cargarLista('pend'); }
+  // ---- Acceso con contraseña a la gestión de solicitudes ----
+  var CLAVE_HASH = '7bba7430bd3a7e0115f09460afee0fe2647c8045d9752a77a46ca3d92efed98a';   // sha256('despacho:' + contraseña)
+  var CLAVE_KEY = 'desp_gestion_ok';
+  var claveOk = false, claveCallback = null;
+  function hashClave(txt){
+    var data = new TextEncoder().encode('despacho:' + txt);
+    return crypto.subtle.digest('SHA-256', data).then(function(buf){
+      return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ('0'+b.toString(16)).slice(-2); }).join('');
+    });
+  }
+  function claveRecordada(){ try{ return localStorage.getItem(CLAVE_KEY) === CLAVE_HASH; }catch(e){ return false; } }
+  function pedirClave(cb){
+    if(claveOk || claveRecordada()){ claveOk = true; cb(); return; }
+    claveCallback = cb;
+    $('clave-input').value = ''; $('clave-err').classList.remove('is-on');
+    $('clave-overlay').classList.add('is-on');
+    setTimeout(function(){ $('clave-input').focus(); }, 50);
+  }
+  function cerrarOverlayClave(){ $('clave-overlay').classList.remove('is-on'); claveCallback = null; }
+  function cerrarClave(){
+    claveOk = false; try{ localStorage.removeItem(CLAVE_KEY); }catch(e){}
+    goTo('view-seleccion');
+  }
+  (function(){
+    $('clave-form').addEventListener('submit', function(ev){
+      ev.preventDefault();
+      hashClave($('clave-input').value.trim()).then(function(h){
+        if(h !== CLAVE_HASH){ $('clave-err').classList.add('is-on'); $('clave-input').select(); return; }
+        claveOk = true;
+        if($('clave-recordar').checked){ try{ localStorage.setItem(CLAVE_KEY, CLAVE_HASH); }catch(e){} }
+        var cb = claveCallback; cerrarOverlayClave(); if(cb) cb();
+      });
+    });
+  })();
+
+  var LISTA_MODO = 'pend';
+  function abrirHoy(){ pedirClave(function(){ goTo('view-despacho-hoy'); cargarLista('pend'); }); }
   function cargarLista(modo){
+    LISTA_MODO = modo;
     $('tab-pend').classList.toggle('is-on', modo==='pend');
     $('tab-hoy').classList.toggle('is-on', modo==='hoy');
     $('hoy-lista').innerHTML = '<p class="hoy-empty">Cargando…</p>';
     if(!sb){ $('hoy-lista').innerHTML = '<p class="hoy-empty">Sin conexión.</p>'; return; }
     var q = sb.from('despachos_bins').select('*').order('created_at', {ascending:false});
-    q = modo==='pend' ? q.eq('estado','pendiente').limit(200) : q.eq('fecha', hoyStr()).limit(200);
+    q = modo==='pend' ? q.in('estado',['pendiente','aprobada']).limit(200) : q.eq('fecha', hoyStr()).limit(200);
     q.then(function(res){
       if(res.error){ $('hoy-lista').innerHTML = '<p class="hoy-empty">Error: '+esc(res.error.message)+'</p>'; return; }
       var d = res.data || [], t = {b:0,t:0,k:0};
@@ -1260,11 +1453,11 @@
       if(!d.length){ $('hoy-lista').innerHTML = '<p class="hoy-empty">'+(modo==='pend' ? 'No hay solicitudes pendientes 🎉' : 'Aún no hay despachos hoy.')+'</p>'; return; }
       $('hoy-lista').innerHTML = d.map(function(r){
         var em = r.estado === 'emitida';
-        return '<button class="hoy-item" type="button" onclick="mostrarDespacho(LISTA_CACHE['+r.id+'])">' +
+        return '<button class="hoy-item" type="button" onclick="mostrarDespacho(LISTA_CACHE['+r.id+'], \'gestion\'); enfocarGuia()">' +
           '<span class="hoy-num">N°'+r.id+'</span>' +
           '<span class="hoy-txt"><b>'+esc(r.especie)+' · C-'+esc(r.cuartel)+' · '+r.bins+' bins'+(r.totes ? ' / '+r.totes+' totes' : '')+'</b>' +
           '<small>'+(modo==='pend' ? fmtFecha(r.fecha)+' ' : '')+fmtHora(r.created_at)+' · '+esc(r.patente)+' · '+esc(r.planta)+'</small></span>' +
-          '<span class="estado '+(em?'emit':'pend')+'">'+(em ? 'Guía '+esc(r.numero_guia) : 'Pendiente')+'</span></button>';
+          '<span class="estado '+(em?'emit':(r.estado==='aprobada'?'apro':'pend'))+'">'+(em ? 'Guía '+esc(r.numero_guia) : (r.estado==='aprobada' ? '✓ Aprobada<br>falta N° guía' : 'Por aprobar'))+'</span></button>';
       }).join('');
     });
   }
@@ -1272,7 +1465,7 @@
   // ---- Contador de pendientes en el menú ----
   function actualizarPendientes(){
     if(!sb) return;
-    sb.from('despachos_bins').select('id', {count:'exact', head:true}).eq('estado','pendiente').then(function(res){
+    sb.from('despachos_bins').select('id', {count:'exact', head:true}).in('estado',['pendiente','aprobada']).then(function(res){
       var n = res.count || 0;
       $('pend-pill').textContent = n ? n + ' pendiente' + (n>1?'s':'') : '';
       $('tab-pend-n').textContent = n || '';
@@ -1552,6 +1745,7 @@
       h += '<button class="btn-save btn-wsp" type="button" onclick="avisarDescuadre('+JSON.stringify(r.guia_norm).replace(/"/g,'&quot;')+')">Avisar descuadre por WhatsApp</button>';
       if(r.campo_id){
         h += '<div class="form-card"><p class="form-card-title"><span>✔️</span>Revisión</p>';
+        h += '<p class="stk-note" style="margin-top:6px">Úsalo solo si el descuadre es <b>real</b> (faltan o sobran bins de verdad). Si fue un error de tipeo, usa <b>✏️ Corregir</b> más arriba: al corregir, el descuadre desaparece.</p>';
         if(r.revisado) h += '<p class="cruce-nota" style="color:#235A34">Revisado: '+esc(r.revisado_nota||'sin nota')+'</p>';
         h += '<div class="field"><label for="rv-nota">Nota de revisión</label><textarea id="rv-nota" placeholder="Ej: chofer confirmó 2 bins quedaron en la exportadora">'+esc(r.revisado_nota||'')+'</textarea></div>';
         h += '<button class="btn-save" type="button" onclick="marcarRevisado('+r.campo_id+')">'+(r.revisado?'Actualizar nota':'Marcar descuadre como revisado')+'</button></div>';
@@ -1639,6 +1833,20 @@
 
   // ---- Eventos ----
   var MODO_CHOFER = /[?&]chofer\b/.test(location.search);
+  (function(){
+    $('d-guia-file').addEventListener('change', function(){
+      var f = this.files && this.files[0]; guiaFile = f || null;
+      $('d-guia-file-txt').textContent = f ? '📄 ' + f.name : 'Adjuntar guía';
+    });
+    var m = location.search.match(/[?&]guia=(\d+)/);
+    if(m && sb){
+      pedirClave(function(){ sb.from('despachos_bins').select('*').eq('id', parseInt(m[1],10)).single().then(function(res){
+        if(res.error || !res.data){ alert('No se encontró la solicitud N° ' + m[1] + '.'); return; }
+        mostrarDespacho(res.data, 'gestion');
+        enfocarGuia();
+      }); });
+    }
+  })();
   (function(){
     bindBorrador('form-chofer', 'rec_chofer_borrador_v1', IDS_CHOFER);
     bindBorrador('form-campo',  'rec_campo_borrador_v1',  IDS_CAMPO);
@@ -1995,6 +2203,37 @@
     bindFoto('v-foto','v-foto-prev','v-foto-txt', function(b){ fotoDev = b; });
     $('form-dev').addEventListener('submit', guardarDevolucion);
     $('v-patente').addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
+  })();
+
+  // =====================================================================
+  //  AVISOS EN VIVO (cuando se aprueba o se emite una guía)
+  // =====================================================================
+  var AVISADOS = {};
+  function toast(titulo, sub){
+    var el = $('toast'); el.innerHTML = esc(titulo) + (sub ? '<small>' + esc(sub) + '</small>' : '');
+    el.classList.add('is-on'); clearTimeout(el._t); el._t = setTimeout(function(){ el.classList.remove('is-on'); }, 7000);
+  }
+  function reciente(ts){ return ts && (Date.now() - new Date(ts).getTime()) < 3*60*1000; }
+  (function(){
+    if(!sb || !sb.channel) return;
+    sb.channel('despachos-bins-live')
+      .on('postgres_changes', {event:'*', schema:'public', table:'despachos_bins'}, function(p){
+        var n = p.new || {};
+        if(n.id){
+          var key = n.id + ':' + n.estado;
+          if(!AVISADOS[key]){
+            if(n.estado === 'aprobada' && reciente(n.aprobada_at)){ AVISADOS[key] = 1; toast('✓ Solicitud N° ' + n.id + ' aprobada', 'Por ' + (n.aprobado_por || '') + ' · ' + n.bins + ' bins · ' + (n.patente || '')); }
+            else if(n.estado === 'emitida' && reciente(n.emitida_at)){ AVISADOS[key] = 1; toast('🧾 Guía N° ' + n.numero_guia + ' emitida', 'Solicitud N° ' + n.id + ' · ' + (n.patente || '')); }
+            else if(p.eventType === 'INSERT' && claveOk){ AVISADOS[key] = 1; toast('🆕 Nueva solicitud N° ' + n.id, n.especie + ' · ' + n.bins + ' bins · ' + (n.patente || '')); }
+          }
+          if(despachoActual && despachoActual.id === n.id && document.getElementById('view-despacho-ok').classList.contains('is-active')){
+            if(!(EDIT && EDIT.desp)) mostrarDespacho(n);
+          }
+        }
+        if(document.getElementById('view-despacho-hoy').classList.contains('is-active')) cargarLista(LISTA_MODO);
+        actualizarPendientes();
+      })
+      .subscribe();
   })();
 </script>
 </body>
