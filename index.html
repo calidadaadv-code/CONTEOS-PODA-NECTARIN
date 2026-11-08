@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.24.0 -->
+  <!-- v7.24.1 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4189,7 +4189,7 @@ function cosIngHtml(){
     h+=fld('Muestra (n° de frutos) — siempre 50','cos-nf','number','50','value="50" oninput="cosCalTot()"');
     h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${fld('Machucón','cos-d1','number','0','oninput="cosCalTot()"')}${fld('Herida abierta','cos-d2','number','0','oninput="cosCalTot()"')}${fld('Pudrición','cos-d3','number','0','oninput="cosCalTot()"')}${fld('Fruto sin pedicelo','cos-d4','number','0','oninput="cosCalTot()"')}${fld('Fuera de color','cos-d5','number','0','oninput="cosCalTot()"')}${fld('Partidura','cos-d6','number','0','oninput="cosCalTot()"')}</div>`;
     h+=`<div id="cos-caltot" style="font-family:var(--mo);font-size:12px;color:${PD};background:${PC};border-radius:8px;padding:8px 10px;margin-bottom:10px">Suma de defectos: 0%</div>`;
-    h+=`<div class="fgrp" style="margin-bottom:10px"><label class="flbl">Materia vegetal</label><select class="finp" id="cos-mv"><option value="">Seleccionar...</option><option>Cumple</option><option>No cumple</option></select></div><div class="fgrp" style="margin-bottom:10px"><label class="flbl">Llenado de bandeja</label><select class="finp" id="cos-llen"><option value="">Seleccionar...</option><option>Cumple</option><option>No cumple</option></select></div>`;
+    h+=`<div class="fgrp" style="margin-bottom:10px"><label class="flbl">SIN HOJAS EN EL TOTE</label><select class="finp" id="cos-mv"><option value="">Seleccionar...</option><option>Cumple</option><option>No cumple</option></select></div><div class="fgrp" style="margin-bottom:10px"><label class="flbl">Llenado de bandeja</label><select class="finp" id="cos-llen"><option value="">Seleccionar...</option><option>Cumple</option><option>No cumple</option></select></div>`;
   }else if(S.tipo==='ren'){
     h+=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">${fld('Bins','cos-bins','number','0')}${fld('Kilos *','cos-kg','number','0')}${fld('Horas','cos-hr','number','opcional')}</div>`;
   }else{
@@ -4238,7 +4238,7 @@ function cosCard(r,nuevo){
   ${ph}
   <div style="font-size:12px;font-family:var(--mo);line-height:1.6;margin-bottom:10px">${info('Cosechero',r.cosechador)}${info('Contratista',r.contratista)}${info('Supervisor',r.supervisor)}${info('Control de calidad',r.contador)}</div>
   <div style="font-family:var(--mo);font-size:13px;margin-bottom:6px">Muestra: <b>${n}</b> frutos · Defectos: <b style="color:${pt>0?'#9C0006':PD};font-size:16px">${pt}%</b></div>
-  ${filas}${cc('Materia vegetal',r.materia_vegetal)}${cc('Llenado de bandeja',r.llenado_bandeja)}
+  ${filas}${cc("SIN HOJAS EN EL TOTE",r.materia_vegetal)}${cc('Llenado de bandeja',r.llenado_bandeja)}
   ${r.observaciones?`<div style="font-size:12px;color:var(--tx);font-style:italic;margin-top:6px">“${E(r.observaciones)}”</div>`:''}</div>`;
 }
 /* ---------- RESUMEN DE CUADRILLAS (imagen) ---------- */
@@ -4472,7 +4472,7 @@ function datCal(a){
   const fotos=a.filter(r=>r.con_foto).slice(0,30);
   if(fotos.length)h+=`<div style="font-size:10px;font-family:var(--mo);color:var(--tm);font-weight:700;letter-spacing:.5px;margin-bottom:6px">FOTOS (${fotos.length})</div>`+fotos.map(r=>`<div style="border:1px solid var(--gb2);border-radius:10px;padding:8px 10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:12px;font-family:var(--mo)"><b>${E(r.cuartel)}</b> · ${E(r.cosechador||'')}<br><span style="color:var(--tm);font-size:11px">${E(String(r.timestamp).slice(5,16))} · ${E(r.contador||'')}</span></div><button class="tog-btn" style="flex:none;padding:6px 10px" onclick="cosVerFoto(${r.id})">📷 Ver</button></div>`).join('')+'<div style="height:10px"></div>';
   const cp=(k)=>{const x=a.filter(r=>r[k]);return x.length?pc(x.filter(r=>r[k]==='Cumple').length,x.length):'—';};
-  h+=`<div style="font-size:11px;font-family:var(--mo);color:var(--tm);margin-bottom:12px">Cumplimiento → Materia vegetal: <b>${cp('materia_vegetal')}</b> · Llenado de bandeja: <b>${cp('llenado_bandeja')}</b></div>`;
+  h+=`<div style="font-size:11px;font-family:var(--mo);color:var(--tm);margin-bottom:12px">Cumplimiento → Sin hojas en el tote: <b>${cp('materia_vegetal')}</b> · Llenado de bandeja: <b>${cp('llenado_bandeja')}</b></div>`;
   return h;
 }
 function datRen(a){
