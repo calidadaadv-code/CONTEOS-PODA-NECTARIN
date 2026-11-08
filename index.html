@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.19.0 -->
+  <!-- v7.20.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4054,6 +4054,14 @@ const btn=(on,fn,txt)=>`<button class="tog-btn" style="padding:10px 4px;min-widt
 const fld=(l,id,type,ph,extra)=>`<div class="fgrp" style="margin-bottom:10px"><label class="flbl">${l}</label><input class="finp" id="${id}" type="${type}" ${type==='number'?'inputmode="decimal" step="any" min="0"':''} placeholder="${ph||''}" ${extra||''}></div>`;
 const hoyTxt=()=>hoy();
 
+function cosDeepLink(){
+  const h=(location.hash||'').toLowerCase();
+  if(h!=='#cosecha-vivo'&&h!=='#cosecha-resumen')return;
+  S.soloVer=true;S.tab=h==='#cosecha-resumen'?'res':'viv';
+  try{comenzarConteos();mostrarModo('cosecha');cosEntrar('cer');}catch(e){return;}
+  cosTab(S.tab);
+}
+setTimeout(cosDeepLink,0);
 window.cosInit=function(){
   const e=document.getElementById('cos-esp'),r=document.getElementById('cos-root'),t=document.getElementById('cos-sub');
   if(e)e.style.display='flex';if(r)r.style.display='none';if(t)t.textContent='Selecciona la especie';
@@ -4080,7 +4088,7 @@ window.cosTipo=function(t){S.tipo=t;cosRender();};
 window.cosDTipo=function(t){S.dtipo=t;cosRender();};
 window.cosDV=function(v){S.dv=v;cosRender();};
 
-function tabs(){return`<div class="tog-row" style="margin-bottom:12px;flex-wrap:wrap">${btn(S.tab==='ing',"cosTab('ing')",'Ingresar')}${btn(S.tab==='viv',"cosTab('viv')",'En vivo')}${btn(S.tab==='res',"cosTab('res')",'Resumen')}${btn(S.tab==='dat',"cosTab('dat')",'Datos')}${btn(S.tab==='av',"cosTab('av')",'Avance')}${btn(S.tab==='lis',"cosTab('lis')",'Listas')}</div>`;}
+function tabs(){if(S.soloVer)return`<div class="tog-row" style="margin-bottom:12px">${btn(S.tab==='viv',"cosTab('viv')",'En vivo')}${btn(S.tab==='res',"cosTab('res')",'Resumen')}</div>`;return`<div class="tog-row" style="margin-bottom:12px;flex-wrap:wrap">${btn(S.tab==='ing',"cosTab('ing')",'Ingresar')}${btn(S.tab==='viv',"cosTab('viv')",'En vivo')}${btn(S.tab==='res',"cosTab('res')",'Resumen')}${btn(S.tab==='dat',"cosTab('dat')",'Datos')}${btn(S.tab==='av',"cosTab('av')",'Avance')}${btn(S.tab==='lis',"cosTab('lis')",'Listas')}</div>`;}
 function cosRender(){
   const r=root();if(!r)return;
   let h=tabs();
