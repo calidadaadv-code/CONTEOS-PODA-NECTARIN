@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.21.0 -->
+  <!-- v7.23.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4133,15 +4133,15 @@ window.cosListasUnlock=function(){
 };
 function cosListasHtml(){
   if(!S.listAdm)return`<div class="lock-scr"><i class="ti ti-list-details lock-ico"></i><div class="lock-title">Editar listas</div><div class="lock-sub">Ingresa la contraseña de administrador</div><div class="lock-wrap"><input class="lock-inp" type="password" id="cos-lpass" placeholder="••••" onkeydown="if(event.key==='Enter')cosListasUnlock()"></div><button class="lock-btn-g" style="background:${P}" onclick="cosListasUnlock()">Entrar</button></div>`;
-  let h=`<div style="font-size:11px;font-family:var(--mo);color:var(--tm);margin-bottom:10px">Estas listas aparecen como opciones al ingresar calidad. Si cambias un nombre, los registros ya guardados no se modifican.</div>`;
+  const IC={sup:'ti-user-star',comp:'ti-building',man:'ti-user-check'};
+  let h=`<div class="adm-hdr adm-hdr-g" style="background:${PD}"><div class="adm-hdr-l"><i class="ti ti-shield-check"></i><div><div class="adm-title">Administrador</div><div class="adm-sub">Cosecha · Cerezo</div></div></div><button class="logout-btn" onclick="S.listAdm=false;cosRender()">Salir</button></div>`;
   LT.forEach(([t,tit])=>{
     const a=S.lst[t]||[];
-    h+=`<div style="border:1px solid var(--gb2);border-radius:12px;padding:10px 12px;margin-bottom:12px"><div style="font-weight:700;font-size:14px;margin-bottom:8px">${tit} <span style="font-weight:400;color:var(--tm);font-size:11px">(${a.length})</span></div>`;
-    h+=`<div style="max-height:240px;overflow-y:auto;margin-bottom:8px">${a.length?a.map(x=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--gb2);font-size:13px"><span style="min-width:0;word-break:break-word">${E(x.nombre)}</span><span style="white-space:nowrap"><button onclick="cosListaEdit('${t}',${x.id})" style="border:none;background:none;color:${P};font-size:16px;cursor:pointer">✎</button><button onclick="cosListaDel('${t}',${x.id})" style="border:none;background:none;color:#9C0006;font-size:16px;cursor:pointer">✕</button></span></div>`).join(''):'<div style="font-size:12px;color:var(--tm);padding:6px 0">Lista vacía</div>'}</div>`;
-    h+=`<div style="display:flex;gap:6px"><input class="finp" id="cos-ladd-${t}" type="text" placeholder="Agregar nombre" style="flex:1" onkeydown="if(event.key==='Enter')cosListaAdd('${t}')"><button class="tog-btn" style="flex:none;padding:8px 14px" onclick="cosListaAdd('${t}')">+</button></div>`;
-    h+=`<details style="margin-top:8px"><summary style="font-size:12px;color:${P};cursor:pointer">Agregar varios a la vez</summary><textarea class="finp" id="cos-lbulk-${t}" rows="5" placeholder="Un nombre por línea" style="margin-top:6px"></textarea><button class="tog-btn" style="margin-top:6px;padding:8px" onclick="cosListaBulk('${t}')">Agregar lista</button></details></div>`;
+    h+=`<div class="cfg-sec"><div class="cfg-title"><i class="ti ${IC[t]}"></i>${tit}</div><div class="cfg-list">${a.length?a.map(x=>`<div class="cfg-item"><span class="cfg-name">${E(x.nombre)}</span><button class="cfg-del" onclick="cosListaEdit('${t}',${x.id})"><i class="ti ti-pencil"></i></button><button class="cfg-del" onclick="cosListaDel('${t}',${x.id})"><i class="ti ti-x"></i></button></div>`).join(''):'<div style="font-size:12px;color:var(--tm)">Lista vacía</div>'}</div>`;
+    h+=`<div class="cfg-add"><input class="cfg-add-inp" type="text" id="cos-ladd-${t}" placeholder="Nuevo..." onkeydown="if(event.key==='Enter')cosListaAdd('${t}')"><button class="cfg-add-btn" onclick="cosListaAdd('${t}')">+ Agregar</button></div>`;
+    h+=`<details style="margin-top:8px"><summary style="font-size:12px;color:${P};cursor:pointer;font-family:var(--mo)">Agregar varios a la vez</summary><textarea class="cfg-add-inp" id="cos-lbulk-${t}" rows="5" placeholder="Un nombre por línea" style="margin-top:6px;width:100%"></textarea><button class="cfg-add-btn" style="margin-top:6px" onclick="cosListaBulk('${t}')">+ Agregar lista</button></details></div>`;
   });
-  return h+`<button class="tog-btn" onclick="S.listAdm=false;cosRender()">Cerrar edición</button>`;
+  return h+`<div style="font-size:11px;font-family:var(--mo);color:var(--tm);text-align:center;padding:8px 4px">Estas listas aparecen como opciones al ingresar calidad en Cosecha. Si cambias un nombre, los registros ya guardados no se modifican.</div>`;
 }
 window.cosListaAdd=async function(t){
   const n=up(val('cos-ladd-'+t));if(!n)return;
@@ -4187,7 +4187,7 @@ function cosIngHtml(){
   if(S.tipo==='cal'){
     h+=selL('cos-uc','Unidad de control / manipulador','man');
     h+=`<div style="font-size:11px;color:var(--tm);font-family:var(--mo);margin:4px 0 8px">Revisa una muestra de frutos y anota cuántos presentan cada problema.</div>`;
-    h+=fld('Muestra (n° de frutos)','cos-nf','number','100','value="100" oninput="cosCalTot()"');
+    h+=fld('Muestra (n° de frutos) — siempre 50','cos-nf','number','50','value="50" oninput="cosCalTot()"');
     h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${fld('Machucón','cos-d1','number','0','oninput="cosCalTot()"')}${fld('Herida abierta','cos-d2','number','0','oninput="cosCalTot()"')}${fld('Pudrición','cos-d3','number','0','oninput="cosCalTot()"')}${fld('Fruto sin pedicelo','cos-d4','number','0','oninput="cosCalTot()"')}${fld('Fuera de color','cos-d5','number','0','oninput="cosCalTot()"')}${fld('Partidura','cos-d6','number','0','oninput="cosCalTot()"')}</div>`;
     h+=`<div id="cos-caltot" style="font-family:var(--mo);font-size:12px;color:${PD};background:${PC};border-radius:8px;padding:8px 10px;margin-bottom:10px">Suma de defectos: 0%</div>`;
     h+=`<div class="fgrp" style="margin-bottom:10px"><label class="flbl">Materia vegetal</label><select class="finp" id="cos-mv"><option value="">Seleccionar...</option><option>Cumple</option><option>No cumple</option></select></div><div class="fgrp" style="margin-bottom:10px"><label class="flbl">Llenado de bandeja</label><select class="finp" id="cos-llen"><option value="">Seleccionar...</option><option>Cumple</option><option>No cumple</option></select></div>`;
@@ -4228,9 +4228,10 @@ const feedCols=COLS_CAL+',foto_mini';
 function pcs(a,n){return n?Math.round(a/n*1000)/10:0;}
 function cosCard(r,nuevo){
   const n=r.n_frutos||0;const tot=DEFK.reduce((t,k)=>t+(r[k]||0),0);const pt=pcs(tot,n);
-  const row=(l,txt,bad)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:7px;margin-bottom:4px;font-size:13px;font-family:var(--mo);${bad?'background:#FADBD8;color:#791F1F;font-weight:600':'background:#f1f1ee;color:var(--tm)'}"><span>${l}</span><span>${txt}</span></div>`;
-  const filas=DEF.map(([k,l])=>{const v=r[k]||0;return row(l,pcs(v,n)+'%',v>0);}).join('');
-  const cc=(l,v)=>v?`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:7px;margin-bottom:4px;font-size:13px;font-family:var(--mo);font-weight:600;${v==='Cumple'?'background:#E1F5EE;color:#085041':'background:#FADBD8;color:#791F1F'}"><span>${l}</span><span>${E(v)}</span></div>`:'';
+  const EST=[['#E1F5EE','#085041'],['#FFF2CC','#7A5C00'],['#FADBD8','#791F1F']];
+  const row=(l,txt,lv)=>{const c=lv===null?['#f1f1ee','#666']:EST[lv];return`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:7px;margin-bottom:4px;font-size:13px;font-family:var(--mo);font-weight:600;background:${c[0]};color:${c[1]}"><span>${l}</span><span>${txt}</span></div>`;};
+  const filas=DEF.map(([k,l])=>{const v=pcs(r[k]||0,n);return row(l,v+'%',UMB[k]?nivel(k,v):null);}).join('');
+  const cc=(l,v)=>v?row(l,E(v),v==='Cumple'?0:2):'';
   const ph=r.foto_mini?`<img src="${r.foto_mini}" onclick="cosVerFoto(${r.id})" style="width:100%;max-height:300px;object-fit:cover;border-radius:10px;margin-bottom:10px;cursor:pointer">`:(r.con_foto?`<button class="tog-btn" style="margin-bottom:10px" onclick="cosVerFoto(${r.id})">📷 Ver foto</button>`:'');
   const info=(l,v)=>`<div><span style="color:var(--tm)">${l}:</span> <b>${E(v||'—')}</b></div>`;
   return`<div style="border:1px solid ${nuevo?P:'var(--gb2)'};border-radius:12px;padding:12px 14px;margin-bottom:12px;background:#fff">
@@ -4243,9 +4244,11 @@ function cosCard(r,nuevo){
 }
 /* ---------- RESUMEN DE CUADRILLAS (imagen) ---------- */
 const RD=[['machucon',['% MACHUCÓN']],['herida_abierta',['% HERIDA','ABIERTA']],['pudricion',['% PUDRICIÓN']],['sin_pedicelo',['% FRUTO SIN','PEDICELO']],['fuera_color',['% FUERA DE','COLOR']]];
-const UMB={machucon:[1.5,5],herida_abierta:[1.5,5],pudricion:[1.5,5],sin_pedicelo:[1.5,5],fuera_color:[2.5,5],suma:[3,5]};
+// Tolerancias cosecha cerezas (tabla de referencia): [máximo bueno, máximo regular]; sobre el segundo = malo. Pudrición: bueno = 0.
+const UMB={machucon:[4,8],herida_abierta:[4,8],pudricion:[0.099,2],sin_pedicelo:[5,10],fuera_color:[5,10],suma:[3,5]};
 const CV='#D9EAD3',CA='#FFF2CC',CR='#F4CCCC';
-const colorDe=(k,v)=>{const u=UMB[k];return v<=u[0]?CV:v<=u[1]?CA:CR;};
+const nivel=(k,v)=>{const u=UMB[k];return v<=u[0]?0:v<=u[1]?1:2;};
+const colorDe=(k,v)=>[CV,CA,CR][nivel(k,v)];
 const pf=v=>(Math.round(v*100)/100).toFixed(2).replace('.',',')+'%';
 S.imgs={};S.snapCache={};S.newIds=new Set();S.todayAll=[];S.resFecha='';S.resKey=null;
 function resAgg(rows){
@@ -4288,7 +4291,7 @@ function cosImgResumen(rows,fecha,hora){
     y+=14;
   });
   x.fillStyle='#666';x.font='11px Arial, sans-serif';x.textAlign='left';x.textBaseline='middle';
-  x.fillText('Acumulado de las muestras revisadas por cuadrilla. Verde: bajo · Amarillo: atención · Rojo: alto. Sumatoria = machucón + herida abierta + pudrición + sin pedicelo + fuera de color.',14,H-12);
+  x.fillText('Acumulado de las muestras revisadas por cuadrilla. Verde: bueno · Amarillo: regular · Rojo: malo (según tolerancias de cosecha). Sumatoria = machucón + herida abierta + pudrición + sin pedicelo + fuera de color.',14,H-12);
   return cv.toDataURL('image/png');
 }
 window.cosVerImg=function(key){
