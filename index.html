@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.23.0 -->
+  <!-- v7.23.1 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4245,7 +4245,7 @@ function cosCard(r,nuevo){
 /* ---------- RESUMEN DE CUADRILLAS (imagen) ---------- */
 const RD=[['machucon',['% MACHUCÓN']],['herida_abierta',['% HERIDA','ABIERTA']],['pudricion',['% PUDRICIÓN']],['sin_pedicelo',['% FRUTO SIN','PEDICELO']],['fuera_color',['% FUERA DE','COLOR']]];
 // Tolerancias cosecha cerezas (tabla de referencia): [máximo bueno, máximo regular]; sobre el segundo = malo. Pudrición: bueno = 0.
-const UMB={machucon:[4,8],herida_abierta:[4,8],pudricion:[0.099,2],sin_pedicelo:[5,10],fuera_color:[5,10],suma:[3,5]};
+const UMB={machucon:[2,4.99],herida_abierta:[4,8],pudricion:[0.099,2],sin_pedicelo:[5,10],fuera_color:[5,10],suma:[3,5]};
 const CV='#D9EAD3',CA='#FFF2CC',CR='#F4CCCC';
 const nivel=(k,v)=>{const u=UMB[k];return v<=u[0]?0:v<=u[1]?1:2;};
 const colorDe=(k,v)=>[CV,CA,CR][nivel(k,v)];
