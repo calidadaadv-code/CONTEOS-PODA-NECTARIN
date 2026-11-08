@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.18.0 -->
+  <!-- v7.19.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4050,7 +4050,7 @@ const f0=n=>n===null||n===undefined||isNaN(n)?'—':Math.round(n).toLocaleString
 let S={tab:'ing',tipo:'cal',dtipo:'cal',dv:'hoy',calif:'A',busy:false,data:{},load:false};
 const root=()=>document.getElementById('cos-root');
 const vari=c=>{const x=CCER.find(k=>k.n===c);return x?x.v:null;};
-const btn=(on,fn,txt)=>`<button class="tog-btn" style="padding:10px 4px;${on?`background:${P};color:#fff;border-color:${P}`:''}" onclick="${fn}">${txt}</button>`;
+const btn=(on,fn,txt)=>`<button class="tog-btn" style="padding:10px 4px;min-width:28%;${on?`background:${P};color:#fff;border-color:${P}`:''}" onclick="${fn}">${txt}</button>`;
 const fld=(l,id,type,ph,extra)=>`<div class="fgrp" style="margin-bottom:10px"><label class="flbl">${l}</label><input class="finp" id="${id}" type="${type}" ${type==='number'?'inputmode="decimal" step="any" min="0"':''} placeholder="${ph||''}" ${extra||''}></div>`;
 const hoyTxt=()=>hoy();
 
@@ -4072,20 +4072,22 @@ window.cosEntrar=function(esp){
 window.cosStart=async function(){
   if(typeof listasLoaded!=='undefined'&&!listasLoaded){try{await loadListas();}catch(e){}}
   if(!Object.keys(contadorPins||{}).length){try{await loadContadorPins();}catch(e){}}
+  await cosListasLoad();
   cosRender();
 };
-window.cosTab=function(t){S.tab=t;cosRender();if(t==='dat'||t==='av')cosCargar();if(t==='viv')cosFeedInit();if(t==='res')cosResCargar();};
+window.cosTab=function(t){S.tab=t;cosRender();if(t==='dat'||t==='av')cosCargar();if(t==='viv')cosFeedInit();if(t==='res')cosResCargar();if(t==='lis'&&!S.lstOk)cosListasLoad().then(()=>{if(S.tab==='lis')cosRender();});};
 window.cosTipo=function(t){S.tipo=t;cosRender();};
 window.cosDTipo=function(t){S.dtipo=t;cosRender();};
 window.cosDV=function(v){S.dv=v;cosRender();};
 
-function tabs(){return`<div class="tog-row" style="margin-bottom:12px">${btn(S.tab==='ing',"cosTab('ing')",'Ingresar')}${btn(S.tab==='viv',"cosTab('viv')",'En vivo')}${btn(S.tab==='res',"cosTab('res')",'Resumen')}${btn(S.tab==='dat',"cosTab('dat')",'Datos')}${btn(S.tab==='av',"cosTab('av')",'Avance')}</div>`;}
+function tabs(){return`<div class="tog-row" style="margin-bottom:12px;flex-wrap:wrap">${btn(S.tab==='ing',"cosTab('ing')",'Ingresar')}${btn(S.tab==='viv',"cosTab('viv')",'En vivo')}${btn(S.tab==='res',"cosTab('res')",'Resumen')}${btn(S.tab==='dat',"cosTab('dat')",'Datos')}${btn(S.tab==='av',"cosTab('av')",'Avance')}${btn(S.tab==='lis',"cosTab('lis')",'Listas')}</div>`;}
 function cosRender(){
   const r=root();if(!r)return;
   let h=tabs();
   if(S.tab==='ing')h+=cosIngHtml();
   else if(S.tab==='viv')h+=cosFeedHtml();
   else if(S.tab==='res')h+=cosResHtml();
+  else if(S.tab==='lis')h+=cosListasHtml();
   else if(S.tab==='dat')h+=cosDatHtml();
   else h+=cosAvHtml();
   r.innerHTML=h;
@@ -4106,15 +4108,68 @@ window.cosPin=function(){
   try{if(typeof checkRaleoIngLock==='function')checkRaleoIngLock();}catch(e){}
   toast('✓ Bienvenido/a '+f[0]);cosRender();
 };
+/* ---------- LISTAS (supervisores, contratistas, manipuladores) ---------- */
+const LT=[['sup','Supervisores'],['comp','Contratistas (razón social)'],['man','Unidad de control / manipuladores']];
+S.lst={sup:[],comp:[],man:[]};S.listAdm=false;S.lstOk=false;
+async function cosListasLoad(){
+  const {data,error}=await db.from('cosecha_listas').select('*').order('nombre',{ascending:true}).limit(2000);
+  if(error){toast('⚠ No se pudieron cargar las listas','warn');return;}
+  S.lst={sup:[],comp:[],man:[]};(data||[]).forEach(r=>{if(S.lst[r.tipo])S.lst[r.tipo].push({id:r.id,nombre:r.nombre});});
+  S.lst.sup.concat(S.lst.comp,S.lst.man);
+  Object.keys(S.lst).forEach(k=>S.lst[k].sort((a,b)=>a.nombre.localeCompare(b.nombre,'es',{numeric:true})));
+  S.lstOk=true;
+}
+const selL=(id,label,tipo)=>{const a=S.lst[tipo]||[];return`<div class="fgrp" style="margin-bottom:10px"><label class="flbl">${label}</label><select class="finp" id="${id}"><option value="">${a.length?'Seleccionar...':'Sin opciones: agrégalas en Listas'}</option>${a.map(x=>`<option value="${E(x.nombre)}">${E(x.nombre)}</option>`).join('')}</select></div>`;};
+window.cosListasUnlock=function(){
+  if(val('cos-lpass')===nPass){S.listAdm=true;cosRender();}else toast('⚠ Contraseña incorrecta','warn');
+};
+function cosListasHtml(){
+  if(!S.listAdm)return`<div class="lock-scr"><i class="ti ti-list-details lock-ico"></i><div class="lock-title">Editar listas</div><div class="lock-sub">Ingresa la contraseña de administrador</div><div class="lock-wrap"><input class="lock-inp" type="password" id="cos-lpass" placeholder="••••" onkeydown="if(event.key==='Enter')cosListasUnlock()"></div><button class="lock-btn-g" style="background:${P}" onclick="cosListasUnlock()">Entrar</button></div>`;
+  let h=`<div style="font-size:11px;font-family:var(--mo);color:var(--tm);margin-bottom:10px">Estas listas aparecen como opciones al ingresar calidad. Si cambias un nombre, los registros ya guardados no se modifican.</div>`;
+  LT.forEach(([t,tit])=>{
+    const a=S.lst[t]||[];
+    h+=`<div style="border:1px solid var(--gb2);border-radius:12px;padding:10px 12px;margin-bottom:12px"><div style="font-weight:700;font-size:14px;margin-bottom:8px">${tit} <span style="font-weight:400;color:var(--tm);font-size:11px">(${a.length})</span></div>`;
+    h+=`<div style="max-height:240px;overflow-y:auto;margin-bottom:8px">${a.length?a.map(x=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--gb2);font-size:13px"><span style="min-width:0;word-break:break-word">${E(x.nombre)}</span><span style="white-space:nowrap"><button onclick="cosListaEdit('${t}',${x.id})" style="border:none;background:none;color:${P};font-size:16px;cursor:pointer">✎</button><button onclick="cosListaDel('${t}',${x.id})" style="border:none;background:none;color:#9C0006;font-size:16px;cursor:pointer">✕</button></span></div>`).join(''):'<div style="font-size:12px;color:var(--tm);padding:6px 0">Lista vacía</div>'}</div>`;
+    h+=`<div style="display:flex;gap:6px"><input class="finp" id="cos-ladd-${t}" type="text" placeholder="Agregar nombre" style="flex:1" onkeydown="if(event.key==='Enter')cosListaAdd('${t}')"><button class="tog-btn" style="flex:none;padding:8px 14px" onclick="cosListaAdd('${t}')">+</button></div>`;
+    h+=`<details style="margin-top:8px"><summary style="font-size:12px;color:${P};cursor:pointer">Agregar varios a la vez</summary><textarea class="finp" id="cos-lbulk-${t}" rows="5" placeholder="Un nombre por línea" style="margin-top:6px"></textarea><button class="tog-btn" style="margin-top:6px;padding:8px" onclick="cosListaBulk('${t}')">Agregar lista</button></details></div>`;
+  });
+  return h+`<button class="tog-btn" onclick="S.listAdm=false;cosRender()">Cerrar edición</button>`;
+}
+window.cosListaAdd=async function(t){
+  const n=up(val('cos-ladd-'+t));if(!n)return;
+  if((S.lst[t]||[]).some(x=>x.nombre===n)){toast('Ya existe','warn');return;}
+  const {error}=await db.from('cosecha_listas').insert([{tipo:t,nombre:n}]);
+  if(error){toast('⚠ No se pudo guardar','warn');return;}
+  toast('✓ Agregado: '+n);await cosListasLoad();cosRender();
+};
+window.cosListaBulk=async function(t){
+  const ya=new Set((S.lst[t]||[]).map(x=>x.nombre));
+  const ns=[...new Set(val('cos-lbulk-'+t).split(/\n/).map(up).filter(x=>x&&!ya.has(x)))];
+  if(!ns.length){toast('No hay nombres nuevos','warn');return;}
+  const {error}=await db.from('cosecha_listas').insert(ns.map(n=>({tipo:t,nombre:n})));
+  if(error){toast('⚠ No se pudo guardar','warn');return;}
+  toast('✓ Agregados: '+ns.length);await cosListasLoad();cosRender();
+};
+window.cosListaEdit=async function(t,id){
+  const x=(S.lst[t]||[]).find(k=>k.id===id);if(!x)return;
+  const n=up(prompt('Nuevo nombre:',x.nombre)||'');if(!n||n===x.nombre)return;
+  if(S.lst[t].some(k=>k.nombre===n)){toast('Ya existe','warn');return;}
+  const {error}=await db.from('cosecha_listas').update({nombre:n}).eq('id',id);
+  if(error){toast('⚠ No se pudo guardar','warn');return;}
+  toast('✓ Nombre actualizado');await cosListasLoad();cosRender();
+};
+window.cosListaDel=async function(t,id){
+  const x=(S.lst[t]||[]).find(k=>k.id===id);if(!x||!confirm('¿Quitar "'+x.nombre+'" de la lista?'))return;
+  const {error}=await db.from('cosecha_listas').delete().eq('id',id);
+  if(error){toast('⚠ No se pudo eliminar','warn');return;}
+  toast('✓ Eliminado');await cosListasLoad();cosRender();
+};
 function comunes(){
   const cs=CCER.map(c=>`<option value="${c.n}">${c.n} · ${c.v}</option>`).join('');
-  const sup=(L.rcer&&L.rcer.sup&&L.rcer.sup.length?L.rcer.sup:L.nec.sup)||[];
-  const comp=(L.rcer&&L.rcer.comp&&L.rcer.comp.length?L.rcer.comp:L.nec.comp)||[];
-  return`${dl('cos-dl-sup',sup)}${dl('cos-dl-comp',comp)}
+  return`
   <div class="fgrp" style="margin-bottom:10px"><label class="flbl">Cuartel · Variedad</label><select class="finp" id="cos-cua">${cs}</select></div>
   <div class="fgrp" style="margin-bottom:10px"><label class="flbl">Nombre cosechero</label><input class="finp" id="cos-cosr" type="text" placeholder="Nombre y apellido" autocomplete="off"></div>
-  <div class="fgrp" style="margin-bottom:10px"><label class="flbl">Supervisor</label><input class="finp" id="cos-sup" type="text" list="cos-dl-sup" placeholder="Elige o escribe" autocomplete="off"></div>
-  <div class="fgrp" style="margin-bottom:10px"><label class="flbl">Contratista (razón social)</label><input class="finp" id="cos-comp" type="text" list="cos-dl-comp" placeholder="Elige o escribe" autocomplete="off"></div>`;
+  ${selL('cos-sup','Supervisor','sup')}${selL('cos-comp','Contratista (razón social)','comp')}`;
 }
 function cosIngHtml(){
   if(!me())return cosLock();
@@ -4122,7 +4177,7 @@ function cosIngHtml(){
   h+=`<div class="tog-row" style="margin-bottom:12px">${btn(S.tipo==='cal',"cosTipo('cal')",'Calidad')}${btn(S.tipo==='ren',"cosTipo('ren')",'Rendimiento')}${btn(S.tipo==='con',"cosTipo('con')",'Control huerto')}</div>`;
   h+=`<div class="form-body">${comunes()}`;
   if(S.tipo==='cal'){
-    h+=fld('Unidad de control / manipulador','cos-uc','text','Nombre del manipulador');
+    h+=selL('cos-uc','Unidad de control / manipulador','man');
     h+=`<div style="font-size:11px;color:var(--tm);font-family:var(--mo);margin:4px 0 8px">Revisa una muestra de frutos y anota cuántos presentan cada problema.</div>`;
     h+=fld('Muestra (n° de frutos)','cos-nf','number','100','value="100" oninput="cosCalTot()"');
     h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${fld('Machucón','cos-d1','number','0','oninput="cosCalTot()"')}${fld('Herida abierta','cos-d2','number','0','oninput="cosCalTot()"')}${fld('Pudrición','cos-d3','number','0','oninput="cosCalTot()"')}${fld('Fruto sin pedicelo','cos-d4','number','0','oninput="cosCalTot()"')}${fld('Fuera de color','cos-d5','number','0','oninput="cosCalTot()"')}${fld('Partidura','cos-d6','number','0','oninput="cosCalTot()"')}</div>`;
@@ -4306,7 +4361,7 @@ setInterval(cosFeedPoll,15000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)cosFeedPoll();});
 window.cosSalir=function(){sessionStorage.removeItem('raleoIngContador');try{if(typeof checkRaleoIngLock==='function')checkRaleoIngLock();}catch(e){}cosRender();};
 window.cosCalif=function(c){S.calif=c;const g=keep();cosRender();restore(g);};
-function keep(){const o={};['cos-cua','cos-cosr','cos-sup','cos-comp','cos-hil','cos-pla','cos-dej','cos-cai','cos-dan','cos-obs'].forEach(i=>{const el=document.getElementById(i);if(el)o[i]=el.value;});return o;}
+function keep(){const o={};['cos-cua','cos-cosr','cos-uc','cos-sup','cos-comp','cos-hil','cos-pla','cos-dej','cos-cai','cos-dan','cos-obs'].forEach(i=>{const el=document.getElementById(i);if(el)o[i]=el.value;});return o;}
 function restore(o){Object.keys(o).forEach(i=>{const el=document.getElementById(i);if(el)el.value=o[i];});}
 window.cosCalTot=function(){
   const n=num(val('cos-nf'))||0;let s=0;for(let i=1;i<=6;i++)s+=num(val('cos-d'+i))||0;
