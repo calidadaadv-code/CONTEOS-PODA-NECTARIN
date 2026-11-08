@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.23.1 -->
+  <!-- v7.24.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4117,7 +4117,7 @@ window.cosPin=function(){
   toast('✓ Bienvenido/a '+f[0]);cosRender();
 };
 /* ---------- LISTAS (supervisores, contratistas, manipuladores) ---------- */
-const LT=[['sup','Supervisores'],['comp','Contratistas (razón social)'],['man','Unidad de control / manipuladores']];
+const LT=[['sup','Supervisores'],['comp','Contratistas (razón social)']];
 S.lst={sup:[],comp:[],man:[]};S.listAdm=false;S.lstOk=false;
 async function cosListasLoad(){
   const {data,error}=await db.from('cosecha_listas').select('*').order('nombre',{ascending:true}).limit(2000);
@@ -4185,7 +4185,6 @@ function cosIngHtml(){
   h+=`<div class="tog-row" style="margin-bottom:12px">${btn(S.tipo==='cal',"cosTipo('cal')",'Calidad')}${btn(S.tipo==='ren',"cosTipo('ren')",'Rendimiento')}${btn(S.tipo==='con',"cosTipo('con')",'Control huerto')}</div>`;
   h+=`<div class="form-body">${comunes()}`;
   if(S.tipo==='cal'){
-    h+=selL('cos-uc','Unidad de control / manipulador','man');
     h+=`<div style="font-size:11px;color:var(--tm);font-family:var(--mo);margin:4px 0 8px">Revisa una muestra de frutos y anota cuántos presentan cada problema.</div>`;
     h+=fld('Muestra (n° de frutos) — siempre 50','cos-nf','number','50','value="50" oninput="cosCalTot()"');
     h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${fld('Machucón','cos-d1','number','0','oninput="cosCalTot()"')}${fld('Herida abierta','cos-d2','number','0','oninput="cosCalTot()"')}${fld('Pudrición','cos-d3','number','0','oninput="cosCalTot()"')}${fld('Fruto sin pedicelo','cos-d4','number','0','oninput="cosCalTot()"')}${fld('Fuera de color','cos-d5','number','0','oninput="cosCalTot()"')}${fld('Partidura','cos-d6','number','0','oninput="cosCalTot()"')}</div>`;
@@ -4394,7 +4393,7 @@ window.cosGuardar=async function(){
   let rec;const t=S.tipo;
   if(t==='cal'){
     const n=int(val('cos-nf'));if(!n||n<1){toast('⚠ Indica cuántos frutos tiene la muestra','warn');return;}
-    rec=Object.assign({},base,{n_frutos:n,unidad_control:up(val('cos-uc'))||null,machucon:int(val('cos-d1'))||0,herida_abierta:int(val('cos-d2'))||0,pudricion:int(val('cos-d3'))||0,sin_pedicelo:int(val('cos-d4'))||0,fuera_color:int(val('cos-d5'))||0,partidura:int(val('cos-d6'))||0,materia_vegetal:val('cos-mv')||null,llenado_bandeja:val('cos-llen')||null,foto:S.foto||null,foto_mini:S.fotoMini||null,con_foto:!!S.foto});
+    rec=Object.assign({},base,{n_frutos:n,machucon:int(val('cos-d1'))||0,herida_abierta:int(val('cos-d2'))||0,pudricion:int(val('cos-d3'))||0,sin_pedicelo:int(val('cos-d4'))||0,fuera_color:int(val('cos-d5'))||0,partidura:int(val('cos-d6'))||0,materia_vegetal:val('cos-mv')||null,llenado_bandeja:val('cos-llen')||null,foto:S.foto||null,foto_mini:S.fotoMini||null,con_foto:!!S.foto});
   }else if(t==='ren'){
     const kg=num(val('cos-kg'));if(!kg||kg<=0){toast('⚠ Anota los kilos','warn');return;}
     rec=Object.assign({},base,{bins:num(val('cos-bins'))||0,kilos:kg,horas:num(val('cos-hr'))});
