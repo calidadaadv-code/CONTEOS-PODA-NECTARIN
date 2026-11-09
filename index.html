@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.25.0 -->
+  <!-- v7.26.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4034,8 +4034,8 @@ window.chkAdm=function(e){_chk(e);if(['rnec','rcer','rcir','rduz'].includes(e)&&
 /* ===== MÓDULO COSECHA CEREZO ===== */
 (function(){
 const TB={cal:'cosecha_calidad',ren:'cosecha_rend',con:'cosecha_control'};
-const DEFK=['machucon','herida_abierta','pudricion','sin_pedicelo','fuera_color','partidura'];
-const COLS_CAL='id,timestamp,cuartel,variedad,cosechador,supervisor,contratista,contador,n_frutos,sin_pedicelo,partidura,machucon,fuera_color,pudricion,herida_abierta,materia_vegetal,llenado_bandeja,unidad_control,observaciones,con_foto';
+const DEFK=['machucon','herida_abierta','pudricion','sin_pedicelo','fuera_color','partidura','bajo_calibre'];
+const COLS_CAL='id,timestamp,cuartel,variedad,cosechador,supervisor,contratista,contador,n_frutos,sin_pedicelo,partidura,machucon,fuera_color,pudricion,herida_abierta,bajo_calibre,materia_vegetal,llenado_bandeja,unidad_control,observaciones,con_foto';
 const colsFor=t=>t==='cal'?COLS_CAL:'*';
 const NOM={cal:'Calidad de fruta',ren:'Rendimiento',con:'Control en huerto'};
 const P='#7C3AED',PD='#5B21B6',PC='#F3EEFE';
@@ -4200,7 +4200,7 @@ function cosIngHtml(){
   if(S.tipo==='cal'){
     h+=`<div style="font-size:11px;color:var(--tm);font-family:var(--mo);margin:4px 0 8px">Revisa una muestra de frutos y anota cuántos presentan cada problema.</div>`;
     h+=fld('Muestra (n° de frutos) — siempre 50','cos-nf','number','50','value="50" oninput="cosCalTot()"');
-    h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${fld('Machucón','cos-d1','number','0','oninput="cosCalTot()"')}${fld('Herida abierta','cos-d2','number','0','oninput="cosCalTot()"')}${fld('Pudrición','cos-d3','number','0','oninput="cosCalTot()"')}${fld('Fruto sin pedicelo','cos-d4','number','0','oninput="cosCalTot()"')}${fld('Fuera de color','cos-d5','number','0','oninput="cosCalTot()"')}${fld('Partidura','cos-d6','number','0','oninput="cosCalTot()"')}</div>`;
+    h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${fld('Machucón','cos-d1','number','0','oninput="cosCalTot()"')}${fld('Herida abierta','cos-d2','number','0','oninput="cosCalTot()"')}${fld('Pudrición','cos-d3','number','0','oninput="cosCalTot()"')}${fld('Fruto sin pedicelo','cos-d4','number','0','oninput="cosCalTot()"')}${fld('Fuera de color','cos-d5','number','0','oninput="cosCalTot()"')}${fld('Partidura','cos-d6','number','0','oninput="cosCalTot()"')}${fld('Bajo calibre','cos-d7','number','0','oninput="cosCalTot()"')}</div>`;
     h+=`<div id="cos-caltot" style="font-family:var(--mo);font-size:12px;color:${PD};background:${PC};border-radius:8px;padding:8px 10px;margin-bottom:10px">Suma de defectos: 0%</div>`;
     h+=`<div class="fgrp" style="margin-bottom:10px"><label class="flbl">SIN HOJAS EN EL TOTE</label><select class="finp" id="cos-mv"><option value="">Seleccionar...</option><option>Cumple</option><option>No cumple</option></select></div><div class="fgrp" style="margin-bottom:10px"><label class="flbl">Llenado de bandeja</label><select class="finp" id="cos-llen"><option value="">Seleccionar...</option><option>Cumple</option><option>No cumple</option></select></div>`;
   }else if(S.tipo==='ren'){
@@ -4220,8 +4220,14 @@ window.cosFotoSel=function(inp){
   const f=inp.files&&inp.files[0];if(!f)return;
   const u=URL.createObjectURL(f);const im=new Image();
   im.onload=function(){
-    const m=900,k=Math.min(1,m/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
-    c.getContext('2d').drawImage(im,0,0,c.width,c.height);S.foto=c.toDataURL('image/jpeg',0.65);const k2=Math.min(1,360/Math.max(im.width,im.height));const c2=document.createElement('canvas');c2.width=Math.round(im.width*k2);c2.height=Math.round(im.height*k2);c2.getContext('2d').drawImage(im,0,0,c2.width,c2.height);S.fotoMini=c2.toDataURL('image/jpeg',0.6);URL.revokeObjectURL(u);
+    const horiz=(max,q)=>{
+      const w0=im.naturalWidth||im.width,h0=im.naturalHeight||im.height,rot=h0>w0;
+      const sw=rot?h0:w0,sh=rot?w0:h0,k=Math.min(1,max/Math.max(sw,sh));
+      const c=document.createElement('canvas');c.width=Math.round(sw*k);c.height=Math.round(sh*k);const x=c.getContext('2d');
+      if(rot){x.translate(c.width,0);x.rotate(Math.PI/2);x.drawImage(im,0,0,c.height,c.width);}else x.drawImage(im,0,0,c.width,c.height);
+      return c.toDataURL('image/jpeg',q);
+    };
+    S.foto=horiz(900,0.65);S.fotoMini=horiz(360,0.6);URL.revokeObjectURL(u);
     const p=document.getElementById('cos-foto-prev');if(p)p.innerHTML=`<img src="${S.foto}" style="max-width:100%;max-height:180px;border-radius:8px"> <button onclick="cosFotoQuitar()" style="border:none;background:none;color:#9C0006;font-size:12px;cursor:pointer">quitar</button>`;
   };
   im.onerror=function(){toast('⚠ No se pudo leer la foto','warn');};
@@ -4395,7 +4401,7 @@ window.cosCalif=function(c){S.calif=c;const g=keep();cosRender();restore(g);};
 function keep(){const o={};['cos-cua','cos-cosr','cos-uc','cos-sup','cos-comp','cos-hil','cos-pla','cos-dej','cos-cai','cos-dan','cos-obs'].forEach(i=>{const el=document.getElementById(i);if(el)o[i]=el.value;});return o;}
 function restore(o){Object.keys(o).forEach(i=>{const el=document.getElementById(i);if(el)el.value=o[i];});}
 window.cosCalTot=function(){
-  const n=num(val('cos-nf'))||0;let s=0;for(let i=1;i<=6;i++)s+=num(val('cos-d'+i))||0;
+  const n=num(val('cos-nf'))||0;let s=0;for(let i=1;i<=7;i++)s+=num(val('cos-d'+i))||0;
   const el=document.getElementById('cos-caltot');if(el)el.textContent='Suma de defectos: '+(n?Math.round(s/n*1000)/10:0)+'%'+(n&&s>n?' (ojo: más defectos que frutos; un fruto puede tener varios)':'');
 };
 window.cosGuardar=async function(){
@@ -4406,7 +4412,7 @@ window.cosGuardar=async function(){
   let rec;const t=S.tipo;
   if(t==='cal'){
     const n=int(val('cos-nf'));if(!n||n<1){toast('⚠ Indica cuántos frutos tiene la muestra','warn');return;}
-    rec=Object.assign({},base,{n_frutos:n,machucon:int(val('cos-d1'))||0,herida_abierta:int(val('cos-d2'))||0,pudricion:int(val('cos-d3'))||0,sin_pedicelo:int(val('cos-d4'))||0,fuera_color:int(val('cos-d5'))||0,partidura:int(val('cos-d6'))||0,materia_vegetal:val('cos-mv')||null,llenado_bandeja:val('cos-llen')||null,foto:S.foto||null,foto_mini:S.fotoMini||null,con_foto:!!S.foto});
+    rec=Object.assign({},base,{n_frutos:n,machucon:int(val('cos-d1'))||0,herida_abierta:int(val('cos-d2'))||0,pudricion:int(val('cos-d3'))||0,sin_pedicelo:int(val('cos-d4'))||0,fuera_color:int(val('cos-d5'))||0,partidura:int(val('cos-d6'))||0,bajo_calibre:int(val('cos-d7'))||0,materia_vegetal:val('cos-mv')||null,llenado_bandeja:val('cos-llen')||null,foto:S.foto||null,foto_mini:S.fotoMini||null,con_foto:!!S.foto});
   }else if(t==='ren'){
     const kg=num(val('cos-kg'));if(!kg||kg<=0){toast('⚠ Anota los kilos','warn');return;}
     rec=Object.assign({},base,{bins:num(val('cos-bins'))||0,kilos:kg,horas:num(val('cos-hr'))});
@@ -4420,7 +4426,7 @@ window.cosGuardar=async function(){
   if(error){toast('⚠ No se pudo guardar: '+(error.message||'error'),'warn');return;}
   toast('✓ Registro guardado');
   S.data={};S.foto=null;S.fotoMini=null;const fp=document.getElementById('cos-foto-prev');if(fp)fp.innerHTML='';const fi=document.getElementById('cos-foto');if(fi)fi.value='';
-  const ids=t==='cal'?['cos-d1','cos-d2','cos-d3','cos-d4','cos-d5','cos-d6','cos-obs']:t==='ren'?['cos-bins','cos-kg','cos-hr','cos-obs']:['cos-hil','cos-pla','cos-dej','cos-cai','cos-dan','cos-obs'];
+  const ids=t==='cal'?['cos-d1','cos-d2','cos-d3','cos-d4','cos-d5','cos-d6','cos-d7','cos-obs']:t==='ren'?['cos-bins','cos-kg','cos-hr','cos-obs']:['cos-hil','cos-pla','cos-dej','cos-cai','cos-dan','cos-obs'];
   ids.forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   if(t==='cal')cosCalTot();
   cosMisRegistros();
@@ -4472,7 +4478,7 @@ function cosDatHtml(){
   return h+cosExpBtn();
 }
 function cosExpBtn(){return`<button class="sbtn-g" style="background:#fff;color:${P};border:1.5px solid ${P};margin-top:4px" onclick="cosCSV()"><i class="ti ti-download"></i> Descargar CSV (${S.dv==='hoy'?'hoy':'todo'})</button>`;}
-const DEF=[['machucon','Machucón'],['herida_abierta','Herida ab.'],['pudricion','Pudrición'],['sin_pedicelo','Sin pedic.'],['fuera_color','F. color'],['partidura','Partidura']];
+const DEF=[['machucon','Machucón'],['herida_abierta','Herida ab.'],['pudricion','Pudrición'],['sin_pedicelo','Sin pedic.'],['fuera_color','F. color'],['partidura','Partidura'],['bajo_calibre','Bajo calibre']];
 function aggCal(arr){const n=arr.reduce((s,r)=>s+(r.n_frutos||0),0);const o={n,m:arr.length,tot:0};DEF.forEach(([k])=>{o[k]=arr.reduce((s,r)=>s+(r[k]||0),0);o.tot+=o[k];});return o;}
 function datCal(a){
   const g=aggCal(a);
