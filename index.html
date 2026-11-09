@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.24.1 -->
+  <!-- v7.25.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4135,6 +4135,8 @@ function cosListasHtml(){
   if(!S.listAdm)return`<div class="lock-scr"><i class="ti ti-list-details lock-ico"></i><div class="lock-title">Editar listas</div><div class="lock-sub">Ingresa la contraseña de administrador</div><div class="lock-wrap"><input class="lock-inp" type="password" id="cos-lpass" placeholder="••••" onkeydown="if(event.key==='Enter')cosListasUnlock()"></div><button class="lock-btn-g" style="background:${P}" onclick="cosListasUnlock()">Entrar</button></div>`;
   const IC={sup:'ti-user-star',comp:'ti-building',man:'ti-user-check'};
   let h=`<div class="adm-hdr adm-hdr-g" style="background:${PD}"><div class="adm-hdr-l"><i class="ti ti-shield-check"></i><div><div class="adm-title">Administrador</div><div class="adm-sub">Cosecha · Cerezo</div></div></div><button class="logout-btn" onclick="S.listAdm=false;cosRender()">Salir</button></div>`;
+  const con=(L.nec&&L.nec.con)||[];
+  h+=`<div class="cfg-sec"><div class="cfg-title"><i class="ti ti-user-check"></i>Contadores · acceso con PIN</div><div class="cfg-list">${con.length?con.map((n,i)=>`<div class="cfg-item" style="flex-wrap:wrap;gap:6px;align-items:center"><span class="cfg-name" style="flex:1 1 100%">${E(n)}</span><input type="text" inputmode="numeric" maxlength="6" value="${E(contadorPins[n]||'')}" placeholder="PIN" id="pin-cos-${i}" style="width:70px;padding:6px 8px;border:1px solid var(--gb2);border-radius:6px;font-family:var(--mo);font-size:12px;text-align:center"><button onclick="guardarPin('cos',${i},${JSON.stringify(n).replace(/"/g,'&quot;')})" style="background:var(--vo);color:#fff;border:none;border-radius:6px;font-size:11px;font-family:var(--mo);padding:6px 10px;cursor:pointer">Guardar PIN</button><button class="cfg-del" onclick="cosConDel(${i})"><i class="ti ti-x"></i></button></div>`).join(''):'<div style="font-size:12px;color:var(--tm)">Sin contadores</div>'}</div><div class="cfg-add"><input class="cfg-add-inp" type="text" id="cos-acon" placeholder="Nuevo..." onkeydown="if(event.key==='Enter')cosConAdd()"><button class="cfg-add-btn" onclick="cosConAdd()">+ Agregar</button></div><div style="font-size:11px;font-family:var(--mo);color:var(--tm);margin-top:6px">Quitar un contador elimina también su PIN: ya no podrá ingresar. Esta lista es la misma de Raleo y Poda.</div></div>`;
   LT.forEach(([t,tit])=>{
     const a=S.lst[t]||[];
     h+=`<div class="cfg-sec"><div class="cfg-title"><i class="ti ${IC[t]}"></i>${tit}</div><div class="cfg-list">${a.length?a.map(x=>`<div class="cfg-item"><span class="cfg-name">${E(x.nombre)}</span><button class="cfg-del" onclick="cosListaEdit('${t}',${x.id})"><i class="ti ti-pencil"></i></button><button class="cfg-del" onclick="cosListaDel('${t}',${x.id})"><i class="ti ti-x"></i></button></div>`).join(''):'<div style="font-size:12px;color:var(--tm)">Lista vacía</div>'}</div>`;
@@ -4143,6 +4145,17 @@ function cosListasHtml(){
   });
   return h+`<div style="font-size:11px;font-family:var(--mo);color:var(--tm);text-align:center;padding:8px 4px">Estas listas aparecen como opciones al ingresar calidad en Cosecha. Si cambias un nombre, los registros ya guardados no se modifican.</div>`;
 }
+window.cosConAdd=async function(){
+  if(!val('cos-acon').trim())return;
+  await addLShared('cos','con');cosRender();
+};
+window.cosConDel=async function(i){
+  const n=L.nec.con[i];if(!n||!confirm('¿Quitar a '+n+'? También se elimina su PIN y no podrá ingresar.'))return;
+  const {error}=await db.from('contador_pins').delete().eq('nombre',n);
+  if(error){toast('⚠ No se pudo quitar el PIN','warn');return;}
+  delete contadorPins[n];
+  await delLShared('con',i);cosRender();
+};
 window.cosListaAdd=async function(t){
   const n=up(val('cos-ladd-'+t));if(!n)return;
   if((S.lst[t]||[]).some(x=>x.nombre===n)){toast('Ya existe','warn');return;}
