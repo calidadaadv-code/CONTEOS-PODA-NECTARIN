@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.26.0 -->
+  <!-- v7.28.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4034,7 +4034,8 @@ window.chkAdm=function(e){_chk(e);if(['rnec','rcer','rcir','rduz'].includes(e)&&
 /* ===== MÓDULO COSECHA CEREZO ===== */
 (function(){
 const TB={cal:'cosecha_calidad',ren:'cosecha_rend',con:'cosecha_control'};
-const DEFK=['machucon','herida_abierta','pudricion','sin_pedicelo','fuera_color','partidura','bajo_calibre'];
+// Defectos que suman al total del cosechero (partidura y bajo calibre se muestran pero no suman)
+const DEFK=['machucon','herida_abierta','pudricion','sin_pedicelo','fuera_color'];
 const COLS_CAL='id,timestamp,cuartel,variedad,cosechador,supervisor,contratista,contador,n_frutos,sin_pedicelo,partidura,machucon,fuera_color,pudricion,herida_abierta,bajo_calibre,materia_vegetal,llenado_bandeja,unidad_control,observaciones,con_foto';
 const colsFor=t=>t==='cal'?COLS_CAL:'*';
 const NOM={cal:'Calidad de fruta',ren:'Rendimiento',con:'Control en huerto'};
@@ -4211,14 +4212,15 @@ function cosIngHtml(){
     h+=`<div class="fgrp" style="margin-bottom:10px"><label class="flbl">Calidad de la cosecha</label><div class="tog-row" style="margin:0">${['A','B','C'].map(c=>btn(S.calif===c,`cosCalif('${c}')`,c)).join('')}</div></div>`;
   }
   h+=fld('Observaciones','cos-obs','text','opcional');
-  if(S.tipo==='cal')h+=`<div class="fgrp" style="margin-bottom:10px"><label class="flbl">Foto (opcional)</label><input type="file" accept="image/*" id="cos-foto" onchange="cosFotoSel(this)" style="font-size:13px"><div id="cos-foto-prev" style="margin-top:6px">${S.foto?`<img src="${S.foto}" style="max-width:100%;max-height:180px;border-radius:8px"> <button onclick="cosFotoQuitar()" style="border:none;background:none;color:#9C0006;font-size:12px;cursor:pointer">quitar</button>`:''}</div></div>`;
+  if(S.tipo==='cal')h+=`<div class="fgrp" style="margin-bottom:10px"><label class="flbl">Foto (opcional)</label><div style="display:flex;gap:8px"><label class="tog-btn" style="flex:1;text-align:center;cursor:pointer;padding:12px 6px">📷 Tomar foto<input type="file" accept="image/*" capture="environment" id="cos-foto-cam" onchange="cosFotoSel(this)" style="display:none"></label><label class="tog-btn" style="flex:1;text-align:center;cursor:pointer;padding:12px 6px">🖼 Galería<input type="file" accept="image/*" id="cos-foto" onchange="cosFotoSel(this)" style="display:none"></label></div><div id="cos-foto-prev" style="margin-top:6px">${S.foto?`<img src="${S.foto}" style="max-width:100%;max-height:180px;border-radius:8px"> <button onclick="cosFotoQuitar()" style="border:none;background:none;color:#9C0006;font-size:12px;cursor:pointer">quitar</button>`:''}</div></div>`;
   h+=`<button class="sbtn-g" style="background:${P}" id="cos-save" onclick="cosGuardar()"><i class="ti ti-device-floppy"></i> Guardar registro</button></div>`;
   h+=`<div id="cos-mis" style="margin-top:16px"></div>`;
   return h;
 }
 window.cosFotoSel=function(inp){
   const f=inp.files&&inp.files[0];if(!f)return;
-  const u=URL.createObjectURL(f);const im=new Image();
+  const leer=(blob,reintento)=>{
+  const u=URL.createObjectURL(blob);const im=new Image();
   im.onload=function(){
     const horiz=(max,q)=>{
       const w0=im.naturalWidth||im.width,h0=im.naturalHeight||im.height,rot=h0>w0;
@@ -4230,10 +4232,22 @@ window.cosFotoSel=function(inp){
     S.foto=horiz(900,0.65);S.fotoMini=horiz(360,0.6);URL.revokeObjectURL(u);
     const p=document.getElementById('cos-foto-prev');if(p)p.innerHTML=`<img src="${S.foto}" style="max-width:100%;max-height:180px;border-radius:8px"> <button onclick="cosFotoQuitar()" style="border:none;background:none;color:#9C0006;font-size:12px;cursor:pointer">quitar</button>`;
   };
-  im.onerror=function(){toast('⚠ No se pudo leer la foto','warn');};
+  im.onerror=function(){
+    URL.revokeObjectURL(u);
+    if(reintento){toast('⚠ No se pudo leer la foto. Prueba sacarla en formato JPG.','warn');return;}
+    toast('Convirtiendo foto...');
+    cosHeic(f).then(b=>leer(b,true)).catch(()=>toast('⚠ No se pudo leer la foto. Prueba sacarla en formato JPG.','warn'));
+  };
   im.src=u;
+  };
+  leer(f,false);
 };
-window.cosFotoQuitar=function(){S.foto=null;S.fotoMini=null;const p=document.getElementById('cos-foto-prev');if(p)p.innerHTML='';const i=document.getElementById('cos-foto');if(i)i.value='';};
+function cosHeic(f){return new Promise((res,rej)=>{
+  const go=()=>window.heic2any({blob:f,toType:'image/jpeg',quality:0.8}).then(b=>res(Array.isArray(b)?b[0]:b)).catch(rej);
+  if(window.heic2any)return go();
+  const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js';sc.onload=go;sc.onerror=rej;document.head.appendChild(sc);
+});}
+window.cosFotoQuitar=function(){S.foto=null;S.fotoMini=null;const p=document.getElementById('cos-foto-prev');if(p)p.innerHTML='';['cos-foto','cos-foto-cam'].forEach(id=>{const i=document.getElementById(id);if(i)i.value='';});};
 window.cosVerFoto=async function(id){
   const {data,error}=await db.from('cosecha_calidad').select('foto').eq('id',id).maybeSingle();
   if(error||!data||!data.foto){toast('⚠ No se pudo cargar la foto','warn');return;}
@@ -4261,12 +4275,12 @@ function cosCard(r,nuevo){
   ${r.observaciones?`<div style="font-size:12px;color:var(--tx);font-style:italic;margin-top:6px">“${E(r.observaciones)}”</div>`:''}</div>`;
 }
 /* ---------- RESUMEN DE CUADRILLAS (imagen) ---------- */
-const RD=[['machucon',['% MACHUCÓN']],['herida_abierta',['% HERIDA','ABIERTA']],['pudricion',['% PUDRICIÓN']],['sin_pedicelo',['% FRUTO SIN','PEDICELO']],['fuera_color',['% FUERA DE','COLOR']]];
+const RD=[['machucon',['% MACHUCÓN']],['herida_abierta',['% HERIDA','ABIERTA']],['pudricion',['% PUDRICIÓN']],['sin_pedicelo',['% FRUTO SIN','PEDICELO']],['fuera_color',['% FUERA DE','COLOR']],['partidura',['% PARTIDURA']]];
 // Tolerancias cosecha cerezas (tabla de referencia): [máximo bueno, máximo regular]; sobre el segundo = malo. Pudrición: bueno = 0.
 const UMB={machucon:[2,4.99],herida_abierta:[4,8],pudricion:[0.099,2],sin_pedicelo:[5,10],fuera_color:[5,10],suma:[3,5]};
 const CV='#D9EAD3',CA='#FFF2CC',CR='#F4CCCC';
 const nivel=(k,v)=>{const u=UMB[k];return v<=u[0]?0:v<=u[1]?1:2;};
-const colorDe=(k,v)=>[CV,CA,CR][nivel(k,v)];
+const colorDe=(k,v)=>UMB[k]?[CV,CA,CR][nivel(k,v)]:'#F4F5F7';
 const pf=v=>(Math.round(v*100)/100).toFixed(2).replace('.',',')+'%';
 S.imgs={};S.snapCache={};S.newIds=new Set();S.todayAll=[];S.resFecha='';S.resKey=null;
 function resAgg(rows){
@@ -4282,7 +4296,7 @@ function resAgg(rows){
 }
 function cosImgResumen(rows,fecha,hora){
   const g=resAgg(rows);if(!g.length)return null;
-  const S2=2,CW=[120,210,220,96,96,96,96,96,100],W=CW.reduce((a,b)=>a+b,0)+24,RH=28,HH=44,BH=28;
+  const S2=2,CW=[120,210,220,96,96,96,96,96,96,100],W=CW.reduce((a,b)=>a+b,0)+24,RH=28,HH=44,BH=28;
   let H=54+24;g.forEach(x=>{H+=BH+HH+x.cuarteles.reduce((s,c)=>s+c.filas.length*RH,0)+14;});
   const cv=document.createElement('canvas');cv.width=W*S2;cv.height=H*S2;const x=cv.getContext('2d');x.scale(S2,S2);
   x.fillStyle='#fff';x.fillRect(0,0,W,H);
@@ -4297,25 +4311,25 @@ function cosImgResumen(rows,fecha,hora){
     let px=12;
     [['CUARTEL /','VARIEDAD'],'SUPERVISOR','CONTRATISTA (razón social)'].forEach((t,i)=>{cell(t,px,y,CW[i],HH,'#E9ECF1',{font:'italic 12px Arial, sans-serif'});px+=CW[i];});
     RD.forEach(([k,l],i)=>{cell(l,px,y,CW[3+i],HH,'#7F8FB1',{col:'#fff',font:'12px Arial, sans-serif'});px+=CW[3+i];});
-    cell(['% SUMATORIA','DEFECTOS'],px,y,CW[8],HH,'#FFF2CC',{font:'bold 12px Arial, sans-serif'});y+=HH;
+    cell(['% SUMATORIA','DEFECTOS'],px,y,CW[9],HH,'#FFF2CC',{font:'bold 12px Arial, sans-serif'});y+=HH;
     vg.cuarteles.forEach(cg=>{
       cg.filas.forEach((f,i)=>{
         px=12;cell(i===0?cg.c+' - '+vg.v.toUpperCase():'',px,y,CW[0],RH,'#F4F5F7',{al:'left',font:'bold 12px Arial, sans-serif'});px+=CW[0];
         cell(f.sup,px,y,CW[1],RH,'#fff');px+=CW[1];cell(f.comp,px,y,CW[2],RH,'#fff');px+=CW[2];
-        let sum=0;RD.forEach(([k],j)=>{const v=f.n?f.d[k]/f.n*100:0;sum+=v;cell(pf(v),px,y,CW[3+j],RH,colorDe(k,v));px+=CW[3+j];});
-        cell(pf(sum),px,y,CW[8],RH,colorDe('suma',sum),{font:'bold 13px Arial, sans-serif'});y+=RH;
+        let sum=0;RD.forEach(([k],j)=>{const v=f.n?f.d[k]/f.n*100:0;if(k!=='partidura')sum+=v;cell(pf(v),px,y,CW[3+j],RH,colorDe(k,v));px+=CW[3+j];});
+        cell(pf(sum),px,y,CW[9],RH,colorDe('suma',sum),{font:'bold 13px Arial, sans-serif'});y+=RH;
       });
     });
     y+=14;
   });
   x.fillStyle='#666';x.font='11px Arial, sans-serif';x.textAlign='left';x.textBaseline='middle';
-  x.fillText('Acumulado de las muestras revisadas por cuadrilla. Verde: bueno · Amarillo: regular · Rojo: malo (según tolerancias de cosecha). Sumatoria = machucón + herida abierta + pudrición + sin pedicelo + fuera de color.',14,H-12);
+  x.fillText('Acumulado por cuadrilla. Verde: bueno · Amarillo: regular · Rojo: malo (tolerancias de cosecha). La sumatoria no incluye partidura, que se muestra aparte.',14,H-12);
   return cv.toDataURL('image/png');
 }
 window.cosVerImg=function(key){
   const u=S.imgs[key];if(!u)return;
   const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:800;overflow:auto;padding:10px';
-  o.innerHTML=`<div style="position:sticky;left:0;color:#fff;font-family:var(--mo);font-size:12px;margin-bottom:8px">Desliza para ver la tabla completa · toca ✕ para cerrar <button style="float:right;border:none;background:#fff;border-radius:6px;font-size:16px;padding:2px 10px" id="cos-vi-x">✕</button></div><img src="${u}" style="max-width:none;width:1158px;background:#fff">`;
+  o.innerHTML=`<div style="position:sticky;left:0;color:#fff;font-family:var(--mo);font-size:12px;margin-bottom:8px">Desliza para ver la tabla completa · toca ✕ para cerrar <button style="float:right;border:none;background:#fff;border-radius:6px;font-size:16px;padding:2px 10px" id="cos-vi-x">✕</button></div><img src="${u}" style="max-width:none;width:1254px;background:#fff">`;
   document.body.appendChild(o);o.querySelector('#cos-vi-x').onclick=()=>o.remove();
 };
 window.cosShareImg=async function(key,nombre){
@@ -4401,7 +4415,7 @@ window.cosCalif=function(c){S.calif=c;const g=keep();cosRender();restore(g);};
 function keep(){const o={};['cos-cua','cos-cosr','cos-uc','cos-sup','cos-comp','cos-hil','cos-pla','cos-dej','cos-cai','cos-dan','cos-obs'].forEach(i=>{const el=document.getElementById(i);if(el)o[i]=el.value;});return o;}
 function restore(o){Object.keys(o).forEach(i=>{const el=document.getElementById(i);if(el)el.value=o[i];});}
 window.cosCalTot=function(){
-  const n=num(val('cos-nf'))||0;let s=0;for(let i=1;i<=7;i++)s+=num(val('cos-d'+i))||0;
+  const n=num(val('cos-nf'))||0;let s=0;for(let i=1;i<=5;i++)s+=num(val('cos-d'+i))||0;
   const el=document.getElementById('cos-caltot');if(el)el.textContent='Suma de defectos: '+(n?Math.round(s/n*1000)/10:0)+'%'+(n&&s>n?' (ojo: más defectos que frutos; un fruto puede tener varios)':'');
 };
 window.cosGuardar=async function(){
@@ -4425,7 +4439,7 @@ window.cosGuardar=async function(){
   S.busy=false;if(b)b.disabled=false;
   if(error){toast('⚠ No se pudo guardar: '+(error.message||'error'),'warn');return;}
   toast('✓ Registro guardado');
-  S.data={};S.foto=null;S.fotoMini=null;const fp=document.getElementById('cos-foto-prev');if(fp)fp.innerHTML='';const fi=document.getElementById('cos-foto');if(fi)fi.value='';
+  S.data={};S.foto=null;S.fotoMini=null;const fp=document.getElementById('cos-foto-prev');if(fp)fp.innerHTML='';['cos-foto','cos-foto-cam'].forEach(id=>{const fi=document.getElementById(id);if(fi)fi.value='';});
   const ids=t==='cal'?['cos-d1','cos-d2','cos-d3','cos-d4','cos-d5','cos-d6','cos-d7','cos-obs']:t==='ren'?['cos-bins','cos-kg','cos-hr','cos-obs']:['cos-hil','cos-pla','cos-dej','cos-cai','cos-dan','cos-obs'];
   ids.forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   if(t==='cal')cosCalTot();
@@ -4479,7 +4493,7 @@ function cosDatHtml(){
 }
 function cosExpBtn(){return`<button class="sbtn-g" style="background:#fff;color:${P};border:1.5px solid ${P};margin-top:4px" onclick="cosCSV()"><i class="ti ti-download"></i> Descargar CSV (${S.dv==='hoy'?'hoy':'todo'})</button>`;}
 const DEF=[['machucon','Machucón'],['herida_abierta','Herida ab.'],['pudricion','Pudrición'],['sin_pedicelo','Sin pedic.'],['fuera_color','F. color'],['partidura','Partidura'],['bajo_calibre','Bajo calibre']];
-function aggCal(arr){const n=arr.reduce((s,r)=>s+(r.n_frutos||0),0);const o={n,m:arr.length,tot:0};DEF.forEach(([k])=>{o[k]=arr.reduce((s,r)=>s+(r[k]||0),0);o.tot+=o[k];});return o;}
+function aggCal(arr){const n=arr.reduce((s,r)=>s+(r.n_frutos||0),0);const o={n,m:arr.length,tot:0};DEF.forEach(([k])=>{o[k]=arr.reduce((s,r)=>s+(r[k]||0),0);if(DEFK.includes(k))o.tot+=o[k];});return o;}
 function datCal(a){
   const g=aggCal(a);
   let h=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px"><div class="scard"><div class="slbl">Muestras</div><div class="sval">${g.m}</div></div><div class="scard"><div class="slbl">Frutos</div><div class="sval">${f0(g.n)}</div></div><div class="scard"><div class="slbl">Defectos</div><div class="sval" style="color:${PD}">${pc(g.tot,g.n)}</div></div></div>`;
