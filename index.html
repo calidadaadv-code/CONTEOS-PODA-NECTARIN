@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.34.1 -->
+  <!-- v7.35.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4333,15 +4333,9 @@ function cosImgResumen(rows,fecha,hora){
   const cl=Object.values(cm).sort((a,b)=>a.v.localeCompare(b.v,'es')||a.c.localeCompare(b.c,'es',{numeric:true}));
   const vm={};rows.forEach(r=>{const vv=(r.variedad||vari(r.cuartel)||'—');const o=vm[vv]||(vm[vv]={v:vv,m:0,n:0,c:new Set(),d:{}});o.m++;o.n+=r.n_frutos||0;o.c.add(r.cuartel);RD.forEach(([k])=>{o.d[k]=(o.d[k]||0)+(r[k]||0);});});
   const vl=Object.values(vm).sort((a,b)=>a.v.localeCompare(b.v,'es'));
-  // Promedio por hora de cada cuadrilla (cada hora usa solo los controles de esa hora)
-  const hm={};rows.forEach(r=>{const hh=String(r.timestamp).slice(11,13);if(!/^\d\d$/.test(hh))return;const key=r.cuartel+'|'+(r.supervisor||'')+'|'+(r.contratista||'');
-    const o=hm[key]||(hm[key]={c:r.cuartel,v:(r.variedad||vari(r.cuartel)||'—'),sup:r.supervisor||'—',comp:r.contratista||'—',h:{}});
-    const q=o.h[hh]||(o.h[hh]={m:0,n:0,d:{}});q.m++;q.n+=r.n_frutos||0;RD.forEach(([k])=>{q.d[k]=(q.d[k]||0)+(r[k]||0);});});
-  const hl=Object.values(hm).sort((a,b)=>a.v.localeCompare(b.v,'es')||a.c.localeCompare(b.c,'es',{numeric:true})||a.sup.localeCompare(b.sup,'es')||a.comp.localeCompare(b.comp,'es'));
   let H=54+24;g.forEach(x=>{H+=BH+HH+x.cuarteles.reduce((s,c)=>s+c.filas.length*RH,0)+14;});
   H+=BH+HH+cl.length*RH+14;
   H+=BH+HH+vl.length*RH+14;
-  if(hl.length)H+=BH+HH+hl.reduce((s,o)=>s+RH+Object.keys(o.h).length*RH+6,0)+14;
   const cv=document.createElement('canvas');cv.width=W*S2;cv.height=H*S2;const x=cv.getContext('2d');x.scale(S2,S2);
   x.fillStyle='#fff';x.fillRect(0,0,W,H);
   const fit=(t,w)=>{t=String(t);if(x.measureText(t).width<=w-8)return t;while(t.length>1&&x.measureText(t+'…').width>w-8)t=t.slice(0,-1);return t+'…';};
@@ -4388,26 +4382,8 @@ function cosImgResumen(rows,fecha,hora){
     });
     y+=14;
   });
-  // Promedio por hora por cuadrilla
-  if(hl.length){
-    x.fillStyle='#E4F3EA';x.fillRect(12,y,W-24,BH);x.fillStyle='#0F5132';x.font='bold 15px Arial, sans-serif';x.textAlign='left';x.textBaseline='middle';x.fillText('PROMEDIO POR HORA · CADA CUADRILLA (cada hora considera solo los controles de esa hora)',20,y+BH/2);y+=BH;
-    let px=12;cell(['CUARTEL /','VARIEDAD'],px,y,CW[0],HH,'#E9ECF1',{font:'italic 12px Arial, sans-serif'});px+=CW[0];
-    cell(['SUPERVISOR · CONTRATISTA','HORA · MUESTRAS'],px,y,CW[1]+CW[2],HH,'#E9ECF1',{font:'italic 12px Arial, sans-serif'});px+=CW[1]+CW[2];
-    RD.forEach(([k,l],i)=>{cell(l,px,y,CW[3+i],HH,'#7F8FB1',{col:'#fff',font:'12px Arial, sans-serif'});px+=CW[3+i];});
-    cell(['% SUMATORIA','DEFECTOS'],px,y,CW[9],HH,'#FFF2CC',{font:'bold 12px Arial, sans-serif'});y+=HH;
-    hl.forEach(o=>{
-      px=12;cell(o.c+' - '+o.v.toUpperCase(),px,y,CW[0],RH,'#DDE3EE',{al:'left',font:'bold 12px Arial, sans-serif'});px+=CW[0];
-      cell(o.sup+'  ·  '+o.comp,px,y,W-24-CW[0],RH,'#DDE3EE',{al:'left',font:'bold 12px Arial, sans-serif'});y+=RH;
-      Object.keys(o.h).sort().forEach(hh=>{const q=o.h[hh];
-        px=12;cell('',px,y,CW[0],RH,'#F4F5F7');px+=CW[0];
-        cell('Hora '+hh+':00  ·  '+q.m+' muestra'+(q.m===1?'':'s')+' · '+q.n+' frutos',px,y,CW[1]+CW[2],RH,'#fff',{al:'left'});px+=CW[1]+CW[2];
-        let sm=0;RD.forEach(([k],j)=>{const v=q.n?q.d[k]/q.n*100:0;if(k!=='partidura')sm+=v;cell(pf(v),px,y,CW[3+j],RH,colorDe(k,v));px+=CW[3+j];});
-        cell(pf(sm),px,y,CW[9],RH,colorDe('suma',sm),{font:'bold 13px Arial, sans-serif'});y+=RH;});
-      y+=6;});
-    y+=8;
-  }
   x.fillStyle='#666';x.font='11px Arial, sans-serif';x.textAlign='left';x.textBaseline='middle';
-  x.fillText('Orden: variedad, cuartel, supervisor y por hora. Verde: bueno · Amarillo: regular · Rojo: malo (tolerancias de cosecha). La sumatoria no incluye partidura, que se muestra aparte.',14,H-12);
+  x.fillText('Orden: variedad, cuartel y supervisor. Verde: bueno · Amarillo: regular · Rojo: malo (tolerancias de cosecha). La sumatoria no incluye partidura, que se muestra aparte.',14,H-12);
   return cv.toDataURL('image/png');
 }
 window.cosVerImg=function(key){
