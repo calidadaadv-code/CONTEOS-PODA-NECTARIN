@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.33.1 -->
+  <!-- v7.34.1 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4287,7 +4287,7 @@ S.imgs={};S.snapCache={};S.newIds=new Set();S.todayAll=[];S.resFecha='';S.resKey
 S.hOpen=S.hOpen||{};
 window.cosHTog=function(k,o){if(o)S.hOpen[k]=1;else delete S.hOpen[k];};
 function cosHoraHtml(rows,pfx){
-  if(!rows||!rows.length)return'';
+  if(!rows||!rows.length)return'';rows=fuseComp(rows);
   const m={};
   rows.forEach(r=>{const hh=String(r.timestamp).slice(11,13);if(!/^\d\d$/.test(hh))return;
     const sup=r.supervisor||'—',comp=r.contratista||'—',key=sup+'|'+comp;
@@ -4306,6 +4306,15 @@ function cosHoraHtml(rows,pfx){
     return`<details ${S.hOpen[k]?'open':''} ontoggle="cosHTog(this.dataset.k,this.open)" data-k="${E(k)}" style="border:1px solid #c9b8f0;border-radius:10px;margin-bottom:8px;background:#fff;overflow:hidden"><summary style="padding:10px 12px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px"><span><b style="font-size:14px">${E(o.sup)}</b><br><span style="font-size:12px;color:var(--tm)">${E(o.comp)} · ${[...o.cu].sort().join(', ')}</span></span><span style="font-size:11px;color:${PD};white-space:nowrap">Ver por hora ▾</span></summary><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><tr><th style="${th}">HORA</th>${RD.map(([kk])=>`<th style="${th}">${ab[kk]}</th>`).join('')}<th style="${th};background:#E0B800;color:#111">SUMA</th></tr>${rowsH}</table></div></details>`;}).join('');
   return`<div style="border:1px solid #c9b8f0;border-radius:12px;padding:10px 12px;margin-bottom:10px;background:${PC}"><div style="margin-bottom:8px"><b style="font-size:13px;color:${PD}">🕐 Promedio por hora · toca el supervisor</b><div style="font-size:10px;font-family:var(--mo);color:var(--tm)">cada hora usa solo los controles de esa hora</div></div>${body}</div>`;
 }
+/* un solo contratista por supervisor: se usa el más frecuente (ignora vacíos) */
+const FUSION_DESDE='2026-11-23';
+function fuseComp(rows){
+  const ok=r=>String(r.timestamp).slice(0,10)>=FUSION_DESDE;
+  const cnt={};
+  rows.forEach(r=>{if(!ok(r))return;const sp=(r.supervisor||'').trim().toUpperCase(),c=(r.contratista||'').trim();if(!sp||!c)return;((cnt[sp]=cnt[sp]||{})[c]=(cnt[sp][c]||0)+1);});
+  const best={};Object.keys(cnt).forEach(sp=>{best[sp]=Object.keys(cnt[sp]).sort((a,b)=>cnt[sp][b]-cnt[sp][a]||a.localeCompare(b,'es'))[0];});
+  return rows.map(r=>{if(!ok(r))return r;const sp=(r.supervisor||'').trim().toUpperCase();return best[sp]?Object.assign({},r,{contratista:best[sp]}):r;});
+}
 function resAgg(rows){
   const m={};
   rows.forEach(r=>{
@@ -4318,7 +4327,7 @@ function resAgg(rows){
   return Object.keys(vars).sort().map(v=>({v,cuarteles:Object.keys(vars[v]).sort((a,b)=>a.localeCompare(b,'es',{numeric:true})).map(c=>({c,filas:vars[v][c].sort((a,b)=>a.sup.localeCompare(b.sup,'es')||a.comp.localeCompare(b.comp,'es'))}))}));
 }
 function cosImgResumen(rows,fecha,hora){
-  const g=resAgg(rows);if(!g.length)return null;
+  rows=fuseComp(rows);const g=resAgg(rows);if(!g.length)return null;
   const S2=2,CW=[120,210,220,96,96,96,96,96,96,100],W=CW.reduce((a,b)=>a+b,0)+24,RH=28,HH=44,BH=28;
   const cm={};rows.forEach(r=>{const o=cm[r.cuartel]||(cm[r.cuartel]={c:r.cuartel,v:(r.variedad||vari(r.cuartel)||'—'),m:0,n:0,d:{}});o.m++;o.n+=r.n_frutos||0;RD.forEach(([k])=>{o.d[k]=(o.d[k]||0)+(r[k]||0);});});
   const cl=Object.values(cm).sort((a,b)=>a.v.localeCompare(b.v,'es')||a.c.localeCompare(b.c,'es',{numeric:true}));
