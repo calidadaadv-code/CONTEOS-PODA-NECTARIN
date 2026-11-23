@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.28.0 -->
+  <!-- v7.32.0 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4283,6 +4283,29 @@ const nivel=(k,v)=>{const u=UMB[k];return v<=u[0]?0:v<=u[1]?1:2;};
 const colorDe=(k,v)=>UMB[k]?[CV,CA,CR][nivel(k,v)]:'#F4F5F7';
 const pf=v=>(Math.round(v*100)/100).toFixed(2).replace('.',',')+'%';
 S.imgs={};S.snapCache={};S.newIds=new Set();S.todayAll=[];S.resFecha='';S.resKey=null;
+/* detalle por hora (desplegable por supervisor) */
+S.hOpen=S.hOpen||{};
+window.cosHTog=function(k,o){if(o)S.hOpen[k]=1;else delete S.hOpen[k];};
+function cosHoraHtml(rows,pfx){
+  if(!rows||!rows.length)return'';
+  const m={};
+  rows.forEach(r=>{const hh=String(r.timestamp).slice(11,13);if(!/^\d\d$/.test(hh))return;
+    const sup=r.supervisor||'—',comp=r.contratista||'—',key=sup+'|'+comp;
+    const o=m[key]||(m[key]={sup,comp,cu:new Set(),h:{}});o.cu.add(r.cuartel);
+    const q=o.h[hh]||(o.h[hh]={m:0,n:0,d:{}});q.m++;q.n+=r.n_frutos||0;RD.forEach(([k])=>{q.d[k]=(q.d[k]||0)+(r[k]||0);});});
+  const L=Object.values(m).sort((a,b)=>a.sup.localeCompare(b.sup,'es')||a.comp.localeCompare(b.comp,'es'));
+  if(!L.length)return'';
+  const ab={machucon:'Mach.',herida_abierta:'Herida',pudricion:'Pudr.',sin_pedicelo:'S/Ped.',fuera_color:'F/Color',partidura:'Partid.'};
+  const th='padding:5px 1px;font-size:9px;text-align:center;background:#7F8FB1;color:#fff;font-weight:600';
+  const td='padding:6px 1px;font-size:10.5px;letter-spacing:-.3px;text-align:center;font-family:var(--mo);border-top:1px solid #e3e5ea';
+  const body=L.map((o,i)=>{
+    const k=pfx+i+'|'+o.sup+'|'+o.comp;
+    const rowsH=Object.keys(o.h).sort().map(hh=>{const q=o.h[hh];let sm=0;
+      const cs=RD.map(([kk])=>{const v=q.n?q.d[kk]/q.n*100:0;if(kk!=='partidura')sm+=v;return`<td style="${td};background:${colorDe(kk,v)}">${pf(v)}</td>`;}).join('');
+      return`<tr><td style="${td};text-align:left;white-space:nowrap"><b>${hh}:00</b><br><span style="font-size:10px;color:var(--tm)">${q.m} mu.</span></td>${cs}<td style="${td};background:${colorDe('suma',sm)};font-weight:700">${pf(sm)}</td></tr>`;}).join('');
+    return`<details ${S.hOpen[k]?'open':''} ontoggle="cosHTog(this.dataset.k,this.open)" data-k="${E(k)}" style="border:1px solid #c9b8f0;border-radius:10px;margin-bottom:8px;background:#fff;overflow:hidden"><summary style="padding:10px 12px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px"><span><b style="font-size:14px">${E(o.sup)}</b><br><span style="font-size:12px;color:var(--tm)">${E(o.comp)} · ${[...o.cu].sort().join(', ')}</span></span><span style="font-size:11px;color:${PD};white-space:nowrap">Ver por hora ▾</span></summary><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><tr><th style="${th}">HORA</th>${RD.map(([kk])=>`<th style="${th}">${ab[kk]}</th>`).join('')}<th style="${th};background:#E0B800;color:#111">SUMA</th></tr>${rowsH}</table></div></details>`;}).join('');
+  return`<div style="border:1px solid #c9b8f0;border-radius:12px;padding:10px 12px;margin-bottom:10px;background:${PC}"><div style="margin-bottom:8px"><b style="font-size:13px;color:${PD}">🕐 Promedio por hora · toca el supervisor</b><div style="font-size:10px;font-family:var(--mo);color:var(--tm)">cada hora usa solo los controles de esa hora</div></div>${body}</div>`;
+}
 function resAgg(rows){
   const m={};
   rows.forEach(r=>{
@@ -4297,7 +4320,19 @@ function resAgg(rows){
 function cosImgResumen(rows,fecha,hora){
   const g=resAgg(rows);if(!g.length)return null;
   const S2=2,CW=[120,210,220,96,96,96,96,96,96,100],W=CW.reduce((a,b)=>a+b,0)+24,RH=28,HH=44,BH=28;
+  const cm={};rows.forEach(r=>{const o=cm[r.cuartel]||(cm[r.cuartel]={c:r.cuartel,v:(r.variedad||vari(r.cuartel)||'—'),m:0,n:0,d:{}});o.m++;o.n+=r.n_frutos||0;RD.forEach(([k])=>{o.d[k]=(o.d[k]||0)+(r[k]||0);});});
+  const cl=Object.values(cm).sort((a,b)=>a.v.localeCompare(b.v,'es')||a.c.localeCompare(b.c,'es',{numeric:true}));
+  const vm={};rows.forEach(r=>{const vv=(r.variedad||vari(r.cuartel)||'—');const o=vm[vv]||(vm[vv]={v:vv,m:0,n:0,c:new Set(),d:{}});o.m++;o.n+=r.n_frutos||0;o.c.add(r.cuartel);RD.forEach(([k])=>{o.d[k]=(o.d[k]||0)+(r[k]||0);});});
+  const vl=Object.values(vm).sort((a,b)=>a.v.localeCompare(b.v,'es'));
+  // Promedio por hora de cada cuadrilla (cada hora usa solo los controles de esa hora)
+  const hm={};rows.forEach(r=>{const hh=String(r.timestamp).slice(11,13);if(!/^\d\d$/.test(hh))return;const key=r.cuartel+'|'+(r.supervisor||'')+'|'+(r.contratista||'');
+    const o=hm[key]||(hm[key]={c:r.cuartel,v:(r.variedad||vari(r.cuartel)||'—'),sup:r.supervisor||'—',comp:r.contratista||'—',h:{}});
+    const q=o.h[hh]||(o.h[hh]={m:0,n:0,d:{}});q.m++;q.n+=r.n_frutos||0;RD.forEach(([k])=>{q.d[k]=(q.d[k]||0)+(r[k]||0);});});
+  const hl=Object.values(hm).sort((a,b)=>a.v.localeCompare(b.v,'es')||a.c.localeCompare(b.c,'es',{numeric:true})||a.sup.localeCompare(b.sup,'es')||a.comp.localeCompare(b.comp,'es'));
   let H=54+24;g.forEach(x=>{H+=BH+HH+x.cuarteles.reduce((s,c)=>s+c.filas.length*RH,0)+14;});
+  H+=BH+HH+cl.length*RH+14;
+  H+=BH+HH+vl.length*RH+14;
+  if(hl.length)H+=BH+HH+hl.reduce((s,o)=>s+RH+Object.keys(o.h).length*RH+6,0)+14;
   const cv=document.createElement('canvas');cv.width=W*S2;cv.height=H*S2;const x=cv.getContext('2d');x.scale(S2,S2);
   x.fillStyle='#fff';x.fillRect(0,0,W,H);
   const fit=(t,w)=>{t=String(t);if(x.measureText(t).width<=w-8)return t;while(t.length>1&&x.measureText(t+'…').width>w-8)t=t.slice(0,-1);return t+'…';};
@@ -4322,8 +4357,48 @@ function cosImgResumen(rows,fecha,hora){
     });
     y+=14;
   });
+  // Promedio de defectos por variedad
+  x.fillStyle='#F3E8F7';x.fillRect(12,y,W-24,BH);x.fillStyle='#5B1F6E';x.font='bold 15px Arial, sans-serif';x.textAlign='left';x.textBaseline='middle';x.fillText('PROMEDIO DE DEFECTOS POR VARIEDAD',20,y+BH/2);y+=BH;
+  {let px=12;cell('VARIEDAD',px,y,CW[0],HH,'#E9ECF1',{font:'italic 12px Arial, sans-serif'});px+=CW[0];
+   cell('MUESTRAS REVISADAS',px,y,CW[1]+CW[2],HH,'#E9ECF1',{font:'italic 12px Arial, sans-serif'});px+=CW[1]+CW[2];
+   RD.forEach(([k,l],i)=>{cell(l,px,y,CW[3+i],HH,'#7F8FB1',{col:'#fff',font:'12px Arial, sans-serif'});px+=CW[3+i];});
+   cell(['% SUMATORIA','DEFECTOS'],px,y,CW[9],HH,'#FFF2CC',{font:'bold 12px Arial, sans-serif'});y+=HH;
+   vl.forEach(o=>{px=12;cell(o.v.toUpperCase(),px,y,CW[0],RH,'#F4F5F7',{al:'left',font:'bold 12px Arial, sans-serif'});px+=CW[0];
+     cell(o.c.size+' cuartel'+(o.c.size===1?'':'es')+' · '+o.m+' muestra'+(o.m===1?'':'s')+' · '+o.n+' frutos',px,y,CW[1]+CW[2],RH,'#fff');px+=CW[1]+CW[2];
+     let sm=0;RD.forEach(([k],j)=>{const v=o.n?o.d[k]/o.n*100:0;if(k!=='partidura')sm+=v;cell(pf(v),px,y,CW[3+j],RH,colorDe(k,v));px+=CW[3+j];});
+     cell(pf(sm),px,y,CW[9],RH,colorDe('suma',sm),{font:'bold 13px Arial, sans-serif'});y+=RH;});
+   y+=14;}
+  // Promedio de defectos por cuartel
+  x.fillStyle='#E1EDF7';x.fillRect(12,y,W-24,BH);x.fillStyle='#14405C';x.font='bold 15px Arial, sans-serif';x.textAlign='left';x.textBaseline='middle';x.fillText('PROMEDIO DE DEFECTOS POR CUARTEL',20,y+BH/2);y+=BH;
+  {let px=12;cell(['CUARTEL /','VARIEDAD'],px,y,CW[0],HH,'#E9ECF1',{font:'italic 12px Arial, sans-serif'});px+=CW[0];
+   cell('MUESTRAS REVISADAS',px,y,CW[1]+CW[2],HH,'#E9ECF1',{font:'italic 12px Arial, sans-serif'});px+=CW[1]+CW[2];
+   RD.forEach(([k,l],i)=>{cell(l,px,y,CW[3+i],HH,'#7F8FB1',{col:'#fff',font:'12px Arial, sans-serif'});px+=CW[3+i];});
+   cell(['% SUMATORIA','DEFECTOS'],px,y,CW[9],HH,'#FFF2CC',{font:'bold 12px Arial, sans-serif'});y+=HH;
+   cl.forEach(o=>{px=12;cell(o.c+' - '+o.v.toUpperCase(),px,y,CW[0],RH,'#F4F5F7',{al:'left',font:'bold 12px Arial, sans-serif'});px+=CW[0];
+     cell(o.m+' muestra'+(o.m===1?'':'s')+' · '+o.n+' frutos',px,y,CW[1]+CW[2],RH,'#fff');px+=CW[1]+CW[2];
+     let sm=0;RD.forEach(([k],j)=>{const v=o.n?o.d[k]/o.n*100:0;if(k!=='partidura')sm+=v;cell(pf(v),px,y,CW[3+j],RH,colorDe(k,v));px+=CW[3+j];});
+     cell(pf(sm),px,y,CW[9],RH,colorDe('suma',sm),{font:'bold 13px Arial, sans-serif'});y+=RH;});
+   y+=14;}
+  // Promedio por hora por cuadrilla
+  if(hl.length){
+    x.fillStyle='#E4F3EA';x.fillRect(12,y,W-24,BH);x.fillStyle='#0F5132';x.font='bold 15px Arial, sans-serif';x.textAlign='left';x.textBaseline='middle';x.fillText('PROMEDIO POR HORA · CADA CUADRILLA (cada hora considera solo los controles de esa hora)',20,y+BH/2);y+=BH;
+    let px=12;cell(['CUARTEL /','VARIEDAD'],px,y,CW[0],HH,'#E9ECF1',{font:'italic 12px Arial, sans-serif'});px+=CW[0];
+    cell(['SUPERVISOR · CONTRATISTA','HORA · MUESTRAS'],px,y,CW[1]+CW[2],HH,'#E9ECF1',{font:'italic 12px Arial, sans-serif'});px+=CW[1]+CW[2];
+    RD.forEach(([k,l],i)=>{cell(l,px,y,CW[3+i],HH,'#7F8FB1',{col:'#fff',font:'12px Arial, sans-serif'});px+=CW[3+i];});
+    cell(['% SUMATORIA','DEFECTOS'],px,y,CW[9],HH,'#FFF2CC',{font:'bold 12px Arial, sans-serif'});y+=HH;
+    hl.forEach(o=>{
+      px=12;cell(o.c+' - '+o.v.toUpperCase(),px,y,CW[0],RH,'#DDE3EE',{al:'left',font:'bold 12px Arial, sans-serif'});px+=CW[0];
+      cell(o.sup+'  ·  '+o.comp,px,y,W-24-CW[0],RH,'#DDE3EE',{al:'left',font:'bold 12px Arial, sans-serif'});y+=RH;
+      Object.keys(o.h).sort().forEach(hh=>{const q=o.h[hh];
+        px=12;cell('',px,y,CW[0],RH,'#F4F5F7');px+=CW[0];
+        cell('Hora '+hh+':00  ·  '+q.m+' muestra'+(q.m===1?'':'s')+' · '+q.n+' frutos',px,y,CW[1]+CW[2],RH,'#fff',{al:'left'});px+=CW[1]+CW[2];
+        let sm=0;RD.forEach(([k],j)=>{const v=q.n?q.d[k]/q.n*100:0;if(k!=='partidura')sm+=v;cell(pf(v),px,y,CW[3+j],RH,colorDe(k,v));px+=CW[3+j];});
+        cell(pf(sm),px,y,CW[9],RH,colorDe('suma',sm),{font:'bold 13px Arial, sans-serif'});y+=RH;});
+      y+=6;});
+    y+=8;
+  }
   x.fillStyle='#666';x.font='11px Arial, sans-serif';x.textAlign='left';x.textBaseline='middle';
-  x.fillText('Acumulado por cuadrilla. Verde: bueno · Amarillo: regular · Rojo: malo (tolerancias de cosecha). La sumatoria no incluye partidura, que se muestra aparte.',14,H-12);
+  x.fillText('Acumulado por cuadrilla y promedio por hora. Verde: bueno · Amarillo: regular · Rojo: malo (tolerancias de cosecha). La sumatoria no incluye partidura, que se muestra aparte.',14,H-12);
   return cv.toDataURL('image/png');
 }
 window.cosVerImg=function(key){
@@ -4368,7 +4443,7 @@ function cosFeedItems(){
 function cosFeedInner(){
   if(!S.feedOk)return'<div class="empty">Cargando...</div>';
   const it=cosFeedItems();if(!it.length)return'<div class="empty"><i class="ti ti-camera"></i><br>Aún no hay registros de calidad.</div>';
-  return it.map(x=>x.s?snapCard(x.s,S.newIds.has('s'+x.s.key)):cosCard(x.r,S.newIds.has(x.r.id))).join('');
+  return cosHoraHtml(S.todayAll,'v')+it.map(x=>x.s?snapCard(x.s,S.newIds.has('s'+x.s.key)):cosCard(x.r,S.newIds.has(x.r.id))).join('');
 }
 function cosFeedHtml(){
   return`<div style="font-size:11px;font-family:var(--mo);color:var(--tm);margin-bottom:10px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#1D9E75;display:inline-block"></span>En vivo · se actualiza solo · resumen de cuadrillas cada 15 min</div><div id="cos-feed">${cosFeedInner()}</div>`;
@@ -4402,8 +4477,8 @@ window.cosResCargar=async function(){
   if(error){toast('⚠ No se pudo cargar','warn');return;}
   const d=new Date();const hh=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   const u=cosImgResumen(data||[],f,f===hoyTxt()?hh:'día completo');
-  S.resKey='res'+f;S.imgs[S.resKey]=u;
-  if(el)el.innerHTML=u?`<img src="${u}" onclick="cosVerImg('${S.resKey}')" style="width:100%;border:1px solid var(--gb2);border-radius:8px;cursor:pointer"><button class="sbtn-g" style="background:${P};margin-top:10px" onclick="cosShareImg('${S.resKey}','resumen-cosecha-${f}')"><i class="ti ti-share"></i> Compartir / descargar imagen</button><div style="font-size:11px;font-family:var(--mo);color:var(--tm);text-align:center;margin-top:8px">${(data||[]).length} muestras · toca la imagen para verla completa</div>`:'<div class="empty"><i class="ti ti-basket"></i><br>Sin muestras de calidad en esta fecha.</div>';
+  S.resKey='res'+f;S.imgs[S.resKey]=u;S.resRows=data||[];
+  if(el)el.innerHTML=(u?cosHoraHtml(S.resRows,'r'):'')+(u?`<img src="${u}" onclick="cosVerImg('${S.resKey}')" style="width:100%;border:1px solid var(--gb2);border-radius:8px;cursor:pointer"><button class="sbtn-g" style="background:${P};margin-top:10px" onclick="cosShareImg('${S.resKey}','resumen-cosecha-${f}')"><i class="ti ti-share"></i> Compartir / descargar imagen</button><div style="font-size:11px;font-family:var(--mo);color:var(--tm);text-align:center;margin-top:8px">${(data||[]).length} muestras · toca la imagen para verla completa</div>`:'<div class="empty"><i class="ti ti-basket"></i><br>Sin muestras de calidad en esta fecha.</div>');
 };
 function cosResHtml(){
   return`<div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px"><div class="fgrp" style="flex:1"><label class="flbl">Fecha</label><input class="finp" type="date" id="cos-res-f" value="${S.resFecha||hoyTxt()}" onchange="cosResCargar()"></div><button class="tog-btn" style="flex:none;padding:10px 14px" onclick="cosResCargar()">Actualizar</button></div><div id="cos-res-img"></div>`;
