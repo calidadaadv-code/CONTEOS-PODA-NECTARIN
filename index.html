@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- v7.36.0 -->
+  <!-- v7.36.1 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Conteos de Poda — AADV 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -4220,8 +4220,8 @@ function cosIngHtml(){
   h+=`<div class="form-body">${comunes()}`;
   if(S.tipo==='cal'){
     h+=`<div style="font-size:11px;color:var(--tm);font-family:var(--mo);margin:4px 0 8px">Revisa una muestra de frutos y anota cuántos presentan cada problema.</div>`;
-    h+=fld('Muestra (n° de frutos) — siempre 50','cos-nf','number','50','value="50" oninput="cosCalTot()"');
-    h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${CFG[ESP].form.map(([k,l])=>fld(l,FID[k],'number','0','oninput="cosCalTot()"')).join('')}</div>`;
+    h+=ESP==='nec'?fld('Total de frutos de la muestra (todos los del capacho)','cos-nf','number','Ej: 120','oninput="cosCalTot()"'):fld('Muestra (n° de frutos) — siempre 50','cos-nf','number','50','value="50" oninput="cosCalTot()"');
+    h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${CFG[ESP].form.map(([k,l])=>fld(ESP==='nec'?l+' <span id="cos-pc-'+k+'"></span>':l,FID[k],'number','0','oninput="cosCalTot()"')).join('')}</div>`;
     h+=`<div id="cos-caltot" style="font-family:var(--mo);font-size:12px;color:${PD};background:${PC};border-radius:8px;padding:8px 10px;margin-bottom:10px">Suma de defectos: 0%</div>`;
     h+=`<div class="fgrp" style="margin-bottom:10px"><label class="flbl">SIN HOJAS EN EL TOTE</label><select class="finp" id="cos-mv"><option value="">Seleccionar...</option><option>Cumple</option><option>No cumple</option></select></div><div class="fgrp" style="margin-bottom:10px"><label class="flbl">Llenado de bandeja</label><select class="finp" id="cos-llen"><option value="">Seleccionar...</option><option>Cumple</option><option>No cumple</option></select></div>`;
   }else if(S.tipo==='ren'){
@@ -4494,6 +4494,10 @@ function keep(){const o={};['cos-cua','cos-cosr','cos-uc','cos-sup','cos-comp','
 function restore(o){Object.keys(o).forEach(i=>{const el=document.getElementById(i);if(el)el.value=o[i];});}
 window.cosCalTot=function(){
   const n=num(val('cos-nf'))||0;let s=0;DEFK.forEach(k=>{s+=num(val(FID[k]))||0;});
+  if(ESP==='nec')CFG.nec.form.forEach(([k])=>{const sp=document.getElementById('cos-pc-'+k);if(!sp)return;const d=num(val(FID[k]));
+    if(!n||d===null||val(FID[k])===''){sp.textContent='';sp.style.cssText='';return;}
+    const v=Math.round(d/n*1000)/10;sp.textContent=String(v).replace('.',',')+'%';
+    sp.style.cssText='display:inline-block;margin-left:6px;padding:1px 8px;border-radius:6px;font-weight:700;font-size:12px;color:#111;background:'+colorDe(k,v);});
   const el=document.getElementById('cos-caltot');if(el)el.textContent='Suma de defectos: '+(n?Math.round(s/n*1000)/10:0)+'%'+(n&&s>n?' (ojo: más defectos que frutos; un fruto puede tener varios)':'');
 };
 window.cosGuardar=async function(){
@@ -4519,7 +4523,7 @@ window.cosGuardar=async function(){
   if(error){toast('⚠ No se pudo guardar: '+(error.message||'error'),'warn');return;}
   toast('✓ Registro guardado');
   S.data={};S.foto=null;S.fotoMini=null;const fp=document.getElementById('cos-foto-prev');if(fp)fp.innerHTML='';['cos-foto','cos-foto-cam'].forEach(id=>{const fi=document.getElementById(id);if(fi)fi.value='';});
-  const ids=t==='cal'?['cos-d1','cos-d2','cos-d3','cos-d4','cos-d5','cos-d6','cos-d7','cos-d8','cos-obs']:t==='ren'?['cos-bins','cos-kg','cos-hr','cos-obs']:['cos-hil','cos-pla','cos-dej','cos-cai','cos-dan','cos-obs'];
+  const ids=t==='cal'?[...(ESP==='nec'?['cos-nf']:[]),'cos-d1','cos-d2','cos-d3','cos-d4','cos-d5','cos-d6','cos-d7','cos-d8','cos-obs']:t==='ren'?['cos-bins','cos-kg','cos-hr','cos-obs']:['cos-hil','cos-pla','cos-dej','cos-cai','cos-dan','cos-obs'];
   ids.forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   if(t==='cal')cosCalTot();
   cosMisRegistros();
